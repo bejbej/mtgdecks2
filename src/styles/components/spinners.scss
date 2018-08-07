@@ -1,0 +1,14 @@
+@import "10-fading-circle.scss";
+
+@font-face {
+    font-family: icons;
+    src: url("../fonts/icons.otf"), url("../fonts/icons.ttf");
+}
+
+.icon {
+    font-family: "icons";
+}
+
+.light>.sk-fading-circle>.sk-circle:before {
+    background-color: white;
+}

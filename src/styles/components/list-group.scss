@@ -1,0 +1,20 @@
+.list-group {
+    margin: 0px;
+    >.list-group-item {
+        display: block;
+        padding: 10px 15px;
+        margin-bottom: -1px;
+        background-color: #fff;
+        color: #555;
+        text-decoration: none;
+
+        &:not(:first-child) {
+            border-top: 1px solid #ddd;
+        }
+
+        &:hover, &:focus {
+            color: #555;
+            background-color: #f5f5f5;
+        }
+    }
+}

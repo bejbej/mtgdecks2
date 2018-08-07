@@ -1,0 +1,58 @@
+<header class="flex padding-h-lte-sm" *ngIf="!isEditing">
+    <button class="header-button text-left-gte-sm" (click)="showToolbar = !showToolbar">
+        <div>{{cardGroup.name}} <span class="icon" *ngIf="cards.length > 0">{{showToolbar ? "7" : "4"}}</span></div>
+        <div class="small light">{{count}} cards <span class="price" *ngIf="usd">&#8226; ${{usd | number:'1.2-2'}}</span></div>
+    </button>
+    <button class="header-button" *ngIf="canEdit" (click)="startEditing()">Edit</button>
+</header>
+<header class="flex padding-h-lte-sm" *ngIf="isEditing">
+    <button class="header-button text-left-gte-sm" (click)="applyChanges()">
+        <div>{{cardGroup.name}} <span class="icon" *ngIf="cards.length > 0">{{showToolbar ? "7" : "4"}}</span></div>
+        <div class="small light">{{count}} cards <span class="price" *ngIf="usd">&#8226; ${{usd | number:'1.2-2'}}</span></div>
+    </button>
+    <span class="tab">Edit</span>
+</header>
+<form>
+    <div class="radio-group" [hidden]="cards.length === 0 || !showToolbar">
+        <label>
+            <input type="radio" name="view" checked="checked" (click)="setGroupFunc(cardGrouper.groupByType)"/>
+            Card Type
+        </label>
+        <label>
+            <input type="radio" name="view" (click)="setGroupFunc(cardGrouper.groupByColor)"/>
+            Color
+        </label>
+        <label>
+            <input type="radio" name="view" (click)="setGroupFunc(cardGrouper.groupByCmc)"/>
+            Converted Mana Cost
+        </label>
+        <label>
+            <input type="radio" name="view" (click)="setGroupFunc(cardGrouper.groupByName)"/>
+            Name
+        </label>
+        <label>
+            <input type="radio" name="view" (click)="setGroupFunc(cardGrouper.groupByPrice)"/>
+            Price
+        </label>
+    </div>
+</form>
+<div class="alert alert-danger margin" *ngIf="invalidCards.length > 0">
+    <p class="alert-title">Unknown Cards</p>
+    <span *ngFor="let card of invalidCards">{{card}}<br></span>
+</div>
+
+<div *ngIf="!isEditing">
+    <app-card-view [columns]="columns"></app-card-view>
+</div>
+<form class="margin" *ngIf="isEditing">
+    <textarea class="form-control has-bottom-buttons"
+        name="cardBlob"
+        placeholder="4x Island"
+        [(value)]="cardBlob"
+        [debounce]="2000"
+        autosize></textarea>
+    <div class="bottom-buttons">
+        <button class="btn btn-default" type="button" (click)="applyChanges()">Apply Changes</button>
+        <button class="btn btn-default" type="button" (click)="discardChanges()">Discard Changes</button>
+    </div>
+</form>

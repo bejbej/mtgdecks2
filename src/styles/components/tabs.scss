@@ -1,0 +1,41 @@
+.header-button {
+    height:44px;
+    min-width: 100px;
+    display: inline-block;
+    vertical-align: bottom;
+    text-align: center;
+    padding: 0 15px;
+    border: 1px solid transparent;
+
+    &:hover {
+        background-color: rgba(0,0,0,0.1);
+    }
+
+    @at-root button#{&} {
+        background-color: transparent;
+    }
+
+    &:not(button) {
+        line-height: 44px;
+    }
+}
+
+button.header-button:focus {
+    outline: none;
+}
+
+.tab {
+    display: inline-block;
+    height: 42px;
+    min-width: 100px;
+    padding: 0 15px;
+    margin-bottom: -1px;
+    vertical-align: bottom;
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 4px 4px 0 0;
+    border-bottom-color: white;
+    line-height: 36px;
+    text-align: center;
+    align-self: flex-end;
+}

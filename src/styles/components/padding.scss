@@ -1,0 +1,10 @@
+.padding {
+    padding: 10px 15px;
+}
+
+.padding-h-lte-sm {
+    @media (max-width: $screen-xs-max) {
+        padding-left: 5px;
+        padding-right: 5px;
+    }
+}

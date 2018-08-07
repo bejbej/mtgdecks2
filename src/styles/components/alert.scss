@@ -1,0 +1,17 @@
+.alert {
+    padding: 10px 15px;
+    border:1px solid #ddd;
+    border-left-width: 5px;
+
+    .alert-title {
+        font-weight: bold;
+    }
+}
+
+.alert.alert-danger {
+    border-left-color: red;
+
+    .alert-title {
+        color: red;
+    }
+}

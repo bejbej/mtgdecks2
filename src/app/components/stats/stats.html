@@ -1,0 +1,10 @@
+<div class="stat-group margin" *ngIf="stats && stats.length > 0">
+    <p class="large capitalize">Cmc</p>
+    <div class="stat-group-row" *ngFor="let stat of stats; let i = index">
+        <span class="name">{{i}}</span>
+        <span>&nbsp;</span>
+        <span class="bar">{{stat}}</span>
+        <span>&nbsp;</span>
+        <span class="light" *ngIf="stat.length > 0">{{stat.length}}</span>
+    </div>
+</div>
