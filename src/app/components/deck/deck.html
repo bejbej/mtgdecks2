@@ -38,7 +38,7 @@
                         [data]="cardGroup"
                         [shouldLoadPrices]="loadPrices"
                         [canEdit]="canWrite"
-                        [isEditing]="i === 0 && !deck.id"
+                        [isInitiallyEditing]="i === 0 && !deck.id"
                         (cardGroupChanged)="cardGroupChanged($event)"
                         (pricesLoaded)="pricesLoaded($event)"
                         (cardsChanged)="cardsChanged($event)"></app-card-group>

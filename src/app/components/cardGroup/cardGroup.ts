@@ -17,7 +17,7 @@ export class CardGroupComponent implements OnInit, OnDestroy {
     @Input("data") cardGroup: app.CardGroup;
     @Input() shouldLoadPrices: Observable<void>;
     @Input() canEdit: boolean;
-    @Input() isEditing: boolean;
+    @Input() isInitiallyEditing: boolean;
     @Output() cardGroupChanged: EventEmitter<app.CardGroup> = new EventEmitter<app.CardGroup>();
     @Output() pricesLoaded: EventEmitter<app.CardGroup> = new EventEmitter<app.CardGroup>();
     @Output() cardsChanged: EventEmitter<CardGroupData> = new EventEmitter<CardGroupData>();
@@ -33,6 +33,7 @@ export class CardGroupComponent implements OnInit, OnDestroy {
     private groupFunc: (cards: app.Card[]) => app.CardView[][];
 
     // State Tracking
+    isEditing: boolean;
     showToolbar: boolean = false;
     private isLoadingPrices: boolean;
 
@@ -50,7 +51,7 @@ export class CardGroupComponent implements OnInit, OnDestroy {
         this.parseCardBlob(this.cardGroup.cardBlob);
         this.shouldLoadPricesSubscription = this.shouldLoadPrices.subscribe(() => this.loadPrices());
         this.onCardsChanged();
-        if (this.isEditing) {
+        if (this.isInitiallyEditing) {
             this.startEditing();
         }
     }
