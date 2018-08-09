@@ -45,7 +45,7 @@ export class AuthComponent implements OnInit, OnDestroy {
     private sync = () => {
         let isLoggedIn = this.authService.isLoggedIn();
         if (this.isLoggedIn !== isLoggedIn) {
-            this.isLoggedIn = this.authService.isLoggedIn();
+            this.isLoggedIn = isLoggedIn;
             this.ref.markForCheck();
         }
     }
