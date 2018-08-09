@@ -29,8 +29,8 @@ export class DecksComponent implements OnInit, OnDestroy {
         if (tagState) {
             this.tags = tagState.all.sort();
             this.currentTag = tagState.current;
-            this.updateCurrentTagName();
         }
+        this.updateCurrentTagName();
         this.authSubscription = authService.subscribe(() => this.sync());
     }
 
@@ -116,6 +116,7 @@ export class DecksComponent implements OnInit, OnDestroy {
             delete this.decks;
             delete this.visibleDecks;
             delete this.currentTag;
+            this.isLoading = false;
             this.tags = [];
             this.updateCurrentTagName();
             if (this.decksSubscription) {
