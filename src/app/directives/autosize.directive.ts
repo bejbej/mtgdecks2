@@ -1,4 +1,4 @@
-import {ElementRef, Directive, Input, NgZone, SimpleChanges, OnInit, OnChanges, OnDestroy} from '@angular/core';
+import { ElementRef, Directive, Input, NgZone, SimpleChanges, OnInit, OnChanges, OnDestroy } from '@angular/core';
 
 @Directive({
     selector: 'textarea[autosize]'
@@ -29,7 +29,7 @@ export class AutosizeDirective implements OnInit, OnChanges, OnDestroy {
 
     ngOnChanges(simpleChange: SimpleChanges) {
         let value: any;
-        
+
         if (simpleChange.value !== undefined) {
             value = simpleChange.value.currentValue;
         }
@@ -39,7 +39,7 @@ export class AutosizeDirective implements OnInit, OnChanges, OnDestroy {
         else {
             return;
         }
-        
+
         // If the value is the same as the current element value there's no need to resize
         if (value === this.element.nativeElement.value) {
             return;
@@ -72,10 +72,11 @@ export class AutosizeDirective implements OnInit, OnChanges, OnDestroy {
     }
 
     private adjust = () => {
+        let currentScroll = document.documentElement.scrollTop;
         if (!this.element) {
             return;
         }
-        
+
         let element = this.element.nativeElement;
         element.style.overflow = 'hidden';
         element.style.height = 'auto';
@@ -87,18 +88,19 @@ export class AutosizeDirective implements OnInit, OnChanges, OnDestroy {
             element.style.overflow = 'auto';
             height = this.minRows * lineHeight;
 
-        } else if(this.maxRows && this.maxRows <= rowsCount) {
+        } else if (this.maxRows && this.maxRows <= rowsCount) {
             element.style.overflow = 'auto';
             height = this.maxRows * lineHeight;
         }
         element.style.height = height + "px";
+        document.documentElement.scrollTo({ top: currentScroll });
     }
 
     private getLineHeight = (element) => {
         let lineHeight = parseInt(element.style.lineHeight, 10);
         if (isNaN(lineHeight)) {
             let fontSize = window.getComputedStyle(element, null).getPropertyValue('font-size');
-            lineHeight = Math.floor(parseInt(fontSize.replace('px','')) * 1.5);
+            lineHeight = Math.floor(parseInt(fontSize.replace('px', '')) * 1.5);
         }
 
         return lineHeight;
