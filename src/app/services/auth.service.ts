@@ -22,13 +22,24 @@ export class AuthService {
     }
 
     logIn = async (): Promise<any> => {
+        if (this.isLoggingIn || this.isAuthenticated) {
+            return;
+        }
+
         this.isLoggingIn = true;
-        await this.auth.authenticate("google").toPromise();
-        let url = this.url + "/me";
-        let user = await this.http.post(url, undefined).toPromise();
-        localStorage.setItem(this.userKey, JSON.stringify(user));
-        this.isLoggingIn = false;
-        this.updateAuthenticationStatus();
+        try {
+            await this.auth.authenticate("google").toPromise();
+            let url = this.url + "/me";
+            let user = await this.http.post(url, undefined).toPromise();
+            localStorage.setItem(this.userKey, JSON.stringify(user));
+        }
+        catch {
+            await this.auth.logout().toPromise();
+        }
+        finally {
+            this.isLoggingIn = false;
+            this.updateAuthenticationStatus();
+        }
     }
 
     logout = async (): Promise<any> => {
@@ -73,7 +84,10 @@ export class AuthService {
     }
 
     private updateAuthenticationStatus = (): void => {
-        this.isAuthenticated = this.auth.isAuthenticated();
-        this.subject.next();
+        let isAuthenticated = this.auth.isAuthenticated();
+        if (this.isAuthenticated !== isAuthenticated) {
+            this.isAuthenticated = this.auth.isAuthenticated();
+            this.subject.next();
+        }
     }
 }

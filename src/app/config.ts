@@ -4,11 +4,11 @@ export const config = {
         { name: "cmc", types: ["creature", "artifact", "enchantment", "planeswalker", "instant", "sorcery"] }
     ],
     localStorage: {
-        prefix: "mtgdecks",
-        user: "mtgdecks-user",
-        tags: "mtgdecks-tags",
-        cards: "mtgdecks-cards-v1",
-        token: "mtgdecks-token"
+        prefix: "mtgdecks2",
+        user: "mtgdecks2-user",
+        tags: "mtgdecks2-tags",
+        cards: "mtgdecks2-cards-v1",
+        token: "mtgdecks2-token"
     },
     authClients: {
         google: {
