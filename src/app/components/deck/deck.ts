@@ -161,8 +161,8 @@ export class DeckComponent implements OnInit, OnDestroy {
         if (!this.deck.id && authUser) {
             this.deck.owners = [authUser.id];
         }
-        this.canWrite = authUser && this.deck.owners.indexOf(authUser.id) > -1;
-        if (this.canWrite && this.isDirty) {
+        this.canWrite = (!authUser && !this.deck.id) || (authUser && this.deck.owners.indexOf(authUser.id) > -1);
+        if (authUser && this.isDirty) {
             this.save();
         }
     }
