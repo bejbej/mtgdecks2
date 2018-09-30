@@ -9,7 +9,7 @@
         text-decoration: none;
 
         &:not(:first-child) {
-            border-top: 1px solid #ddd;
+            border-top: 1px solid $border-color;
         }
 
         &:hover, &:focus {

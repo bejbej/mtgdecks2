@@ -12,7 +12,7 @@
         <section>
             <header class="deck-info">
                 <div class="deck-name" *ngIf="!canWrite">{{deck.name}}</div>
-                <input class="form-control deck-name-input"
+                <input class="deck-name-input"
                     type="text"
                     [(value)]="deck.name"
                     [debounce]="2000"

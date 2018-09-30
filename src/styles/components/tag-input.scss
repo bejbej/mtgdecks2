@@ -1,24 +1,21 @@
 .tags {
-    border: 1px solid transparent;
     height: 40px;
 
     >* {
-        margin-top: 10px;
+        margin-top: 11px;
         margin-bottom: 10px;
-        margin-left: 10px;
+        margin-left: 11px;
     }
 }
 
 .tag-input {
     position: relative;
 
-
     >input:focus~div {
         display: none;
     }
 
     >div {
-        border:1px solid transparent;
         position: absolute;
         top: 0;
         pointer-events: none;
@@ -28,7 +25,7 @@
         white-space: nowrap;
 
         >span {
-            margin: 10px 0 10px 10px;
+            margin: 11px 0 11px 11px;
         }
     }
 }

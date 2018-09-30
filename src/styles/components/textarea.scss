@@ -4,13 +4,8 @@ textarea {
     display: block;
     width: 100%;
     padding: 10px;
-    border-color: transparent;
-
-    &:focus {
-        outline: 0;
-        border:1px solid #66afe9;
-        box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(102,175,233,.6);
-    }
+    
+    @include formElement();
 
     &:disabled {
         background-color: transparent;

@@ -1,9 +1,3 @@
-input.transparent, textarea.transparent {
-    border-width: 1px;
-    border-color: transparent;
-    width: 100%;
-
-    &.tags {
-        padding: 10px;
-    }
+input[type=text] {
+    @include formElement();
 }

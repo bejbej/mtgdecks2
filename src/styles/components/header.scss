@@ -1,8 +1,8 @@
 header {
     color: $text-color;
     background-color: #f5f5f5;
-    border-bottom: 1px solid #ddd;
-    border-top: 1px solid #ddd;
+    border-bottom: 1px solid $border-color;
+    border-top: 1px solid $border-color;
 
     .badge {
         background-color: $text-color;

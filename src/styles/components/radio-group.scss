@@ -7,6 +7,7 @@
         cursor: pointer;
         font-weight: normal;
         margin-bottom: 0px;
+        display: block;
 
         &:hover {
             background-color: $list-group-hover-bg;
