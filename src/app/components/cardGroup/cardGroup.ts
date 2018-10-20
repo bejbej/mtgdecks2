@@ -115,6 +115,7 @@ export class CardGroupComponent implements OnInit, OnDestroy {
         this.cards = [];
         this.invalidCards = [];
         this.count = 0;
+        this.usd = 0;
 
         if (cardBlob.length === 0) {
             return;
