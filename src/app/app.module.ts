@@ -4,9 +4,16 @@ import { BrowserModule } from "@angular/platform-browser";
 import { FormsModule } from "@angular/forms";
 import { HttpClientModule, HTTP_INTERCEPTORS } from "@angular/common/http";
 import { NgModule } from "@angular/core";
-import { Ng2UiAuthModule } from "ng2-ui-auth";
 import { ReactiveFormsModule } from '@angular/forms';
 import * as app from "@app";
+import { GoogleLoginProvider, AuthServiceConfig, SocialLoginModule } from "angularx-social-login";
+
+let authConfig = new AuthServiceConfig([
+    {
+      id: "google",
+      provider: new GoogleLoginProvider(app.config.authClients.google.clientId)
+    }
+]);
 
 @NgModule({
     declarations: [
@@ -33,20 +40,19 @@ import * as app from "@app";
         BrowserModule,
         FormsModule,
         ReactiveFormsModule,
-        HttpClientModule,
-        Ng2UiAuthModule.forRoot({
-            providers: {
-                google: {
-                    clientId: app.config.authClients.google.clientId,
-                    url: app.config.authClients.google.authUrl
-                }
-            }
-        })
+        SocialLoginModule,
+        HttpClientModule
     ],
     providers: [{
         provide: HTTP_INTERCEPTORS,
         useClass: app.AuthInterceptor,
         multi: true
+      },
+      {
+        provide: AuthServiceConfig,
+        useFactory: () => {
+            return authConfig;
+        }
       }],
     bootstrap: [AppComponent]
 })

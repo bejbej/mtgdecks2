@@ -18,7 +18,7 @@ export class AuthComponent implements OnInit, OnDestroy {
 
     ngOnInit() {
         this.authSubscription = this.authService.subscribe(() => this.sync());
-        this.isLoggedIn = this.authService.isLoggedIn()
+        this.isLoggedIn = this.authService.isAuthenticated();
     }
 
     ngOnDestroy() {
@@ -29,7 +29,7 @@ export class AuthComponent implements OnInit, OnDestroy {
         this.isLoggingIn = true;
         try
         {
-            await this.authService.logIn();
+            await this.authService.signIn();
         }
         finally
         {
@@ -39,13 +39,13 @@ export class AuthComponent implements OnInit, OnDestroy {
     }
 
     logout = () => {
-        return this.authService.logout();
+        return this.authService.signOut();
     }
 
     private sync = () => {
-        let isLoggedIn = this.authService.isLoggedIn();
-        if (this.isLoggedIn !== isLoggedIn) {
-            this.isLoggedIn = isLoggedIn;
+        let isAuthenticated = this.authService.isAuthenticated();
+        if (this.isLoggedIn !== isAuthenticated) {
+            this.isLoggedIn = isAuthenticated;
             this.ref.markForCheck();
         }
     }

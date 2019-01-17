@@ -1,6 +1,6 @@
-import { AuthService as AuthService2, SharedService } from "ng2-ui-auth";
+import { AuthService as AuthService2 } from "angularx-social-login";
 import { Injectable } from "@angular/core";
-import { Subject, Subscription, config } from "rxjs";
+import { Subject, Subscription } from "rxjs";
 import { HttpClient } from "@angular/common/http";
 import * as app from "@app";
 
@@ -11,30 +11,31 @@ export class AuthService {
 
     private userKey = app.config.localStorage.user;
     private tagKey = app.config.localStorage.tags;
-    private isAuthenticated: boolean;
+    private tokenKey = app.config.localStorage.token;
+    private _isAuthenticated: boolean;
     private subject: Subject<void>;
     private isLoggingIn: boolean;
     private url = app.config.usersUrl;
 
-    constructor(private auth: AuthService2, private http: HttpClient, sharedService: SharedService) {
-        sharedService.tokenName = app.config.localStorage.token;
+    constructor(private auth: AuthService2, private http: HttpClient) {
         this.subject = new Subject();
     }
 
-    logIn = async (): Promise<any> => {
-        if (this.isLoggingIn || this.isAuthenticated) {
+    signIn = async (): Promise<any> => {
+        if (this.isLoggingIn || this._isAuthenticated) {
             return;
         }
-
+        
         this.isLoggingIn = true;
-        try {
-            await this.auth.authenticate("google").toPromise();
-            let url = this.url + "/me";
-            let user = await this.http.post(url, undefined).toPromise();
+        try
+        {
+            let googleResponse = await this.auth.signIn("google");
+            let authResponse = await this.http.post<{token: string}>(app.config.authClients.google.authUrl, { access_token: googleResponse.authToken}).toPromise();
+            let token = authResponse.token;
+            let options = { headers: { "Authorization": "Bearer " + token } };
+            let user = await this.http.post(this.url + "/me", undefined, options).toPromise();
+            localStorage.setItem(this.tokenKey, token);
             localStorage.setItem(this.userKey, JSON.stringify(user));
-        }
-        catch {
-            await this.auth.logout().toPromise();
         }
         finally {
             this.isLoggingIn = false;
@@ -42,41 +43,19 @@ export class AuthService {
         }
     }
 
-    logout = async (): Promise<any> => {
-        await this.auth.logout().toPromise();
+    signOut = async (): Promise<any> => {
         localStorage.removeItem(this.userKey);
         localStorage.removeItem(this.tagKey);
+        localStorage.removeItem(this.tokenKey);
         this.updateAuthenticationStatus();
     }
     
     getAuthUser = (): app.User => {
-        var user = undefined;
-        if (this.auth.isAuthenticated()) {
-            var user = JSON.parse(localStorage.getItem(this.userKey));
-            if (!user) {
-                this.logout();
-            }
-        } else {
-            if (this.isAuthenticated) {
-                this.logout();
-            }
-        }
-        return user;
+        return JSON.parse(localStorage.getItem(this.userKey));
     }
 
-    isLoggedIn = (): boolean => {
-        if (this.isLoggingIn) {
-            return false
-        }
-        else if (this.auth.isAuthenticated()) {
-            return true;
-        }
-        else {
-            if (this.isAuthenticated) {
-                this.logout();
-            }
-            return false;
-        }
+    isAuthenticated = (): boolean => {
+        return this.getAuthUser() != null;
     }
 
     subscribe = (func): Subscription => {
@@ -84,9 +63,9 @@ export class AuthService {
     }
 
     private updateAuthenticationStatus = (): void => {
-        let isAuthenticated = this.auth.isAuthenticated();
-        if (this.isAuthenticated !== isAuthenticated) {
-            this.isAuthenticated = this.auth.isAuthenticated();
+        let isAuthenticated = localStorage.getItem(this.tokenKey) != null;
+        if (this._isAuthenticated !== isAuthenticated) {
+            this._isAuthenticated = isAuthenticated;
             this.subject.next();
         }
     }

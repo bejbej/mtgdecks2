@@ -110,9 +110,8 @@ export class DecksComponent implements OnInit, OnDestroy {
     }
 
     private sync = () => {
-        let authUser = this.authService.getAuthUser();
-
-        if (!authUser) {
+        let isAuthenticated = this.authService.isAuthenticated();
+        if (!isAuthenticated) {
             delete this.decks;
             delete this.visibleDecks;
             delete this.currentTag;
