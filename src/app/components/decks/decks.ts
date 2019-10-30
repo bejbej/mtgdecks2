@@ -1,5 +1,6 @@
 import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef } from "@angular/core";
 import { Subscription } from "rxjs";
+import { distinct, orderBy, selectMany } from "@array";
 import * as app from "@app";
 
 @Component({
@@ -77,13 +78,11 @@ export class DecksComponent implements OnInit, OnDestroy {
     }
 
     private onDecksLoaded = () => {
-        this.decks = this.decks.sort((a, b) => a.name > b.name ? 1 : -1);
-        this.tags = app.Dictionary.toArray<string>(this.decks.reduce((dictionary, deck) => {
-            deck.tags.forEach(tag => {
-                dictionary[tag] = tag;
-            });
-            return dictionary;
-        }, {})).sort();
+        this.decks = orderBy(this.decks, deck => deck.name);
+        this.tags = distinct(selectMany(this.decks.map(note => note.tags))).sort();
+        if (this.currentTag && this.tags.indexOf(this.currentTag) === -1) {
+            this.currentTag = undefined;
+        }
         this.onCurrentTagChanged();
     }
 

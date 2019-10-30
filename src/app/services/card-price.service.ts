@@ -2,6 +2,9 @@ import { Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { map } from "rxjs/operators";
 import { Observable, of } from "rxjs";
+import { except } from "@array";
+import { parse, stringify } from "@csv";
+import { toDictionary, toArray } from "@dictionary";
 import * as app from "@app";
 
 @Injectable({
@@ -23,7 +26,7 @@ export class CardPriceService {
     getCardPrices = (cardNames: string[]): app.Cancellable<app.CardPrice[]> => {
         cardNames = cardNames.map(cardName => cardName.toLowerCase());
         let knownCards = this.getKnownCards(cardNames);
-        let unknownCardNames = cardNames.except(knownCards.map(card => card.name));
+        let unknownCardNames = except(cardNames, knownCards.map(card => card.name));
         let observable = this.getUnknownCards(unknownCardNames)
             .pipe(map(unknownCards => {
                 let now = new Date().getTime().toString();
@@ -36,11 +39,11 @@ export class CardPriceService {
 
     private getCache = (): app.CardPrice[] => {
         let cache = localStorage.getItem(this.key);
-        return cache ? app.CSV.parse(cache, "\t") : [];
+        return cache ? parse(cache, "\t") : [];
     }
 
     private setCache = (cards: app.CardPrice[]): void => {
-        localStorage.setItem(this.key, app.CSV.stringify(cards, ["name", "usd", "modifiedOn"], "\t"));
+        localStorage.setItem(this.key, stringify(cards, ["name", "usd", "modifiedOn"], "\t"));
     }
 
     private getKnownCards = (cardNames: string[]): app.CardPrice[] => {
@@ -49,7 +52,7 @@ export class CardPriceService {
         }
 
         let cutoffDate = new Date().getTime() - this.expirationMs;
-        let knownCards = app.Dictionary.fromArray(<app.CardPrice[]>this.getCache(), card => card.name);
+        let knownCards = toDictionary(<app.CardPrice[]>this.getCache(), card => card.name);
         return cardNames.reduce((array, cardName) => {
             let card = knownCards[cardName];
             if (card && Number(card.modifiedOn) > cutoffDate) {
@@ -64,7 +67,7 @@ export class CardPriceService {
             return of([]);
         }
 
-        let csv = cardNames.join("\n");
+        let body = cardNames.join("\n");
         let config = {
             responseType: "text" as "text",
             headers: {
@@ -72,8 +75,8 @@ export class CardPriceService {
             }
         };
         
-        return this.http.post(this.url, csv, config)
-            .pipe(map(response => app.CSV.parse(response, "\t")));
+        return this.http.post(this.url, body, config)
+            .pipe(map(response => parse(response, "\t")));
     }
 
     private save = (newCards: app.CardPrice[]): void => {
@@ -90,7 +93,7 @@ export class CardPriceService {
             return dictionary;
         }, {});
         newCards.forEach(card => cardDict[card.name] = card);
-        let cards = app.Dictionary.toArray(cardDict);
+        let cards = toArray(cardDict);
         if (cards.length > this.cardCacheLimit) {
             cards = cards.sort((a, b) => Number(a.modifiedOn) < Number(b.modifiedOn) ? 1 : -1)
             cards.splice(this.cardCacheLimit);

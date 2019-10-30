@@ -13,7 +13,7 @@ export const DEFAULT_VALUE_ACCESSOR: any = {
 })
 export class DebounceDirective implements ControlValueAccessor, OnChanges, OnInit {
 
-    @Input() debounce: string;
+    @Input() debounce: number;
     @Input() value: any;
     @Output() valueChange: EventEmitter<any> = new EventEmitter<any>();
     isDirty: boolean = false;
@@ -59,7 +59,7 @@ export class DebounceDirective implements ControlValueAccessor, OnChanges, OnIni
     private delay = () => {
         this.isDirty = true;
         this.clearTimeout();
-        this.timeout = setTimeout(() => {
+        this.timeout = window.setTimeout(() => {
             delete this.timeout;
             this.updateValue();
         }, this.debounce || 0);

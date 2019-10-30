@@ -1,5 +1,6 @@
 import { Component, Input, ChangeDetectionStrategy, ChangeDetectorRef, OnInit } from "@angular/core";
 import { Observable } from "rxjs";
+import { toDictionary } from "@dictionary";
 import * as app from "@app";
 
 @Component({
@@ -11,7 +12,7 @@ export class StatsComponent implements OnInit {
     @Input() update: Observable<app.Card[]>;
     stats: string[];
 
-    private static cardTypes = app.Dictionary.fromArray(["creature", "artifact", "enchantment", "planeswalker", "instant", "sorcery"], x => x);
+    private static cardTypes = toDictionary(["creature", "artifact", "enchantment", "planeswalker", "instant", "sorcery"], x => x);
 
     constructor(private ref: ChangeDetectorRef) { }
 

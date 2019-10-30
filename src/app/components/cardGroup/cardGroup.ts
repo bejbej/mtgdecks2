@@ -1,5 +1,6 @@
 import { Component, OnInit, OnDestroy, Input, Output, EventEmitter, ChangeDetectionStrategy, ChangeDetectorRef } from "@angular/core";
 import { Observable, Subscription } from "rxjs";
+import { toArray, toDictionary } from "@dictionary";
 import * as app from "@app";
 
 interface CardGroupData {
@@ -141,7 +142,7 @@ export class CardGroupComponent implements OnInit, OnDestroy {
             card.quantity += Number(result[1]) || 1;
         });
 
-        this.cards = app.Dictionary.toArray(cardDict);
+        this.cards = toArray(cardDict);
         this.count = this.cards.reduce((sum, card) => sum + card.quantity, 0);
         this.cardBlob = this.invalidCards.concat(this.cards.sort((a, b) => a.definition.name > b.definition.name ? 1 : -1).map(card => {
             return card.quantity + "x " + card.definition.name;
@@ -164,7 +165,7 @@ export class CardGroupComponent implements OnInit, OnDestroy {
         this.pricesSubscription = this.cardPriceService.getCardPrices(cardNamesWithoutUsd);
         try {
             let cardPrices = await this.pricesSubscription.promise;
-            let cardPricesDict = app.Dictionary.fromArray(cardPrices, card => card.name);
+            let cardPricesDict = toDictionary(cardPrices, card => card.name);
             this.cards.forEach(card => {
                 if (card.usd === undefined) {
                     let cardPrice = cardPricesDict[card.definition.name.toLowerCase()];
