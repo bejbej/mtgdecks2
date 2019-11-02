@@ -29,7 +29,7 @@ $border-color: #ddd;
 @import "./components/textarea.scss";
 
 body {
-    padding-bottom: 200px;
+    padding-bottom: 50px;
     background-color: #313131;
     background-image: url("../images/bg.png");
 }
@@ -111,11 +111,6 @@ main {
         background-color: #777;
         color: #777;
     }
-}
-
-#card-preview {
-    position:absolute;
-    height: 300px;
 }
 
 .deck-info {

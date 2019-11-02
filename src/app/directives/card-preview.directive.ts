@@ -19,6 +19,8 @@ export class CardPreviewDirective implements OnInit, OnDestroy {
             if (!this.img) {
                 this.img = document.createElement("img");
                 this.img.id = "card-preview";
+                this.img.style.position = "absolute";
+                this.img.style.height = "300px";
                 document.body.appendChild(this.img);
             }
         });
@@ -50,17 +52,19 @@ export class CardPreviewDirective implements OnInit, OnDestroy {
         this.hideCardPreview();
     }
 
-    getOffset = () => {
+    showCardPreview = (url: string): void => {
         let rect = this.element.getBoundingClientRect();
+
         let scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
         let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-        return { top: rect.top + scrollTop, left: rect.left + scrollLeft };
-    };
 
-    showCardPreview = (url: string): void => {
-        let offset = this.getOffset();
-        this.img.style.top = offset.top - 100 + "px";
-        this.img.style.left = offset.left + this.element.offsetWidth + 20 + "px";
+        let top = Math.max(Math.min(rect.top, document.documentElement.clientHeight - 200), 100) - 100;
+        let left = rect.left > 242 && rect.left + this.element.offsetWidth + 232 > document.documentElement.clientWidth ?
+            rect.left - 242 :
+            rect.left + this.element.offsetWidth + 20;
+
+        this.img.style.top = top + scrollTop + "px";
+        this.img.style.left = left + scrollLeft + "px";
         this.img.src = url;
     }
 
