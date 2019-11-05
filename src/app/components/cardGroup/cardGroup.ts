@@ -131,7 +131,7 @@ export class CardGroupComponent implements OnInit, OnDestroy {
                 return;
             }
 
-            let cardDefinition = this.cardDefinitionsService.getCards()[result[2].toLowerCase()];
+            let cardDefinition = this.cardDefinitionsService.getCardDictionary()[result[2].toLowerCase()];
             if (!cardDefinition) {
                 this.invalidCards.push(line);
                 return;

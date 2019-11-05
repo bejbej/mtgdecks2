@@ -23,6 +23,7 @@ import * as app from "@app";
         app.StatsComponent,
         // Directives
         app.AllowTabsDirective,
+        app.AutocompleteCardNameDirective,
         app.AutosizeDirective,
         app.CardPreviewDirective,
         app.DebounceDirective,

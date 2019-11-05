@@ -3,10 +3,15 @@ export * from "./config";
 // Common
 export * from "./common/card-grouper";
 export * from "./common/cancellable";
+export * from "./common/find-common-prefix-length";
+export * from "./common/get-autocomplete-entries";
+export * from "./common/get-caret-coordinates";
 export * from "./common/group-evenly";
+export * from "./common/throttle";
 
 // Directives
 export * from "./directives/allow-tabs.directive";
+export * from "./directives/autocomplete-card-name.directive";
 export * from "./directives/autosize.directive";
 export * from "./directives/card-preview.directive";
 export * from "./directives/debounce.directive";
