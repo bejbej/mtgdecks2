@@ -1,30 +1,38 @@
-import { ElementRef, Directive, Input, NgZone, SimpleChanges, OnInit, OnChanges, OnDestroy } from '@angular/core';
+import { ElementRef, Directive, Input, NgZone, SimpleChanges, OnInit, OnChanges, OnDestroy, AfterContentInit } from '@angular/core';
+import * as app from "@app";
 
 @Directive({
     selector: 'textarea[autosize]'
 })
 
-export class AutosizeDirective implements OnInit, OnChanges, OnDestroy {
-    @Input() minRows: number;
-    @Input() maxRows: number;
-    @Input() ngModel: any;
-    @Input() value: any;
+export class AutosizeDirective implements OnInit, OnChanges, AfterContentInit, OnDestroy {
+    adjustThrottle: app.Throttle = new app.Throttle(100, () => this.adjust());
+    element: any;
 
-    lastKnownWidth: any;
-    resizeTimeout: number;
-
-    constructor(private element: ElementRef, private zone: NgZone) { }
+    constructor(element: ElementRef, private zone: NgZone) {
+        this.element = element.nativeElement;
+    }
 
     ngOnInit() {
         this.zone.runOutsideAngular(() => {
-            this.element.nativeElement.addEventListener("input", this.adjust);
-            window.addEventListener("resize", this.resizeWrapper);
+            this.element.style.overflow = "hidden";
+            this.element.addEventListener("input", this.adjust);
+            window.addEventListener("resize", this.adjustWrapper);
+        });
+    }
+
+    ngAfterContentInit() {
+        this.zone.runOutsideAngular(() => {
+            this.adjust();
         });
     }
 
     ngOnDestroy() {
-        this.element.nativeElement.removeEventListener("input", this.adjust);
-        window.removeEventListener("resize", this.resizeWrapper);
+        this.zone.runOutsideAngular(() => {
+            this.element.removeEventListener("input", this.adjust);
+            window.removeEventListener("resize", this.adjustWrapper);
+            this.adjustThrottle.clear();
+        });
     }
 
     ngOnChanges(simpleChange: SimpleChanges) {
@@ -41,68 +49,29 @@ export class AutosizeDirective implements OnInit, OnChanges, OnDestroy {
         }
 
         // If the value is the same as the current element value there's no need to resize
-        if (value === this.element.nativeElement.value) {
+        if (value === this.element.value) {
             return;
         }
 
-        this.element.nativeElement.value = value;
+        this.element.value = value;
         this.adjust();
     }
 
-    private resizeWrapper = () => {
-        // Throttle resizing to every 100ms
-        if (this.resizeTimeout) {
-            return;
-        }
-
-        this.resizeTimeout = window.setTimeout(() => {
-            delete this.resizeTimeout;
-            this.resize();
-        }, 100);
-    }
-
-    private resize = () => {
-        let previousWidth = this.lastKnownWidth;
-        let currentWidth = this.element.nativeElement.offsetWidth;
-        this.lastKnownWidth = currentWidth;
-        // Only resize if this element's width changed
-        if (currentWidth !== previousWidth) {
-            this.adjust();
-        }
+    private adjustWrapper = () => {
+        this.adjustThrottle.invoke();
     }
 
     private adjust = () => {
-        let currentScroll = document.documentElement.scrollTop;
         if (!this.element) {
             return;
         }
-
-        let element = this.element.nativeElement;
-        element.style.overflow = 'hidden';
-        element.style.height = 'auto';
-
-        let lineHeight = this.getLineHeight(element);
-        let height = element.scrollHeight;
-        let rowsCount = height / lineHeight;
-        if (this.minRows && this.minRows >= rowsCount) {
-            element.style.overflow = 'auto';
-            height = this.minRows * lineHeight;
-
-        } else if (this.maxRows && this.maxRows <= rowsCount) {
-            element.style.overflow = 'auto';
-            height = this.maxRows * lineHeight;
-        }
-        element.style.height = height + "px";
-        document.documentElement.scrollTo({ top: currentScroll });
-    }
-
-    private getLineHeight = (element) => {
-        let lineHeight = parseInt(element.style.lineHeight, 10);
-        if (isNaN(lineHeight)) {
-            let fontSize = window.getComputedStyle(element, null).getPropertyValue('font-size');
-            lineHeight = Math.floor(parseInt(fontSize.replace('px', '')) * 1.5);
-        }
-
-        return lineHeight;
+        
+        let documentScroll = document.documentElement.scrollTop;
+        let bodyScroll = document.body.scrollTop;
+        let currentScroll = documentScroll == 0 ? bodyScroll : documentScroll;
+        this.element.style.height = "auto";
+        this.element.style.height = this.element.scrollHeight + "px";
+        document.documentElement.scrollTop = currentScroll;
+        document.body.scrollTop = currentScroll;
     }
 }
