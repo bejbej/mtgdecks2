@@ -16,13 +16,20 @@ export class AllowTabsDirective implements OnInit {
             this.element.addEventListener("keydown", event => {
                 if (event.keyCode === 9) {
                     event.preventDefault();
-                    
+                    let previousLength = this.element.value.length;
                     let start = this.element.selectionStart;
                     let end = this.element.selectionEnd;
-                    let value = this.element.value;
-                    this.element.value = value.substring(0, start) + "\t" + value.substring(end);
-                    this.element.selectionStart = start + 1;
-                    this.element.selectionEnd  = this.element.selectionStart;
+                    let selectionLength = end > start ? end - start : start - end;
+                    let expectedLength = previousLength + 1 - selectionLength;
+                    document.execCommand("insertText", false, "\t");
+                    if (expectedLength != this.element.value.length) {
+                        // https://bugzilla.mozilla.org/show_bug.cgi?id=1220696
+                        // if for some reason the insert didn't work, we have to manually add it in
+                        let value = this.element.value;
+                        this.element.value = value.substring(0, start) + "\t" + value.substring(end);
+                        this.element.selectionStart = start + 1;
+                        this.element.selectionEnd  = this.element.selectionStart;
+                    }
                 }
             });
         });
