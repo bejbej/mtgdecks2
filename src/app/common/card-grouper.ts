@@ -111,7 +111,7 @@ export class CardGrouper {
 
     private static groupEvenly = (cardSets: app.CardView[]): app.CardView[][] => {
         return app.GroupEvenly.exec(cardSets, 3, (cardGroup) => {
-            return cardGroup.cards.length + 4;
+            return cardGroup.cards.length + 2;
         });
     }
 }
