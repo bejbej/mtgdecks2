@@ -1,5 +1,5 @@
 export const config = {
-    types: ["creature", "artifact", "enchantment", "planeswalker", "land", "instant", "sorcery"],
+    types: ["conspiracy", "creature", "artifact", "enchantment", "planeswalker", "land", "instant", "sorcery"],
     statCategories: [
         { name: "cmc", types: ["creature", "artifact", "enchantment", "planeswalker", "instant", "sorcery"] }
     ],

@@ -3,7 +3,7 @@ import * as app from "@app";
 export class CardGrouper {
     static groupByType = (cards: app.Card[]): app.CardView[][] => {
         return CardGrouper.groupEvenly(CardGrouper.groupBy(
-            ["creature", "artifact", "enchantment", "planeswalker", "land", "instant", "sorcery"],
+            ["creature", "artifact", "enchantment", "planeswalker", "land", "instant", "sorcery", "conspiracy"],
             x => x,
             card => card.definition.primaryType,
             cards
@@ -111,7 +111,7 @@ export class CardGrouper {
 
     private static groupEvenly = (cardSets: app.CardView[]): app.CardView[][] => {
         return app.GroupEvenly.exec(cardSets, 3, (cardGroup) => {
-            return cardGroup.cards.length + 2;
+            return cardGroup.cards.length + 3;
         });
     }
 }
