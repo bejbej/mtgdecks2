@@ -1,8 +1,8 @@
-import { Injectable } from "@angular/core";
-import { HttpClient } from "@angular/common/http";
-import { Observable } from "rxjs";
-import { map } from "rxjs/operators";
 import * as app from "@app";
+import { HttpClient } from "@angular/common/http";
+import { Injectable } from "@angular/core";
+import { map } from "rxjs/operators";
+import { Observable } from "rxjs";
 
 @Injectable({
     providedIn: "root"
@@ -13,15 +13,13 @@ export class DeckService {
 
     constructor(private http: HttpClient) { }
 
-    getById(id: string): app.Cancellable<app.Deck> {
-        let observable = this.http.get<app.Deck>(this._url + "/" + id);
-        return app.Cancellable.fromObservable(observable);
+    getById(id: string): Observable<app.Deck> {
+        return this.http.get<app.Deck>(this._url + "/" + id);
     }
 
-    getByQuery(query?): app.Cancellable<any[]> {
-        let observable = this.http.get<{ results: Object[] }>(this._url, { params: query })
+    getByQuery(query?): Observable<any[]> {
+        return this.http.get<{ results: Object[] }>(this._url, { params: query })
             .pipe(map(response => response.results));
-        return app.Cancellable.fromObservable(observable);
     }
 
     createDeck(deck): Observable<string> {

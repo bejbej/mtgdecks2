@@ -1,11 +1,11 @@
-import { Injectable } from "@angular/core";
+import * as app from "@app";
+import { except } from "@array";
 import { HttpClient } from "@angular/common/http";
+import { Injectable } from "@angular/core";
 import { map } from "rxjs/operators";
 import { Observable, of } from "rxjs";
-import { except } from "@array";
 import { parse, stringify } from "@csv";
-import { toDictionary, toArray } from "@dictionary";
-import * as app from "@app";
+import { toArray, toDictionary } from "@dictionary";
 
 @Injectable({
     providedIn: "root"
@@ -23,18 +23,17 @@ export class CardPriceService {
         this.expirationMs = app.config.cardExpirationMs || 0;
     }
 
-    getCardPrices = (cardNames: string[]): app.Cancellable<app.CardPrice[]> => {
+    getCardPrices = (cardNames: string[]): Observable<app.CardPrice[]> => {
         cardNames = cardNames.map(cardName => cardName.toLowerCase());
         let knownCards = this.getKnownCards(cardNames);
         let unknownCardNames = except(cardNames, knownCards.map(card => card.name));
-        let observable = this.getUnknownCards(unknownCardNames)
+        return this.getUnknownCards(unknownCardNames)
             .pipe(map(unknownCards => {
                 let now = new Date().getTime().toString();
                 unknownCards.forEach(card => card.modifiedOn = now);
                 this.save(unknownCards);
                 return knownCards.concat(unknownCards);
             }));
-        return app.Cancellable.fromObservable(observable);
     }
 
     private getCache = (): app.CardPrice[] => {

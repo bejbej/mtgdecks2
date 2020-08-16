@@ -1,7 +1,7 @@
-import { NgModule } from "@angular/core";
-import { Routes } from "@angular/router";
-import { RouterModule } from "@angular/router";
 import * as app from "@app";
+import { NgModule } from "@angular/core";
+import { RouterModule } from "@angular/router";
+import { Routes } from "@angular/router";
 
 const routes: Routes = [
   {

@@ -1,6 +1,6 @@
+import * as app from "@app";
 import { Injectable } from "@angular/core";
 import { toDictionary } from "@dictionary";
-import * as app from "@app";
 
 declare var cardsCSV: string;
 

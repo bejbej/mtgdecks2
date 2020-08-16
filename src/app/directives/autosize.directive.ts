@@ -1,5 +1,5 @@
-import { ElementRef, Directive, Input, NgZone, SimpleChanges, OnInit, OnChanges, OnDestroy, AfterContentInit } from '@angular/core';
 import * as app from "@app";
+import { AfterContentInit, Directive, ElementRef, NgZone, OnChanges, OnDestroy, OnInit, SimpleChanges } from "@angular/core";
 
 @Directive({
     selector: 'textarea[autosize]'

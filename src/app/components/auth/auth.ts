@@ -1,6 +1,7 @@
-import { Component, ChangeDetectionStrategy, ChangeDetectorRef, OnInit, OnDestroy } from "@angular/core";
-import { Subscription } from "rxjs";
 import * as app from "@app";
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit } from "@angular/core";
+import { Subject } from "rxjs";
+import { takeUntil } from "rxjs/operators";
 
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -12,17 +13,18 @@ export class AuthComponent implements OnInit, OnDestroy {
     isLoggedIn: boolean;
     isLoggingIn: boolean;
 
-    private authSubscription: Subscription;
+    private unsubscribe: Subject<void> = new Subject<void>();
 
     constructor(private authService: app.AuthService, private ref: ChangeDetectorRef) { }
 
     ngOnInit() {
-        this.authSubscription = this.authService.subscribe(() => this.sync());
-        this.isLoggedIn = this.authService.isLoggedIn()
+        this.authService.getObservable().pipe(takeUntil(this.unsubscribe)).subscribe(() => this.sync());
+        this.isLoggedIn = this.authService.isLoggedIn();
     }
 
     ngOnDestroy() {
-        this.authSubscription.unsubscribe();
+        this.unsubscribe.next();
+        this.unsubscribe.complete();
     }
 
     login = async () => {

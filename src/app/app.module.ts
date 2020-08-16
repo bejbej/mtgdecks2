@@ -1,12 +1,12 @@
+import * as app from "@app";
 import { AppComponent } from "src/app//app.component";
 import { AppRoutingModule } from "src/app//app-routing.module";
 import { BrowserModule } from "@angular/platform-browser";
 import { FormsModule } from "@angular/forms";
-import { HttpClientModule, HTTP_INTERCEPTORS } from "@angular/common/http";
-import { NgModule } from "@angular/core";
+import { HTTP_INTERCEPTORS, HttpClientModule } from "@angular/common/http";
 import { Ng2UiAuthModule } from "ng2-ui-auth";
-import { ReactiveFormsModule } from '@angular/forms';
-import * as app from "@app";
+import { NgModule } from "@angular/core";
+import { ReactiveFormsModule } from "@angular/forms";
 
 @NgModule({
     declarations: [

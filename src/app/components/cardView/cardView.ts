@@ -1,5 +1,5 @@
-import { Component, Input, ChangeDetectionStrategy, OnChanges } from "@angular/core";
 import * as app from "@app";
+import { ChangeDetectionStrategy, Component, Input, OnChanges } from "@angular/core";
 
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,

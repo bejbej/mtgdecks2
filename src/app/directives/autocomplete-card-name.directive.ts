@@ -1,5 +1,5 @@
-import { Directive, ElementRef, OnInit, NgZone } from "@angular/core";
 import * as app from "@app";
+import { Directive, ElementRef, NgZone, OnInit } from "@angular/core";
 
 interface QueryResult {
     query: string;

@@ -1,8 +1,8 @@
-import { AuthService as AuthService2, SharedService } from "ng2-ui-auth";
-import { Injectable } from "@angular/core";
-import { Subject, Subscription, config } from "rxjs";
-import { HttpClient } from "@angular/common/http";
 import * as app from "@app";
+import { AuthService as AuthService2, SharedService } from "ng2-ui-auth";
+import { HttpClient } from "@angular/common/http";
+import { Injectable } from "@angular/core";
+import { Observable, Subject } from "rxjs";
 
 @Injectable({
     providedIn: "root"
@@ -28,13 +28,13 @@ export class AuthService {
 
         this.isLoggingIn = true;
         try {
-            await this.auth.authenticate("google").toPromise();
+            await app.firstValue(this.auth.authenticate("google"));
             let url = this.url + "/me";
-            let user = await this.http.post(url, undefined).toPromise();
+            let user = await app.firstValue(this.http.post(url, undefined));
             localStorage.setItem(this.userKey, JSON.stringify(user));
         }
         catch {
-            await this.auth.logout().toPromise();
+            await app.firstValue(this.auth.logout());
         }
         finally {
             this.isLoggingIn = false;
@@ -43,7 +43,7 @@ export class AuthService {
     }
 
     logout = async (): Promise<any> => {
-        await this.auth.logout().toPromise();
+        await app.firstValue(this.auth.logout());
         localStorage.removeItem(this.userKey);
         localStorage.removeItem(this.tagKey);
         this.updateAuthenticationStatus();
@@ -79,9 +79,7 @@ export class AuthService {
         }
     }
 
-    subscribe = (func): Subscription => {
-        return this.subject.subscribe(func);
-    }
+    getObservable = (): Observable<void> => this.subject.asObservable();
 
     private updateAuthenticationStatus = (): void => {
         let isAuthenticated = this.auth.isAuthenticated();

@@ -1,5 +1,5 @@
-import { Directive, ElementRef, Input, OnInit, NgZone } from "@angular/core";
 import * as app from "@app";
+import { Directive, ElementRef, Input, NgZone, OnInit } from "@angular/core";
 
 @Directive({
     selector: "[lightbox]"

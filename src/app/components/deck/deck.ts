@@ -1,8 +1,9 @@
-import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef } from "@angular/core";
-import { ActivatedRoute, Router } from "@angular/router";
-import { Subscription, Subject } from "rxjs";
-import { Location } from "@angular/common";
 import * as app from "@app";
+import { ActivatedRoute, Router } from "@angular/router";
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit } from "@angular/core";
+import { Location } from "@angular/common";
+import { Subject } from "rxjs";
+import { takeUntil } from "rxjs/operators";
 
 interface CardGroupData {
     cardGroup: app.CardGroup,
@@ -35,8 +36,7 @@ export class DeckComponent implements OnInit, OnDestroy {
     // Event Management
     loadPrices: Subject<void> = new Subject<void>();
     updateStats: Subject<app.Card[]> = new Subject<app.Card[]>();
-    private deckSubscription: app.Cancellable<app.Deck>;
-    private authSubscription: Subscription;
+    private unsubscribe: Subject<void> = new Subject<void>();;
 
     constructor(
         private authService: app.AuthService,
@@ -48,7 +48,7 @@ export class DeckComponent implements OnInit, OnDestroy {
 
         document.title = "Loading...";
         route.params.subscribe(params => this.id = params.id);
-        this.authSubscription = authService.subscribe(() => this.sync());
+        this.authService.getObservable().pipe(takeUntil(this.unsubscribe)).subscribe(() => this.sync());
     }
 
     async ngOnInit() {
@@ -56,11 +56,8 @@ export class DeckComponent implements OnInit, OnDestroy {
     }
 
     ngOnDestroy() {
-        this.authSubscription.unsubscribe();
-
-        if (this.deckSubscription) {
-            this.deckSubscription.cancel();
-        }
+        this.unsubscribe.next();
+        this.unsubscribe.complete();
     }
 
     togglePrices = () => {
@@ -113,9 +110,10 @@ export class DeckComponent implements OnInit, OnDestroy {
         }
 
         this.isDeleting = true;
+        let deleteDeck$ = this.deckService.deleteDeck(this.deck.id).pipe(takeUntil(this.unsubscribe));
         try
         {
-            await this.deckService.deleteDeck(this.deck.id).toPromise();
+            await app.firstValue(deleteDeck$);
         }
         finally
         {
@@ -125,7 +123,7 @@ export class DeckComponent implements OnInit, OnDestroy {
         this.router.navigateByUrl("/decks");
     }
 
-    private save = async () => {
+    save = async () => {
         this.updateTitle();
         this.isDirty = true;
         let authUser = this.authService.getAuthUser();
@@ -137,10 +135,12 @@ export class DeckComponent implements OnInit, OnDestroy {
         try
         {
             if (this.deck.id) {
-                await this.deckService.updateDeck(this.deck).toPromise();
+                let updateDeck$ = this.deckService.updateDeck(this.deck).pipe(takeUntil(this.unsubscribe));
+                await app.firstValue(updateDeck$);
             }
             else {
-                this.deck.id = await this.deckService.createDeck(this.deck).toPromise();
+                let createDeck$ = this.deckService.createDeck(this.deck).pipe(takeUntil(this.unsubscribe))
+                this.deck.id = await app.firstValue(createDeck$);
                 this.deck.owners = this.deck.owners || [authUser.id];
                 this.location.replaceState("/decks/" + this.deck.id);
                 this.ref.markForCheck();
@@ -176,16 +176,15 @@ export class DeckComponent implements OnInit, OnDestroy {
             return;
         }
         this.isLoading = true;
-        this.deckSubscription = this.deckService.getById(id);
         try {
-            this.deck = await this.deckSubscription.promise;
+            let getDeck$ = this.deckService.getById(id).pipe(takeUntil(this.unsubscribe))
+            this.deck = await app.firstValue(getDeck$);
             this.tags = this.deck.tags.join(", ");
             this.sync();
             this.updateTitle();
         }
         finally {
             this.isLoading = false;
-            delete this.deckSubscription;
             this.ref.markForCheck();
         }
     }

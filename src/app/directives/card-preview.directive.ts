@@ -1,5 +1,5 @@
-import { Directive, ElementRef, Input, OnInit, OnDestroy, NgZone } from "@angular/core";
 import * as app from "@app";
+import { Directive, ElementRef, Input, NgZone, OnDestroy, OnInit } from "@angular/core";
 
 @Directive({
     selector: "[card-preview]"

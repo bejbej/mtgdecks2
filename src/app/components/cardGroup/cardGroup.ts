@@ -1,7 +1,8 @@
-import { Component, OnInit, OnDestroy, Input, Output, EventEmitter, ChangeDetectionStrategy, ChangeDetectorRef } from "@angular/core";
-import { Observable, Subscription } from "rxjs";
-import { toArray, toDictionary } from "@dictionary";
 import * as app from "@app";
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, OnInit, Output } from "@angular/core";
+import { Observable, Subject } from "rxjs";
+import { takeUntil } from "rxjs/operators";
+import { toArray, toDictionary } from "@dictionary";
 
 interface CardGroupData {
     cardGroup: app.CardGroup,
@@ -39,8 +40,7 @@ export class CardGroupComponent implements OnInit, OnDestroy {
     private isLoadingPrices: boolean;
 
     // Subscriptions
-    private pricesSubscription: app.Cancellable<app.CardPrice[]>;
-    private shouldLoadPricesSubscription: Subscription;
+    private unsubscribe: Subject<void> = new Subject<void>();;
 
     constructor(
         private cardDefinitionsService: app.CardDefinitionService,
@@ -50,7 +50,7 @@ export class CardGroupComponent implements OnInit, OnDestroy {
     ngOnInit() {
         this.groupFunc = app.CardGrouper.groupByType;
         this.parseCardBlob(this.cardGroup.cardBlob);
-        this.shouldLoadPricesSubscription = this.shouldLoadPrices.subscribe(() => this.loadPrices());
+        this.shouldLoadPrices.pipe(takeUntil(this.unsubscribe)).subscribe(() => this.loadPrices());
         this.onCardsChanged();
         if (this.isInitiallyEditing) {
             this.startEditing();
@@ -58,10 +58,8 @@ export class CardGroupComponent implements OnInit, OnDestroy {
     }
 
     ngOnDestroy() {
-        this.shouldLoadPricesSubscription.unsubscribe();
-        if (this.pricesSubscription) {
-            this.pricesSubscription.cancel();
-        }
+        this.unsubscribe.next();
+        this.unsubscribe.complete();
     }
 
     setGroupFunc = (func: (cards: app.Card[]) => app.CardView[][]) => {
@@ -162,9 +160,9 @@ export class CardGroupComponent implements OnInit, OnDestroy {
         }
 
         this.isLoadingPrices = true;
-        this.pricesSubscription = this.cardPriceService.getCardPrices(cardNamesWithoutUsd);
         try {
-            let cardPrices = await this.pricesSubscription.promise;
+            let cardPrices$ = this.cardPriceService.getCardPrices(cardNamesWithoutUsd).pipe(takeUntil(this.unsubscribe));
+            let cardPrices = await app.firstValue(cardPrices$);
             let cardPricesDict = toDictionary(cardPrices, card => card.name);
             this.cards.forEach(card => {
                 if (card.usd === undefined) {
@@ -177,7 +175,6 @@ export class CardGroupComponent implements OnInit, OnDestroy {
         }
         finally {
             this.isLoadingPrices = false;
-            delete this.pricesSubscription;
             this.onPricesLoaded();
         }
     }

@@ -1,7 +1,8 @@
-import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef } from "@angular/core";
-import { Subscription } from "rxjs";
-import { distinct, orderBy, selectMany } from "@array";
 import * as app from "@app";
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit } from "@angular/core";
+import { distinct, orderBy, selectMany } from "@array";
+import { Subject } from "rxjs";
+import { takeUntil } from "rxjs/operators";
 
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -17,8 +18,8 @@ export class DecksComponent implements OnInit, OnDestroy {
     currentTag: string;
     currentTagName: string;
 
-    private decksSubscription: app.Cancellable<app.Deck[]>;
-    private authSubscription: Subscription;
+    private unsubscribe: Subject<void> = new Subject<void>();
+    private cancelLoadingDecks: Subject<void> = new Subject<void>();
 
     constructor(
         private authService: app.AuthService,
@@ -31,8 +32,9 @@ export class DecksComponent implements OnInit, OnDestroy {
             this.tags = tagState.all.sort();
             this.currentTag = tagState.current;
         }
+
         this.updateCurrentTagName();
-        this.authSubscription = authService.subscribe(() => this.sync());
+        authService.getObservable().pipe(takeUntil(this.unsubscribe)).subscribe(() => this.sync());
     }
 
     ngOnInit() {
@@ -40,11 +42,10 @@ export class DecksComponent implements OnInit, OnDestroy {
     }
 
     ngOnDestroy() {
-        this.authSubscription.unsubscribe();
-
-        if (this.decksSubscription) {
-            this.decksSubscription.cancel();
-        }
+        this.unsubscribe.next();
+        this.unsubscribe.complete();
+        this.cancelLoadingDecks.next();
+        this.cancelLoadingDecks.complete();
     }
 
     onCurrentTagChanged = () => {
@@ -59,20 +60,23 @@ export class DecksComponent implements OnInit, OnDestroy {
     }
 
     private loadDecks = async () => {
+        if (this.isLoading) {
+            return;
+        }
+
         let user = this.authService.getAuthUser();
         if (!user) {
             return;
         }
 
         this.isLoading = true;
-        this.decksSubscription = this.deckService.getByQuery({ owner: user.id });
         try {
-            this.decks = await this.decksSubscription.promise;
+            let decks$ = this.deckService.getByQuery({ owner: user.id }).pipe(takeUntil(this.unsubscribe));
+            this.decks = await app.firstValue(decks$);
             this.onDecksLoaded();
         }
         finally {
             this.isLoading = false;
-            delete this.decksSubscription;
             this.ref.markForCheck();
         }
     }
@@ -111,20 +115,17 @@ export class DecksComponent implements OnInit, OnDestroy {
     private sync = () => {
         let authUser = this.authService.getAuthUser();
 
-        if (!authUser) {
-            delete this.decks;
-            delete this.visibleDecks;
-            delete this.currentTag;
-            this.isLoading = false;
-            this.tags = [];
-            this.updateCurrentTagName();
-            if (this.decksSubscription) {
-                this.decksSubscription.cancel();
-                delete this.decksSubscription;
-            }
-        }
-        else if (!this.decksSubscription && !this.decks) {
+        if (authUser) {
             this.loadDecks();
+            return;
         }
+
+        delete this.decks;
+        delete this.visibleDecks;
+        delete this.currentTag;
+        this.isLoading = false;
+        this.tags = [];
+        this.updateCurrentTagName();
+        this.cancelLoadingDecks.next();
     }
 }

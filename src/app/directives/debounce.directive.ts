@@ -1,5 +1,5 @@
-import { Directive, ElementRef, forwardRef, Input, NgZone, Output, EventEmitter, OnChanges, OnInit } from '@angular/core';
-import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { ControlValueAccessor, NG_VALUE_ACCESSOR } from "@angular/forms";
+import { Directive, ElementRef, EventEmitter, forwardRef, Input, NgZone, OnChanges, OnInit, Output } from "@angular/core";
 
 export const DEFAULT_VALUE_ACCESSOR: any = {
     provide: NG_VALUE_ACCESSOR,

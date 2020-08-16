@@ -1,4 +1,4 @@
-import { Directive, ElementRef, Input, OnInit, NgZone } from "@angular/core";
+import { Directive, ElementRef, NgZone, OnInit } from "@angular/core";
 
 @Directive({
     selector: "input[allow-tabs],textarea[allow-tabs]"

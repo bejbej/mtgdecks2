@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnInit, OnDestroy, NgZone } from "@angular/core";
+import { Component, ElementRef, NgZone, OnDestroy, OnInit } from "@angular/core";
 
 @Component({
     selector: "app-spinner",
