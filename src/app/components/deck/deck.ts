@@ -80,10 +80,6 @@ export class DeckComponent implements OnInit, OnDestroy {
         }
     }
 
-    cardGroupChanged = () => {
-        this.save();
-    }
-
     cardsChanged = (event: CardGroupData) => {
         if (this.showPrices) {
             this.loadPrices.next();

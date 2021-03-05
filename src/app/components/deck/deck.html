@@ -39,7 +39,7 @@
                         [shouldLoadPrices]="loadPrices"
                         [canEdit]="canWrite"
                         [isInitiallyEditing]="i === 0 && !deck.id"
-                        (cardGroupChanged)="cardGroupChanged($event)"
+                        (cardGroupChanged)="save()"
                         (pricesLoaded)="pricesLoaded($event)"
                         (cardsChanged)="cardsChanged($event)"></app-card-group>
                 </div>
