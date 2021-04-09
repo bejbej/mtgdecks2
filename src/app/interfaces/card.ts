@@ -9,5 +9,5 @@ export interface CardDefinition {
     primaryType: string;
     color: string;
     cmc: number;
-    scryfallId: string;
+    imageUri: string;
 }

@@ -6,7 +6,7 @@ import { Directive, ElementRef, Input, NgZone, OnInit } from "@angular/core";
 })
 export class LightboxDirective implements OnInit {
 
-    @Input() scryfallId: string;
+    @Input() imageUri: string;
     private element: HTMLElement;
     private url: string;
 
@@ -16,7 +16,7 @@ export class LightboxDirective implements OnInit {
     
     ngOnInit() {
         this.ngZone.runOutsideAngular(() => {
-            this.url = app.config.imagesUrl.replace(/{([^}]*)}/, this.scryfallId);
+            this.url = app.config.imagesUrl.replace(/{([^}]*)}/, this.imageUri);
             this.element.addEventListener("click", event => {
                 event.preventDefault();
                 this.showLightbox();

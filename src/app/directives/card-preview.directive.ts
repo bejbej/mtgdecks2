@@ -6,7 +6,7 @@ import { Directive, ElementRef, Input, NgZone, OnDestroy, OnInit } from "@angula
 })
 export class CardPreviewDirective implements OnInit, OnDestroy {
 
-    @Input() scryfallId: string;
+    @Input() imageUri: string;
     private element: HTMLElement;
     private url: string;
     private img: HTMLImageElement;
@@ -28,7 +28,7 @@ export class CardPreviewDirective implements OnInit, OnDestroy {
 
     ngOnInit() {
         this.ngZone.runOutsideAngular(() => {
-            this.url = app.config.imagesUrl.replace(/{([^}]*)}/, this.scryfallId);
+            this.url = app.config.imagesUrl.replace(/{([^}]*)}/, this.imageUri);
             this.element.addEventListener("mouseover", this.mouseOver);
             this.element.addEventListener("mouseleave", this.mouseLeave);
         });

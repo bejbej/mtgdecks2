@@ -23,7 +23,7 @@ export const config = {
     cardsUrl: "https://mtgdecks-api.herokuapp.com/api/cards",
     decksUrl: "https://mtgdecks-api.herokuapp.com/api/decks",
     usersUrl: "https://mtgdecks-api.herokuapp.com/api/users",
-    imagesUrl: "https://api.scryfall.com/cards/{scryfallId}?format=image&version=border_crop"
+    imagesUrl: "https://c1.scryfall.com/file/scryfall-cards/border_crop/front/{imageId}.jpg"
 };
 
 (function () {
