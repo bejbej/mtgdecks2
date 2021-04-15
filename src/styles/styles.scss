@@ -96,10 +96,6 @@ main {
     }
 }
 
-.quantity::after {
-    content: "x";
-}
-
 .hide-prices .price {
     display: none;
 }

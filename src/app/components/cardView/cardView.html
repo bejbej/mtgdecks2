@@ -4,7 +4,7 @@
             <p class="large capitalize" *ngIf="row.name">{{row.name}} <span class="light">&#8226; {{row.numberOfCards}}</span></p>
             <p>
                 <span *ngFor="let card of row.cards">
-                    <span class="quantity light">{{card.quantity}}</span>
+                    <span class="quantity light">{{card.quantity}}x</span>
                     <span>&nbsp;</span> 
                     <a href="#" class="name" card-preview lightbox [imageUri]="card.definition.imageUri">{{card.definition.name}}</a>
                     <span>&nbsp;</span> 
