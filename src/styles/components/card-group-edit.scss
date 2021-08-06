@@ -1,0 +1,50 @@
+.card-group-edit {
+    display: flex;
+    background-color: #fff;
+    color: black;
+    text-decoration: none;
+    border: 1px solid $border-color;
+
+    >.drag-handle, >.check {
+        flex: 0 0 42px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    >.drag-handle {
+        color: #777;
+        border-right: 1px solid $border-color;
+        cursor: move;
+    }
+
+    >.name {
+        flex: 1;
+        padding: 10px 15px;
+        border: 1px solid transparent;
+        outline: none;
+
+        &:active, &:focus {
+            box-shadow: 0 0 0 2px rgba(0,100,255,0.4) inset;
+            border-color: rgba(0,100,255,0.4);
+        }
+    }
+
+    >.check {
+        border-left: 1px solid $border-color;
+        font-size: 24px;
+        cursor: pointer;
+
+        > input {
+            pointer-events: none;
+        }
+    }
+}
+
+.card-group-edit-placeholder {
+    border: 1px solid red;
+    opacity: 0;
+    > input {
+        border: 1px solid red;
+    }
+}

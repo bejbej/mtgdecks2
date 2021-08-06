@@ -1,9 +1,9 @@
 import * as app from "@app";
 import { ActivatedRoute, Router } from "@angular/router";
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit } from "@angular/core";
+import { first, takeUntil } from "rxjs/operators";
 import { Location } from "@angular/common";
-import { Subject } from "rxjs";
-import { takeUntil } from "rxjs/operators";
+import { Observable, Subject } from "rxjs";
 
 interface CardGroupData {
     cardGroup: app.CardGroup,
@@ -22,16 +22,17 @@ export class DeckComponent implements OnInit, OnDestroy {
     tags: string;
     statCards: app.Card[];
     private id: string;
-    private cardGroupsThatAreLoadingPrices: app.CardGroup[] = [];
 
     // State Tracking
     canWrite: boolean;
     isDeleting: boolean;
     isDirty: boolean;
     isLoading: boolean;
-    isLoadingPrices: boolean;
     isSaving: boolean;
+    isEditingGroups: boolean;
+    numberOfLoaders: number = 0;
     showPrices: boolean;
+    cardGroupsChanged: boolean = false;
 
     // Event Management
     loadPrices: Subject<void> = new Subject<void>();
@@ -63,21 +64,26 @@ export class DeckComponent implements OnInit, OnDestroy {
     togglePrices = () => {
         this.showPrices = !this.showPrices;
         if (this.showPrices) {
-            this.isLoadingPrices = true;
-            this.cardGroupsThatAreLoadingPrices = this.deck.cardGroups.slice(0);
             this.loadPrices.next();
         }
     }
 
-    pricesLoaded = (cardGroup: app.CardGroup) => {
-        let index = this.cardGroupsThatAreLoadingPrices.indexOf(cardGroup);
-        if (index > -1) {
-            this.cardGroupsThatAreLoadingPrices.splice(index, 1);
+    toggleEditGroups = () => {
+        this.isEditingGroups = !this.isEditingGroups;
+        if (!this.isEditingGroups && this.cardGroupsChanged && this.deck.id) {
+            this.save();
+            this.cardGroupsChanged = false;
         }
+    }
 
-        if (this.cardGroupsThatAreLoadingPrices.length === 0) {
-            this.isLoadingPrices = false;
-        }
+    pricesLoading = (observable: Observable<app.CardGroup>) => {
+        ++this.numberOfLoaders;
+        observable.pipe(takeUntil(this.unsubscribe), first()).subscribe(() => {
+            --this.numberOfLoaders
+            if (this.numberOfLoaders === 0) {
+                this.ref.detectChanges();
+            }
+        });
     }
 
     cardsChanged = (event: CardGroupData) => {
@@ -158,6 +164,7 @@ export class DeckComponent implements OnInit, OnDestroy {
             this.deck.owners = [authUser.id];
         }
         this.canWrite = (!authUser && !this.deck.id) || (authUser && this.deck.owners.indexOf(authUser.id) > -1);
+        this.isEditingGroups = this.canWrite && this.isEditingGroups;
         if (authUser && this.isDirty) {
             this.save();
         }
@@ -197,10 +204,6 @@ export class DeckComponent implements OnInit, OnDestroy {
                 {
                     cardBlob: "",
                     name: "Mainboard"
-                },
-                {
-                    cardBlob: "",
-                    name: "Sideboard"
                 }
             ],
             id: undefined,

@@ -1,5 +1,7 @@
 // Variables
 $border-color: #ddd;
+$border-radius: 8px;
+$screen-md-min: 960px;
 
 // Lib
 @import "./components/bootstrap.scss";
@@ -12,8 +14,11 @@ $border-color: #ddd;
 @import "./components/alert.scss";
 @import "./components/autocomplete.scss";
 @import "./components/badge.scss";
+@import "./components/card-group-edit.scss";
+@import "./components/deck-actions.scss";
 @import "./components/flex.scss";
 @import "./components/header.scss";
+@import "./components/hidden.scss";
 @import "./components/hr.scss";
 @import "./components/input.scss";
 @import "./components/lightbox.scss";
@@ -52,9 +57,9 @@ main {
     }
 }
 
-.btn-default {
-    &:hover, &:focus, &:active {
-        border-color: $border-color;
+.btn {
+    &:hover, &:active, &:focus, &:active:focus {
+        outline: none;
     }
 }
 
@@ -79,7 +84,17 @@ main {
 }
 
 .round {
-    border-radius: 4px;
+    border-radius: $border-radius;
+}
+
+.round-top {
+    border-top-left-radius: $border-radius;
+    border-top-right-radius: $border-radius;
+}
+
+.round-bottom {
+    border-bottom-left-radius: $border-radius;
+    border-bottom-right-radius: $border-radius;
 }
 
 .border {
@@ -132,42 +147,10 @@ main {
     padding: 6px 5px 6px 5px;
     font-size: 18px;
     border: 1px solid $border-color;
-    border-radius: 4px;
+    border-radius: $border-radius;
     height: 36px;
     &:not(:hover):not(:focus):not(:active) {
         background-color: transparent;
         border-color: transparent;
-    }
-}
-
-.has-bottom-buttons {
-    position: relative;
-    border-bottom-left-radius: 0;
-
-    @media (max-width: $screen-xs-max) {
-        border-bottom-right-radius: 0;
-    }
-}
-
-.bottom-buttons {
-    @media (max-width: $screen-xs-max) {
-        display: flex;
-    }
-
-    button {
-        border-top-width: 0;
-
-        @media (max-width: $screen-xs-max) {
-            flex: 1;
-        }
-
-        &:not(:first-of-type) {
-            border-bottom-right-radius: 4px;
-            border-left-width: 0;
-        }
-
-        &:not(:last-of-type) {
-            border-bottom-left-radius: 4px;
-        }
     }
 }

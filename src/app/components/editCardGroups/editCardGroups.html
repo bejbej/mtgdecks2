@@ -1,0 +1,29 @@
+<section>
+    <div class="margin">
+        <div class="flex-lte-xs flex-padding">
+            <button class="btn btn-default round" (click)="addCardGroup()">
+                <strong>+</strong>
+                Add Group
+            </button>
+            <button class="btn btn-default round" (click)="deleteSelectedCardGroups()">
+                Delete Selected
+            </button>
+        </div>
+        <div class="card-group-edit-container margin-top" cdkDropList (cdkDropListDropped)="drop($event)">
+            <div class="card-group-edit flex" *ngFor="let cardGroup of deck.cardGroups; let i = index" cdkDrag cdkDragLockAxis="y" cdkDragBoundary=".card-group-edit-container">
+                <div class="drag-handle" cdkDragHandle>⣿</div>
+                <input class="name"
+                    type="text"
+                    [(value)]="cardGroup.name"
+                    [debounce]="2000"
+                    (valueChange)="onCardGroupsChanged()" />
+                <div class="check" (click)="selectedGroups[i] = !selectedGroups[i]" style="display:flex;align-items: center; justify-content: center;">
+                    <input type="checkbox" [(ngModel)]="selectedGroups[i]" />
+                </div>
+                <div *cdkDragPlaceholder class="card-group-edit-placeholder">
+                    <input type="text">
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

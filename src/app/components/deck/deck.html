@@ -18,59 +18,77 @@
                     [debounce]="2000"
                     (valueChange)="save()"
                     *ngIf="canWrite" />
-                <div class="flex flex-padding">
-                    <button class="btn btn-default margin-top" (click)="togglePrices()">
-                        {{showPrices ? "Hide Prices" : "Show Prices"}}
-                        <app-spinner *ngIf="isLoadingPrices"></app-spinner>
+                <div class="flex-lte-xs flex-padding deck-actions margin-top">
+                    <button class="btn btn-default round" (click)="togglePrices()">
+                        <span *ngIf="!showPrices">Show<br class="hidden-gte-sm"> Prices</span>
+                        <span *ngIf="showPrices">
+                            Hide
+                            <br class="hidden-gte-sm">
+                            Prices
+                            <app-spinner *ngIf="numberOfLoaders > 0"></app-spinner>
+                        </span>
                     </button>
-                    <button class="btn btn-default margin-top" (click)="delete()" *ngIf="canWrite && deck.id" [disabled]="isDeleting">
-                        <span *ngIf="!isDeleting">Delete this Deck</span>
+                    <button class="btn btn-default round" (click)="toggleEditGroups()" *ngIf="canWrite">
+                        <span>Toggle<br class="hidden-gte-sm"> Groups</span>
+                    </button>
+                    <button class="btn btn-default round" (click)="delete()" *ngIf="canWrite && deck.id" [disabled]="isDeleting">
+                        <span *ngIf="!isDeleting">Delete<br class="hidden-gte-sm"> this Deck</span>
                         <span *ngIf="isDeleting">Deleting <app-spinner></app-spinner></span>
                     </button>
                 </div>
             </header>
         </section>
 
-        <div class="flex-gte-md">
-            <section class="flex-2">
-                <div *ngFor="let cardGroup of deck.cardGroups; let i = index">
-                    <app-card-group
-                        [data]="cardGroup"
-                        [shouldLoadPrices]="loadPrices"
-                        [canEdit]="canWrite"
-                        [isInitiallyEditing]="i === 0 && !deck.id"
-                        (cardGroupChanged)="save()"
-                        (pricesLoaded)="pricesLoaded($event)"
-                        (cardsChanged)="cardsChanged($event)"></app-card-group>
+        <section class="flex-gte-md">
+            <div class="flex-2" gIf="!isEditingGroups">
+                <edit-card-groups [deck]="deck" *ngIf="isEditingGroups" (cardGroupsChanged)="cardGroupsChanged = true"></edit-card-groups>
+
+                <div *ngIf="!isEditingGroups">
+                    <section *ngFor="let cardGroup of deck.cardGroups">
+                        <app-card-group
+                            [data]="cardGroup"
+                            [shouldLoadPrices]="loadPrices"
+                            [canEdit]="canWrite"
+                            [isInitiallyEditing]="!deck.id"
+                            (cardGroupChanged)="save()"
+                            (pricesLoading)="pricesLoading($event)"
+                            (cardsChanged)="cardsChanged($event)"></app-card-group>
+                    </section>
                 </div>
-            </section>
-            <section class="border-left-gte-md">
-                <header class="padding">Notes</header>
-                <div *ngIf="!canWrite && deck.tags.length > 0">
-                    <div class="tags"><span class="badge" *ngFor="let tag of deck.tags">{{tag}}</span></div>
-                    <hr class="dashed">
-                </div>
-                <div class="tag-input" *ngIf="canWrite">
-                    <input type="text"
-                        class="tags transparent"
-                        placeholder="tags"
-                        [(value)]="tags"
-                        (valueChange)="tagsChanged()"
-                        [debounce]="2000">
-                    <hr class="dashed">
-                    <div><span class="badge" *ngFor="let tag of deck.tags">{{tag}}</span></div>
-                </div>
-                <textarea class="transparent"
-                    placeholder="notes"
-                    [(value)]="deck.notes"
-                    (valueChange)="save()"
-                    [debounce]="2000"
-                    [disabled]="!canWrite"
-                    allow-tabs
-                    autosize></textarea>
-                <header class="padding">Stats</header>
-                <app-stats [update]="updateStats"></app-stats>
-            </section>
-        </div>
+
+            </div>
+            <div class="border-left-gte-md">
+                <section>
+                    <header class="padding">Notes</header>
+                    <div *ngIf="!canWrite && deck.tags.length > 0">
+                        <div class="tags"><span class="badge" *ngFor="let tag of deck.tags">{{tag}}</span></div>
+                        <hr class="dashed">
+                    </div>
+                    <div class="tag-input" *ngIf="canWrite">
+                        <input type="text"
+                            class="tags transparent"
+                            placeholder="tags"
+                            [(value)]="tags"
+                            (valueChange)="tagsChanged()"
+                            [debounce]="2000">
+                        <hr class="dashed">
+                        <div><span class="badge" *ngFor="let tag of deck.tags">{{tag}}</span></div>
+                    </div>
+                    <textarea class="transparent"
+                        placeholder="notes"
+                        [(value)]="deck.notes"
+                        (valueChange)="save()"
+                        [debounce]="2000"
+                        [disabled]="!canWrite"
+                        allow-tabs
+                        autosize></textarea>
+                </section>
+
+                <section>
+                    <header class="padding">Stats</header>
+                    <app-stats [update]="updateStats"></app-stats>
+                </section>
+            </div>
+        </section>
     </div>
 </main>

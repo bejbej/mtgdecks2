@@ -40,6 +40,7 @@ export * from "./components/cardGroup/cardGroup";
 export * from "./components/cardView/cardView";
 export * from "./components/deck/deck";
 export * from "./components/decks/decks";
+export * from "./components/editCardGroups/editCardGroups";
 export * from "./components/largeSpinner/largeSpinner";
 export * from "./components/notfound/notfound";
 export * from "./components/spinner/spinner";

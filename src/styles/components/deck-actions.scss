@@ -1,0 +1,7 @@
+.deck-actions {
+    @media (max-width: $screen-xs-max) {
+        > * {
+            line-height: 14px;
+        }
+    }
+}
