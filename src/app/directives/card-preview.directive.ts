@@ -6,9 +6,8 @@ import { Directive, ElementRef, Input, NgZone, OnDestroy, OnInit } from "@angula
 })
 export class CardPreviewDirective implements OnInit, OnDestroy {
 
-    @Input() imageUri: string;
+    @Input() cardDefinition: app.CardDefinition;
     private element: HTMLElement;
-    private url: string;
     private img: HTMLImageElement;
 
     constructor(elementRef: ElementRef, private ngZone: NgZone) {
@@ -28,7 +27,7 @@ export class CardPreviewDirective implements OnInit, OnDestroy {
 
     ngOnInit() {
         this.ngZone.runOutsideAngular(() => {
-            this.url = app.config.imagesUrl.replace(/{([^}]*)}/, this.imageUri);
+            //this.url = `${app.config.imagesUrl}/front/${this.imageUri}.jpg`;
             this.element.addEventListener("mouseover", this.mouseOver);
             this.element.addEventListener("mouseleave", this.mouseLeave);
         });
@@ -44,7 +43,7 @@ export class CardPreviewDirective implements OnInit, OnDestroy {
 
     mouseOver = () => {
         if (app.config.enableHover) {
-            this.showCardPreview(this.url);
+            this.showCardPreview();
         }
     }
 
@@ -52,7 +51,7 @@ export class CardPreviewDirective implements OnInit, OnDestroy {
         this.hideCardPreview();
     }
 
-    showCardPreview = (url: string): void => {
+    showCardPreview = (): void => {
         let rect = this.element.getBoundingClientRect();
 
         let scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
@@ -65,7 +64,7 @@ export class CardPreviewDirective implements OnInit, OnDestroy {
 
         this.img.style.top = top + scrollTop + "px";
         this.img.style.left = left + scrollLeft + "px";
-        this.img.src = url;
+        this.img.src = `${app.config.imagesUrl}/front/${this.cardDefinition.imageUri}.jpg`;
     }
 
     hideCardPreview = (): void => {

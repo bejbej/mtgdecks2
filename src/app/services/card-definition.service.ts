@@ -20,7 +20,8 @@ export class CardDefinitionService {
                 primaryType: parameters[1],
                 cmc: Number(parameters[2]),
                 color: parameters[3],
-                imageUri: parameters[4]
+                imageUri: parameters[4],
+                isDoubleSided: parameters[5] === "1"
             }
         });
         this._cardDictionary = toDictionary(cardArray, card => card.name.toLowerCase());

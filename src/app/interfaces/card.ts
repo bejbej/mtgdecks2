@@ -10,4 +10,5 @@ export interface CardDefinition {
     color: string;
     cmc: number;
     imageUri: string;
+    isDoubleSided: boolean;
 }

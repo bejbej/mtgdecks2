@@ -6,9 +6,8 @@ import { Directive, ElementRef, Input, NgZone, OnInit } from "@angular/core";
 })
 export class LightboxDirective implements OnInit {
 
-    @Input() imageUri: string;
+    @Input() cardDefinition: app.CardDefinition;
     private element: HTMLElement;
-    private url: string;
 
     constructor(elementRef: ElementRef, private ngZone: NgZone) {
         this.element = elementRef.nativeElement;
@@ -16,7 +15,6 @@ export class LightboxDirective implements OnInit {
     
     ngOnInit() {
         this.ngZone.runOutsideAngular(() => {
-            this.url = app.config.imagesUrl.replace(/{([^}]*)}/, this.imageUri);
             this.element.addEventListener("click", event => {
                 event.preventDefault();
                 this.showLightbox();
@@ -25,11 +23,20 @@ export class LightboxDirective implements OnInit {
     }
 
     showLightbox = () => {
-        let lightbox = document.createElement("div");
+        if (this.cardDefinition.isDoubleSided) {
+            this.doubleSided();
+        }
+        else {
+            this.singleSided();
+        }
+    }
+
+    singleSided = () => {
+        const lightbox = document.createElement("div");
         lightbox.className = "lightbox";
 
-        let img = document.createElement("img");
-        img.src = this.url;
+        const img = document.createElement("img");
+        img.src = `${app.config.imagesUrl}/front/${this.cardDefinition.imageUri}.jpg`;
 
         let width = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
         let height = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
@@ -42,6 +49,38 @@ export class LightboxDirective implements OnInit {
         }
 
         lightbox.appendChild(img);
+
+        lightbox.addEventListener("click", () => {
+            lightbox.remove();
+        });
+
+        document.body.appendChild(lightbox);
+    }
+
+    doubleSided = () => {
+        const lightbox = document.createElement("div");
+        lightbox.className = "lightbox";
+
+        const imgFront = document.createElement("img");
+        imgFront.src = `${app.config.imagesUrl}/front/${this.cardDefinition.imageUri}.jpg`;
+
+        const imgBack = document.createElement("img");
+        imgBack.src = `${app.config.imagesUrl}/back/${this.cardDefinition.imageUri}.jpg`;
+
+        let width = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
+        let height = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
+
+        if ((width * 3) >> 2 < height) {
+            imgFront.style.width = "45%";
+            imgBack.style.width = "45%";
+        }
+        else {
+            imgFront.style.height = "90%";
+            imgBack.style.height = "90%";
+        }
+
+        lightbox.appendChild(imgFront);
+        lightbox.appendChild(imgBack);
 
         lightbox.addEventListener("click", () => {
             lightbox.remove();
