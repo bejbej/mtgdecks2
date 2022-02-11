@@ -70,7 +70,7 @@ export class LightboxDirective implements OnInit {
         let width = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
         let height = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
 
-        if ((width * 3) >> 2 < height) {
+        if ((height * 3) >> 1 > width) {
             imgFront.style.width = "45%";
             imgBack.style.width = "45%";
         }
