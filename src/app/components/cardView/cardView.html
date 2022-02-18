@@ -6,7 +6,7 @@
                 <span *ngFor="let card of row.cards">
                     <span class="quantity light">{{card.quantity}}x</span>
                     <span>&nbsp;</span> 
-                    <a href="#" class="name" card-preview lightbox [imageUri]="card.definition.imageUri">{{card.definition.name}}</a>
+                    <a href="#" class="name" card-preview lightbox [cardDefinition]="card.definition">{{card.definition.name}}</a>
                     <span>&nbsp;</span> 
                     <span class="price small light">{{card.usd | number: '1.2-2'}}</span>
                     <br>
@@ -20,9 +20,9 @@
         <div class="card-group" *ngFor="let row of column">
             <span *ngFor="let card of row.cards">
                 <span class="quantity light">{{card.quantity}}</span>
-                <span>&nbsp;</span> 
-                <a href="#" class="name" card-preview lightbox [imageUri]="card.definition.imageUri">{{card.definition.name}}</a>
-                <span>&nbsp;</span> 
+                <span>&nbsp;</span>
+                <a href="#" class="name" card-preview lightbox [cardDefinition]="card.definition">{{card.definition.name}}</a>
+                <span class="price">&nbsp;</span> 
                 <span class="price small light">{{card.usd | number: '1.2-2'}}</span>
                 <br>
             </span>

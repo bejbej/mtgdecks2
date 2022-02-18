@@ -1,7 +1,7 @@
 import * as app from "@app";
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, OnInit, Output } from "@angular/core";
+import { defaultIfEmpty, takeUntil } from "rxjs/operators";
 import { Observable, Subject } from "rxjs";
-import { takeUntil } from "rxjs/operators";
 import { toArray, toDictionary } from "@dictionary";
 
 interface CardGroupData {
@@ -21,7 +21,7 @@ export class CardGroupComponent implements OnInit, OnDestroy {
     @Input() canEdit: boolean;
     @Input() isInitiallyEditing: boolean;
     @Output() cardGroupChanged: EventEmitter<app.CardGroup> = new EventEmitter<app.CardGroup>();
-    @Output() pricesLoaded: EventEmitter<app.CardGroup> = new EventEmitter<app.CardGroup>();
+    @Output() pricesLoading: EventEmitter<Observable<app.CardGroup>> = new EventEmitter<Observable<app.CardGroup>>();
     @Output() cardsChanged: EventEmitter<CardGroupData> = new EventEmitter<CardGroupData>();
 
     // Data
@@ -37,10 +37,11 @@ export class CardGroupComponent implements OnInit, OnDestroy {
     // State Tracking
     isEditing: boolean;
     showToolbar: boolean = false;
-    private isLoadingPrices: boolean;
+    private isLoadingPrices: boolean = false;
 
     // Subscriptions
-    private unsubscribe: Subject<void> = new Subject<void>();;
+    private unsubscribe: Subject<void> = new Subject<void>();
+    private pricesLoadedSubject: Subject<app.CardGroup> = new Subject<app.CardGroup>();
 
     constructor(
         private cardDefinitionsService: app.CardDefinitionService,
@@ -60,6 +61,8 @@ export class CardGroupComponent implements OnInit, OnDestroy {
     ngOnDestroy() {
         this.unsubscribe.next();
         this.unsubscribe.complete();
+        this.pricesLoadedSubject.next(this.cardGroup);
+        this.pricesLoadedSubject.complete();
     }
 
     setGroupFunc = (func: (cards: app.Card[]) => app.CardView[][]) => {
@@ -155,14 +158,20 @@ export class CardGroupComponent implements OnInit, OnDestroy {
         let cardNamesWithoutUsd = this.cards.filter(card => card.usd === undefined).map(card => card.definition.name);
 
         if (cardNamesWithoutUsd.length === 0) {
-            this.onPricesLoaded();
             return;
         }
 
         this.isLoadingPrices = true;
+        this.pricesLoading.next(this.pricesLoadedSubject);
+
         try {
-            let cardPrices$ = this.cardPriceService.getCardPrices(cardNamesWithoutUsd).pipe(takeUntil(this.unsubscribe));
+            let cardPrices$ = this.cardPriceService.getCardPrices(cardNamesWithoutUsd).pipe(takeUntil(this.unsubscribe), defaultIfEmpty<app.CardPrice[]>([]));
             let cardPrices = await app.firstValue(cardPrices$);
+            
+            if (cardPrices.length === 0) {
+                return;
+            }
+
             let cardPricesDict = toDictionary(cardPrices, card => card.name);
             this.cards.forEach(card => {
                 if (card.usd === undefined) {
@@ -174,8 +183,9 @@ export class CardGroupComponent implements OnInit, OnDestroy {
             this.onPricesChanged();
         }
         finally {
+            this.ref.markForCheck();
             this.isLoadingPrices = false;
-            this.onPricesLoaded();
+            this.pricesLoadedSubject.next(this.cardGroup);
         }
     }
 
@@ -190,10 +200,6 @@ export class CardGroupComponent implements OnInit, OnDestroy {
             cardGroup: this.cardGroup,
             cards: this.cards
         });
-    }
-
-    private onPricesLoaded = () => {
-        this.pricesLoaded.emit(this.cardGroup);
     }
 
     private onPricesChanged = () => {
