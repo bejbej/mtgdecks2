@@ -1,3 +1,5 @@
+import { Dictionary, Func } from "@types";
+
 export function toDictionary<T>(array: T[], keyFunc: Func<T, string>): Dictionary<T> {
     return array.reduce((dictionary, item) => {
         dictionary[keyFunc(item)] = item;

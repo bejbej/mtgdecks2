@@ -1,3 +1,5 @@
+import { Dictionary, Func } from "@types";
+
 export function except<T>(source: T[], array: T[]): T[] {
     let dictionary = array.reduce((dictionary, item) => {
         dictionary[item.toString()] = item;

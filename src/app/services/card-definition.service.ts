@@ -1,4 +1,5 @@
 import * as app from "@app";
+import { Dictionary } from "@types";
 import { Injectable } from "@angular/core";
 import { toDictionary } from "@dictionary";
 
@@ -9,12 +10,12 @@ declare var cardsCSV: string;
 })
 export class CardDefinitionService {
 
-    private _cardDictionary: { [id: string]: app.CardDefinition };
+    private _cardDictionary: Dictionary<app.CardDefinition>;
     private _cardArray: app.CardDefinition[];
 
     constructor() {
-        let cardArray = cardsCSV.split("\n").slice(1).map(cardText => {
-            let parameters = cardText.split("\t");
+        this._cardArray = cardsCSV.split("\n").slice(1).map(cardText => {
+            const parameters = cardText.split("\t");
             return {
                 name: parameters[0],
                 primaryType: parameters[1],
@@ -24,8 +25,7 @@ export class CardDefinitionService {
                 isDoubleSided: parameters[5] === "1"
             }
         });
-        this._cardDictionary = toDictionary(cardArray, card => card.name.toLowerCase());
-        this._cardArray = Object.keys(this._cardDictionary).sort().map(key => this._cardDictionary[key]);
+        this._cardDictionary = toDictionary(this._cardArray, card => card.name.toLowerCase());
     }
 
     getCardDictionary = () => this._cardDictionary;
