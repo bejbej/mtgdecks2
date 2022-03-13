@@ -40,7 +40,7 @@
         </section>
 
         <section class="flex-gte-md">
-            <div class="flex-2" gIf="!isEditingGroups">
+            <div class="flex-2">
                 <edit-card-groups [deck]="deck" *ngIf="isEditingGroups" (cardGroupsChanged)="cardGroupsChanged = true"></edit-card-groups>
 
                 <div *ngIf="!isEditingGroups">
@@ -50,6 +50,7 @@
                             [shouldLoadPrices]="loadPrices"
                             [canEdit]="canWrite"
                             [isInitiallyEditing]="!deck.id"
+                            [stopEdit]="stopEdit"
                             (cardGroupChanged)="save()"
                             (pricesLoading)="pricesLoading($event)"
                             (cardsChanged)="cardsChanged($event)"></app-card-group>

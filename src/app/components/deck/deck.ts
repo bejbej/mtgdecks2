@@ -37,6 +37,7 @@ export class DeckComponent implements OnInit, OnDestroy {
     // Event Management
     loadPrices: Subject<void> = new Subject<void>();
     updateStats: Subject<app.Card[]> = new Subject<app.Card[]>();
+    stopEdit: Subject<void> = new Subject<void>();
     private unsubscribe: Subject<void> = new Subject<void>();;
 
     constructor(
@@ -164,7 +165,10 @@ export class DeckComponent implements OnInit, OnDestroy {
             this.deck.owners = [authUser.id];
         }
         this.canWrite = (!authUser && !this.deck.id) || (authUser && this.deck.owners.indexOf(authUser.id) > -1);
-        this.isEditingGroups = this.canWrite && this.isEditingGroups;
+        if (!this.canWrite) {
+            this.isEditingGroups = false;
+            this.stopEdit.next();
+        }
         if (authUser && this.isDirty) {
             this.save();
         }
