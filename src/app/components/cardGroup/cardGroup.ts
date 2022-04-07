@@ -16,12 +16,12 @@ interface CardGroupData {
 })
 export class CardGroupComponent implements OnInit, OnDestroy {
 
-    @Input("data") cardGroup: app.CardGroup;
-    @Input() shouldLoadPrices: Observable<void>;
-    @Input() stopEdit: Observable<void>;
-    @Input() canEdit: boolean;
+    @Input() cardGroup: app.CardGroup;
     @Input() isInitiallyEditing: boolean;
-    @Output() cardGroupChanged: EventEmitter<app.CardGroup> = new EventEmitter<app.CardGroup>();
+    @Input() showPrices$: Observable<boolean>;
+    @Input() canEdit$: Observable<boolean>;
+
+    @Output() deckChanged: EventEmitter<app.CardGroup> = new EventEmitter<app.CardGroup>();
     @Output() pricesLoading: EventEmitter<Observable<app.CardGroup>> = new EventEmitter<Observable<app.CardGroup>>();
     @Output() cardsChanged: EventEmitter<CardGroupData> = new EventEmitter<CardGroupData>();
 
@@ -33,6 +33,7 @@ export class CardGroupComponent implements OnInit, OnDestroy {
     invalidCards: string[];
     usd: number = 0;
     cardGrouper = app.CardGrouper;
+    private showPrices: boolean = false;
     private groupFunc: (cards: app.Card[]) => app.CardView[][];
 
     // State Tracking
@@ -52,8 +53,17 @@ export class CardGroupComponent implements OnInit, OnDestroy {
     ngOnInit() {
         this.groupFunc = app.CardGrouper.groupByType;
         this.parseCardBlob(this.cardGroup.cardBlob);
-        this.shouldLoadPrices.pipe(takeUntil(this.unsubscribe)).subscribe(() => this.loadPrices());
-        this.stopEdit.pipe(takeUntil(this.unsubscribe)).subscribe(() => this.discardChanges());
+        this.showPrices$.pipe(takeUntil(this.unsubscribe)).subscribe(showPrices => {
+            this.showPrices = showPrices;
+            if (showPrices) {
+                this.loadPrices()
+            }
+        });
+        this.canEdit$.pipe(takeUntil(this.unsubscribe)).subscribe(canEdit => {
+            if (!canEdit) {
+                this.discardChanges();
+            }
+        });
         this.onCardsChanged();
         if (this.isInitiallyEditing) {
             this.startEditing();
@@ -103,6 +113,9 @@ export class CardGroupComponent implements OnInit, OnDestroy {
         this.cardGroup.cardBlob = this.cardBlob;
         this.onCardGroupChanged();
         this.onCardsChanged();
+        if (this.showPrices) {
+            this.loadPrices();
+        }
     }
 
     discardChanges = () => {
@@ -192,7 +205,7 @@ export class CardGroupComponent implements OnInit, OnDestroy {
     }
 
     private onCardGroupChanged = () => {
-        this.cardGroupChanged.emit(this.cardGroup);
+        this.deckChanged.emit(this.cardGroup);
     }
 
     private onCardsChanged = () => {

@@ -3,7 +3,7 @@
         <div>{{cardGroup.name}} <span class="icon" *ngIf="cards.length > 0">{{showToolbar ? "7" : "4"}}</span></div>
         <div class="small light">{{count}} cards <span class="price" *ngIf="usd">&#8226; ${{usd | number:'1.2-2'}}</span></div>
     </button>
-    <button class="header-button" *ngIf="canEdit" (click)="startEditing()">Edit</button>
+    <button class="header-button" *ngIf="canEdit$ | async" (click)="startEditing()">Edit</button>
 </header>
 <header class="flex-lte-xs padding-h-lte-sm" *ngIf="isEditing">
     <button class="header-button text-left-gte-sm" (click)="applyChanges()">

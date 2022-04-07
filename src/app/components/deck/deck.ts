@@ -1,9 +1,9 @@
 import * as app from "@app";
 import { ActivatedRoute, Router } from "@angular/router";
+import { BehaviorSubject, Observable, Subject } from "rxjs";
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit } from "@angular/core";
-import { first, takeUntil } from "rxjs/operators";
+import { first, map, takeUntil } from "rxjs/operators";
 import { Location } from "@angular/common";
-import { Observable, Subject } from "rxjs";
 
 interface CardGroupData {
     cardGroup: app.CardGroup,
@@ -24,20 +24,18 @@ export class DeckComponent implements OnInit, OnDestroy {
     private id: string;
 
     // State Tracking
-    canWrite: boolean;
     isDeleting: boolean;
     isDirty: boolean;
     isLoading: boolean;
     isSaving: boolean;
     isEditingGroups: boolean;
     numberOfLoaders: number = 0;
-    showPrices: boolean;
     cardGroupsChanged: boolean = false;
 
     // Event Management
-    loadPrices: Subject<void> = new Subject<void>();
+    showPrices: Subject<boolean> = new BehaviorSubject<boolean>(false);
     updateStats: Subject<app.Card[]> = new Subject<app.Card[]>();
-    stopEdit: Subject<void> = new Subject<void>();
+    canEdit: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
     private unsubscribe: Subject<void> = new Subject<void>();;
 
     constructor(
@@ -48,6 +46,7 @@ export class DeckComponent implements OnInit, OnDestroy {
         private router: Router,
         route: ActivatedRoute) {
 
+            this.showPrices.subscribe(x => console.log(x));
         document.title = "Loading...";
         route.params.subscribe(params => this.id = params.id);
         this.authService.getObservable().pipe(takeUntil(this.unsubscribe)).subscribe(() => this.sync());
@@ -63,17 +62,15 @@ export class DeckComponent implements OnInit, OnDestroy {
     }
 
     togglePrices = () => {
-        this.showPrices = !this.showPrices;
-        if (this.showPrices) {
-            this.loadPrices.next();
-        }
+        this.showPrices.pipe(first(), map(x => !x)).subscribe(x => {
+            this.showPrices.next(x);
+        });
     }
 
     toggleEditGroups = () => {
         this.isEditingGroups = !this.isEditingGroups;
-        if (!this.isEditingGroups && this.cardGroupsChanged && this.deck.id) {
+        if (!this.isEditingGroups && this.isDirty) {
             this.save();
-            this.cardGroupsChanged = false;
         }
     }
 
@@ -88,23 +85,9 @@ export class DeckComponent implements OnInit, OnDestroy {
     }
 
     cardsChanged = (event: CardGroupData) => {
-        if (this.showPrices) {
-            this.loadPrices.next();
-        }
-
         if (this.deck.cardGroups.indexOf(event.cardGroup) === 0) {
             this.updateStats.next(event.cards);
         }
-    }
-
-    tagsChanged = () => {
-        if (this.tags.length === 0) {
-            this.deck.tags = [];
-        }
-        else {
-            this.deck.tags = this.tags.split(/\s*,\s*/).map(x => x.toLowerCase());
-        }
-        this.save();
     }
 
     delete = async () => {
@@ -164,10 +147,11 @@ export class DeckComponent implements OnInit, OnDestroy {
         if (!this.deck.id && authUser) {
             this.deck.owners = [authUser.id];
         }
-        this.canWrite = (!authUser && !this.deck.id) || (authUser && this.deck.owners.indexOf(authUser.id) > -1);
-        if (!this.canWrite) {
+        
+        const canEdit = (!authUser && !this.deck.id) || (authUser && this.deck.owners.indexOf(authUser.id) > -1);
+        this.canEdit.next(canEdit);
+        if (!canEdit) {
             this.isEditingGroups = false;
-            this.stopEdit.next();
         }
         if (authUser && this.isDirty) {
             this.save();

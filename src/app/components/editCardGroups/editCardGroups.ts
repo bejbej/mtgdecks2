@@ -12,7 +12,7 @@ export class EditCardGroupsComponent {
     selectedGroups: any = {};
 
     @Input() deck: app.Deck;
-    @Output() cardGroupsChanged: EventEmitter<app.Deck> = new EventEmitter<app.Deck>();
+    @Output() deckChanged: EventEmitter<app.Deck> = new EventEmitter<app.Deck>();
 
     addCardGroup = () => {
         const defaultGroupNames = ["Mainboard", "Sideboard", "Maybeboard"];
@@ -22,7 +22,7 @@ export class EditCardGroupsComponent {
             cardBlob: "",
             name: name
         });
-        this.cardGroupsChanged.next(this.deck);
+        this.deckChanged.next(this.deck);
     }
 
     deleteSelectedCardGroups = () => {
@@ -41,6 +41,6 @@ export class EditCardGroupsComponent {
     }
 
     onCardGroupsChanged = () => {
-        this.cardGroupsChanged.next(this.deck);
+        this.deckChanged.next(this.deck);
     }
 }

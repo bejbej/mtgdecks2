@@ -39,6 +39,7 @@ export * from "./components/auth/auth";
 export * from "./components/cardGroup/cardGroup";
 export * from "./components/cardView/cardView";
 export * from "./components/deck/deck";
+export * from "./components/deckInfo/deckInfo";
 export * from "./components/decks/decks";
 export * from "./components/editCardGroups/editCardGroups";
 export * from "./components/largeSpinner/largeSpinner";
