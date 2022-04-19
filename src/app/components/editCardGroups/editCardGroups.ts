@@ -19,7 +19,8 @@ export class EditCardGroupsComponent {
         const name = defaultGroupNames[this.deck.cardGroups.length] || "Group";
 
         this.deck.cardGroups.push({
-            cardBlob: "",
+            cards: [],
+            invalidCards: [],
             name: name
         });
         this.deckChanged.next(this.deck);

@@ -1,19 +1,19 @@
 <header class="flex-lte-xs padding-h-lte-sm" *ngIf="!isEditing">
     <button class="header-button text-left-gte-sm" (click)="showToolbar = !showToolbar">
-        <div>{{cardGroup.name}} <span class="icon" *ngIf="cards.length > 0">{{showToolbar ? "7" : "4"}}</span></div>
+        <div>{{cardGroup.name}} <span class="icon" *ngIf="cardGroup.cards.length > 0">{{showToolbar ? "7" : "4"}}</span></div>
         <div class="small light">{{count}} cards <span class="price" *ngIf="usd">&#8226; ${{usd | number:'1.2-2'}}</span></div>
     </button>
     <button class="header-button" *ngIf="canEdit$ | async" (click)="startEditing()">Edit</button>
 </header>
 <header class="flex-lte-xs padding-h-lte-sm" *ngIf="isEditing">
     <button class="header-button text-left-gte-sm" (click)="applyChanges()">
-        <div>{{cardGroup.name}} <span class="icon" *ngIf="cards.length > 0">{{showToolbar ? "7" : "4"}}</span></div>
+        <div>{{cardGroup.name}} <span class="icon" *ngIf="cardGroup.cards.length > 0">{{showToolbar ? "7" : "4"}}</span></div>
         <div class="small light">{{count}} cards <span class="price" *ngIf="usd">&#8226; ${{usd | number:'1.2-2'}}</span></div>
     </button>
     <span class="tab">Edit</span>
 </header>
 <form>
-    <div class="radio-group" [hidden]="cards.length === 0 || !showToolbar">
+    <div class="radio-group" [hidden]="cardGroup.cards.length === 0 || !showToolbar">
         <label>
             <input type="radio" name="view" checked="checked" (click)="setGroupFunc(cardGrouper.groupByType)"/>
             Card Type
@@ -36,9 +36,9 @@
         </label>
     </div>
 </form>
-<div class="alert alert-danger margin" *ngIf="invalidCards.length > 0">
+<div class="alert alert-danger margin" *ngIf="cardGroup.invalidCards.length > 0 && !isEditing">
     <p class="alert-title">Unknown Cards</p>
-    <span *ngFor="let card of invalidCards">{{card}}<br></span>
+    <span *ngFor="let card of cardGroup.invalidCards">{{card}}<br></span>
 </div>
 
 <div *ngIf="!isEditing">

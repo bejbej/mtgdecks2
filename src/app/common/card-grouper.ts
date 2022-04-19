@@ -1,7 +1,10 @@
 import * as app from "@app";
+import { sum } from "@array";
+
+export type GroupFunc = (cards: app.Card[]) => app.CardView[][];
 
 export class CardGrouper {
-    static groupByType = (cards: app.Card[]): app.CardView[][] => {
+    static groupByType: GroupFunc = (cards: app.Card[]): app.CardView[][] => {
         return CardGrouper.groupEvenly(CardGrouper.groupBy(
             ["creature", "artifact", "enchantment", "planeswalker", "land", "instant", "sorcery", "conspiracy"],
             x => x,
@@ -10,7 +13,7 @@ export class CardGrouper {
         ));
     }
 
-    static groupByCmc = (cards: app.Card[]): app.CardView[][] => {
+    static groupByCmc: GroupFunc = (cards: app.Card[]): app.CardView[][] => {
         return CardGrouper.groupEvenly(CardGrouper.groupBy(
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
             x => x + " drop",
@@ -19,7 +22,7 @@ export class CardGrouper {
         ));
     }
 
-    static groupByColor = (cards: app.Card[]): app.CardView[][] => {
+    static groupByColor: GroupFunc = (cards: app.Card[]): app.CardView[][] => {
         return CardGrouper.groupEvenly(CardGrouper.groupBy(
             ["white", "blue", "black", "red", "green", "multicolored", "colorless"],
             x => x,
@@ -28,7 +31,7 @@ export class CardGrouper {
         ));
     }
 
-    static groupByName = (cards: app.Card[]): app.CardView[][] => {
+    static groupByName:GroupFunc = (cards: app.Card[]): app.CardView[][] => {
         cards = cards.slice().sort((a, b) => {
             return a.definition.name > b.definition.name ? 1 : -1;
         });
@@ -54,7 +57,7 @@ export class CardGrouper {
         ];
     }
 
-    static groupByPrice = (cards: app.Card[]): app.CardView[][] => {
+    static groupByPrice: GroupFunc = (cards: app.Card[]): app.CardView[][] => {
         cards = cards.slice().sort((a, b) => {
             return a.usd > b.usd ? 1 : -1;
         });
@@ -101,7 +104,7 @@ export class CardGrouper {
                 array.push({
                     name: headerFunc(key),
                     cards: cards,
-                    numberOfCards: cards.reduce((sum, card) => sum + card.quantity, 0)
+                    numberOfCards: sum(cards, card => card.quantity)
                 });
             }
 

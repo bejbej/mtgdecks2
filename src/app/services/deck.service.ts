@@ -11,10 +11,11 @@ export class DeckService {
 
     private _url = app.config.decksUrl;
 
-    constructor(private http: HttpClient) { }
+    constructor(private cardBlobService: app.CardBlobService, private http: HttpClient) { }
 
     getById(id: string): Observable<app.Deck> {
-        return this.http.get<app.Deck>(this._url + "/" + id);
+        return this.http.get<app.ApiDeck>(this._url + "/" + id)
+            .pipe(map(x => this.mapApiDeckToDeck(x)));
     }
 
     getByQuery(query?): Observable<any[]> {
@@ -22,18 +23,46 @@ export class DeckService {
             .pipe(map(response => response.results));
     }
 
-    createDeck(deck): Observable<string> {
-        return this.http.post<{ id: string }>(this._url, deck)
+    createDeck(deck: app.Deck): Observable<string> {
+        return this.http.post<{ id: string }>(this._url, this.mapDeckToApiDeck(deck))
             .pipe(map(response => response.id));
     }
 
     updateDeck(deck: app.Deck): Observable<any> {
         let url = this._url + "/" + deck.id;
-        return this.http.put(url, deck);
+        return this.http.put(url, this.mapDeckToApiDeck(deck));
     }
 
     deleteDeck(id: string): Observable<any> {
         let url = this._url + "/" + id;
         return this.http.delete(url);
+    }
+
+    private mapApiDeckToDeck(apiDeck: app.ApiDeck): app.Deck {
+        return {
+            ...apiDeck,
+            cardGroups: apiDeck.cardGroups.map(cardGroup => {
+                const { cards, invalidCards } = this.cardBlobService.parse(cardGroup.cardBlob);
+
+                return {
+                    ...cardGroup,
+                    cardBlob: undefined,
+                    cards: cards,
+                    invalidCards: invalidCards
+                }
+            })
+        }
+    }
+
+    private mapDeckToApiDeck(deck: app.Deck): app.ApiDeck {
+        return {
+            ...deck,
+            cardGroups: deck.cardGroups.map(cardGroup => {
+                return  {
+                    name: cardGroup.name,
+                    cardBlob: this.cardBlobService.stringify(cardGroup.cards, cardGroup.invalidCards)
+                }
+            })
+        };
     }
 }

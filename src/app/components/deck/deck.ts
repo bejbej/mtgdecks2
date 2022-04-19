@@ -1,14 +1,9 @@
 import * as app from "@app";
 import { ActivatedRoute, Router } from "@angular/router";
-import { BehaviorSubject, Observable, Subject } from "rxjs";
+import { BehaviorSubject, Observable, ReplaySubject, Subject } from "rxjs";
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit } from "@angular/core";
 import { first, map, takeUntil } from "rxjs/operators";
 import { Location } from "@angular/common";
-
-interface CardGroupData {
-    cardGroup: app.CardGroup,
-    cards: app.Card[]
-}
 
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -34,7 +29,7 @@ export class DeckComponent implements OnInit, OnDestroy {
 
     // Event Management
     showPrices: Subject<boolean> = new BehaviorSubject<boolean>(false);
-    updateStats: Subject<app.Card[]> = new Subject<app.Card[]>();
+    updateStats: Subject<app.Card[]> = new ReplaySubject<app.Card[]>(1);
     canEdit: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
     private unsubscribe: Subject<void> = new Subject<void>();;
 
@@ -46,7 +41,6 @@ export class DeckComponent implements OnInit, OnDestroy {
         private router: Router,
         route: ActivatedRoute) {
 
-            this.showPrices.subscribe(x => console.log(x));
         document.title = "Loading...";
         route.params.subscribe(params => this.id = params.id);
         this.authService.getObservable().pipe(takeUntil(this.unsubscribe)).subscribe(() => this.sync());
@@ -54,6 +48,7 @@ export class DeckComponent implements OnInit, OnDestroy {
 
     async ngOnInit() {
         await this.loadDeck(this.id);
+        this.updateStats.next(this.deck.cardGroups[0].cards);
     }
 
     ngOnDestroy() {
@@ -84,9 +79,10 @@ export class DeckComponent implements OnInit, OnDestroy {
         });
     }
 
-    cardsChanged = (event: CardGroupData) => {
-        if (this.deck.cardGroups.indexOf(event.cardGroup) === 0) {
-            this.updateStats.next(event.cards);
+    cardGroupChanged = (cardGroup: app.CardGroup) => {
+        this.save();
+        if (this.deck.cardGroups.indexOf(cardGroup) === 0) {
+            this.updateStats.next(cardGroup.cards);
         }
     }
 
@@ -190,7 +186,8 @@ export class DeckComponent implements OnInit, OnDestroy {
         return {
             cardGroups: [
                 {
-                    cardBlob: "",
+                    cards: [],
+                    invalidCards: [],
                     name: "Mainboard"
                 }
             ],

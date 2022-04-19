@@ -7,6 +7,7 @@ export * from "./common/first-value";
 export * from "./common/get-autocomplete-entries";
 export * from "./common/get-caret-coordinates";
 export * from "./common/group-evenly";
+export * from "./common/subscription-manager";
 export * from "./common/throttle";
 
 // Directives
@@ -30,6 +31,7 @@ export * from "./interfaces/user";
 
 // Services
 export * from "./services/auth.service";
+export * from "./services/card-blob.service";
 export * from "./services/card-definition.service";
 export * from "./services/card-price.service";
 export * from "./services/deck.service";

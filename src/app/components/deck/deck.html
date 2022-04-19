@@ -53,9 +53,8 @@
                             [showPrices$]="showPrices"
                             [canEdit$]="canEdit"
                             [isInitiallyEditing]="!deck.id"
-                            (deckChanged)="save()"
-                            (pricesLoading)="pricesLoading($event)"
-                            (cardsChanged)="cardsChanged($event)"></app-card-group>
+                            (cardGroupChanged)="cardGroupChanged($event)"
+                            (pricesLoading)="pricesLoading($event)"></app-card-group>
                     </section>
                 </div>
 
