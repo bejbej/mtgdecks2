@@ -1,6 +1,7 @@
 import * as app from "@app";
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit } from "@angular/core";
-import { Observable, Subject } from "rxjs";
+import { contains } from "@array";
+import { Subject } from "rxjs";
 import { takeUntil } from "rxjs/operators";
 import { toDictionary } from "@dictionary";
 
@@ -10,20 +11,25 @@ import { toDictionary } from "@dictionary";
     templateUrl: "./stats.html"
 })
 export class StatsComponent implements OnInit, OnDestroy {
-    @Input() update: Observable<app.Card[]>;
+    @Input() deck: app.Deck;
     stats: string[];
 
     private unsubscribe: Subject<void> = new Subject<void>();
 
     private static cardTypes = toDictionary(["creature", "artifact", "enchantment", "planeswalker", "instant", "sorcery"], x => x);
 
-    constructor(private ref: ChangeDetectorRef) { }
+    constructor(
+        private ref: ChangeDetectorRef,
+        private deckEvents: app.DeckEvents) {
+            this.deckEvents.cardGroupCardsChanged$.pipe(takeUntil(this.unsubscribe)).subscribe(cardGroups => {
+                if (contains(cardGroups, this.deck.cardGroups[0])) {
+                    this.computeStats(this.deck.cardGroups[0].cards);
+                    this.ref.markForCheck();
+                }
+            });
+        }
 
     ngOnInit() {
-        this.update.pipe(takeUntil(this.unsubscribe)).subscribe(cards => {
-            this.computeStats(cards);
-            this.ref.markForCheck();
-        });
     }
 
     ngOnDestroy(): void {

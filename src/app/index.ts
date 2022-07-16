@@ -7,7 +7,6 @@ export * from "./common/first-value";
 export * from "./common/get-autocomplete-entries";
 export * from "./common/get-caret-coordinates";
 export * from "./common/group-evenly";
-export * from "./common/subscription-manager";
 export * from "./common/throttle";
 
 // Directives
@@ -41,6 +40,7 @@ export * from "./components/auth/auth";
 export * from "./components/cardGroup/cardGroup";
 export * from "./components/cardView/cardView";
 export * from "./components/deck/deck";
+export * from "./components/deck/deck.events";
 export * from "./components/deckInfo/deckInfo";
 export * from "./components/decks/decks";
 export * from "./components/editCardGroups/editCardGroups";

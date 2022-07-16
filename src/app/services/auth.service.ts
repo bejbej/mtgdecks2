@@ -1,8 +1,9 @@
 import * as app from "@app";
 import { AuthService as AuthService2, SharedService } from "ng2-ui-auth";
+import { BehaviorSubject, Observable, ReplaySubject, Subject } from "rxjs";
 import { HttpClient } from "@angular/common/http";
 import { Injectable } from "@angular/core";
-import { Observable, Subject } from "rxjs";
+import { shareReplay } from "rxjs/operators";
 
 @Injectable({
     providedIn: "root"
@@ -12,13 +13,13 @@ export class AuthService {
     private userKey = app.config.localStorage.user;
     private tagKey = app.config.localStorage.tags;
     private isAuthenticated: boolean;
-    private subject: Subject<void>;
+    private subject: Subject<void> = new ReplaySubject(1);
     private isLoggingIn: boolean;
     private url = app.config.usersUrl;
 
     constructor(private auth: AuthService2, private http: HttpClient, sharedService: SharedService) {
         sharedService.tokenName = app.config.localStorage.token;
-        this.subject = new Subject();
+        this.updateAuthenticationStatus();
     }
 
     logIn = async (): Promise<any> => {
@@ -79,7 +80,7 @@ export class AuthService {
         }
     }
 
-    getObservable = (): Observable<void> => this.subject.asObservable();
+    getObservable = (): Observable<void> => this.subject.pipe(shareReplay());
 
     private updateAuthenticationStatus = (): void => {
         let isAuthenticated = this.auth.isAuthenticated();

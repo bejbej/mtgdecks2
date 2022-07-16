@@ -13,6 +13,7 @@ export interface CardGroup {
     name: string;
     cards: app.Card[];
     invalidCards: string[];
+    cardBlob: string;
 }
 
 export interface ApiDeck {

@@ -1,12 +1,16 @@
 import * as app from "@app";
 import { ActivatedRoute, Router } from "@angular/router";
-import { BehaviorSubject, Observable, ReplaySubject, Subject } from "rxjs";
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit } from "@angular/core";
-import { first, map, takeUntil } from "rxjs/operators";
+import { combineLatest, Observable, Subject } from "rxjs";
+import { contains, distinct, selectMany } from "@array";
+import { DeckEvents } from "./deck.events";
+import { filter, takeUntil, tap } from "rxjs/operators";
 import { Location } from "@angular/common";
+import { toDictionary } from "@dictionary";
 
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
+    providers: [DeckEvents],
     selector: "app-deck",
     templateUrl: "./deck.html"
 })
@@ -14,27 +18,27 @@ export class DeckComponent implements OnInit, OnDestroy {
 
     // Data
     deck: app.Deck;
-    tags: string;
     statCards: app.Card[];
     private id: string;
 
     // State Tracking
     isDeleting: boolean;
-    isDirty: boolean;
+    isCardGroupsChanged: boolean = false;
+    isDirty: boolean = false;
     isLoading: boolean;
-    isSaving: boolean;
     isEditingGroups: boolean;
-    numberOfLoaders: number = 0;
-    cardGroupsChanged: boolean = false;
+    showPrices: boolean;
+    isLoadingPrices: boolean = false;
+    canEdit$: Observable<boolean>;
 
     // Event Management
-    showPrices: Subject<boolean> = new BehaviorSubject<boolean>(false);
-    updateStats: Subject<app.Card[]> = new ReplaySubject<app.Card[]>(1);
-    canEdit: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
+    deckChanged$ = this.deckEvents.deckChanged$;
     private unsubscribe: Subject<void> = new Subject<void>();;
 
     constructor(
         private authService: app.AuthService,
+        private cardPriceService: app.CardPriceService,
+        private deckEvents: app.DeckEvents,
         private deckService: app.DeckService, 
         private location: Location,
         private ref: ChangeDetectorRef,
@@ -42,13 +46,41 @@ export class DeckComponent implements OnInit, OnDestroy {
         route: ActivatedRoute) {
 
         document.title = "Loading...";
-        route.params.subscribe(params => this.id = params.id);
+        this.canEdit$ = deckEvents.canEdit$;
+        route.params.pipe(takeUntil(this.unsubscribe)).subscribe(params => this.id = params.id);
+
+        // Update permissions whenever the auth user changes
         this.authService.getObservable().pipe(takeUntil(this.unsubscribe)).subscribe(() => this.sync());
+
+        // Keep track if card groups have changed while card groups are being edited
+        this.deckEvents.cardGroupsChanged$.pipe(takeUntil(this.unsubscribe)).subscribe(() => this.isCardGroupsChanged = true);
+
+        // When card groups change, load prices as needed
+        this.deckEvents.cardGroupCardsChanged$.pipe(filter(() => this.showPrices), takeUntil(this.unsubscribe)).subscribe(cardGroups => this.loadPrices(cardGroups));
+
+        const deckChanged$ = this.deckEvents.deckChanged$.pipe(tap(() => {
+            this.updateTitle();
+            this.isDirty = true;
+        }));
+        combineLatest([deckChanged$, this.authService.getObservable()])
+            .pipe(filter(() => this.isDirty), takeUntil(this.unsubscribe))
+            .subscribe(async combined => {
+                const [deck] = combined;
+                const authUser = this.authService.getAuthUser();
+
+                if (authUser === undefined || !deck.owners.includes(authUser.id)) {
+                    return;
+                }
+
+                await this.save();
+            });
     }
 
     async ngOnInit() {
-        await this.loadDeck(this.id);
-        this.updateStats.next(this.deck.cardGroups[0].cards);
+        this.deck = await this.getDeck(this.id);
+        this.updateTitle(); 
+        this.sync();
+        this.ref.markForCheck();
     }
 
     ngOnDestroy() {
@@ -56,33 +88,19 @@ export class DeckComponent implements OnInit, OnDestroy {
         this.unsubscribe.complete();
     }
 
-    togglePrices = () => {
-        this.showPrices.pipe(first(), map(x => !x)).subscribe(x => {
-            this.showPrices.next(x);
-        });
+    togglePrices = async () => {
+        this.showPrices = !this.showPrices;
+
+        if (this.showPrices && !this.isLoadingPrices) {
+            await this.loadPrices(this.deck.cardGroups);
+        }
     }
 
     toggleEditGroups = () => {
         this.isEditingGroups = !this.isEditingGroups;
-        if (!this.isEditingGroups && this.isDirty) {
-            this.save();
-        }
-    }
-
-    pricesLoading = (observable: Observable<app.CardGroup>) => {
-        ++this.numberOfLoaders;
-        observable.pipe(takeUntil(this.unsubscribe), first()).subscribe(() => {
-            --this.numberOfLoaders
-            if (this.numberOfLoaders === 0) {
-                this.ref.detectChanges();
-            }
-        });
-    }
-
-    cardGroupChanged = (cardGroup: app.CardGroup) => {
-        this.save();
-        if (this.deck.cardGroups.indexOf(cardGroup) === 0) {
-            this.updateStats.next(cardGroup.cards);
+        if (!this.isEditingGroups && this.isCardGroupsChanged) {
+            this.deckEvents.deckChanged$.next(this.deck);
+            this.isCardGroupsChanged = false;
         }
     }
 
@@ -107,78 +125,59 @@ export class DeckComponent implements OnInit, OnDestroy {
 
     save = async () => {
         this.updateTitle();
-        this.isDirty = true;
         let authUser = this.authService.getAuthUser();
         if (authUser === undefined) {
             return;
         }
 
-        this.isSaving = true;
-        try
-        {
-            if (this.deck.id) {
-                let updateDeck$ = this.deckService.updateDeck(this.deck).pipe(takeUntil(this.unsubscribe));
-                await app.firstValue(updateDeck$);
-            }
-            else {
-                let createDeck$ = this.deckService.createDeck(this.deck).pipe(takeUntil(this.unsubscribe))
-                this.deck.id = await app.firstValue(createDeck$);
-                this.deck.owners = this.deck.owners || [authUser.id];
-                this.location.replaceState("/decks/" + this.deck.id);
-                this.ref.markForCheck();
-            }
+        if (this.deck.id) {
+            let updateDeck$ = this.deckService.updateDeck(this.deck).pipe(takeUntil(this.unsubscribe));
+            await app.firstValue(updateDeck$);
         }
-        finally
-        {
-            this.isDirty = false;
-            this.isSaving = false;
+        else {
+            let createDeck$ = this.deckService.createDeck(this.deck).pipe(takeUntil(this.unsubscribe))
+            this.deck.id = await app.firstValue(createDeck$);
+            this.deck.owners = this.deck.owners || [authUser.id];
+            this.location.replaceState("/decks/" + this.deck.id);
         }
+        this.isDirty = false;
     }
 
     private sync = () => {
         if (!this.deck) {
             return;
         }
-        var authUser = this.authService.getAuthUser();
+        const authUser = this.authService.getAuthUser();
         if (!this.deck.id && authUser) {
             this.deck.owners = [authUser.id];
         }
         
-        const canEdit = (!authUser && !this.deck.id) || (authUser && this.deck.owners.indexOf(authUser.id) > -1);
-        this.canEdit.next(canEdit);
+        const newDeckAndNotLoggedIn = authUser === undefined && this.deck.id === undefined;
+        const existingDeckAndOwner = authUser !== undefined && contains(this.deck.owners, authUser.id);
+        const canEdit = newDeckAndNotLoggedIn || existingDeckAndOwner;
+        this.deckEvents.canEdit$.next(canEdit);
         if (!canEdit) {
             this.isEditingGroups = false;
         }
-        if (authUser && this.isDirty) {
-            this.save();
-        }
     }
 
-    private loadDeck = async (id: string) => {
+    private getDeck = async (id: string): Promise<app.Deck> => {
         if (id === "new") {
-            this.deck = this.createDeck();
-            this.tags = this.deck.tags.join(", ");
-            this.sync();
-            this.updateTitle();
-            return;
+            return this.createDeck();
         }
         this.isLoading = true;
         try {
-            let getDeck$ = this.deckService.getById(id).pipe(takeUntil(this.unsubscribe))
-            this.deck = await app.firstValue(getDeck$);
-            this.tags = this.deck.tags.join(", ");
-            this.sync();
-            this.updateTitle();
+            const getDeck$ = this.deckService.getById(id).pipe(takeUntil(this.unsubscribe));
+            return await app.firstValue(getDeck$);
         }
         finally {
             this.isLoading = false;
-            this.ref.markForCheck();
         }
     }
 
     private createDeck = () => {
-        let tags = [];
-        let tagState = JSON.parse(localStorage.getItem(app.config.localStorage.tags)) as app.TagState;
+        const tags = [];
+        const tagState = JSON.parse(localStorage.getItem(app.config.localStorage.tags)) as app.TagState;
         if (tagState && tagState.current) {
             tags.push(tagState.current);
         }
@@ -188,7 +187,8 @@ export class DeckComponent implements OnInit, OnDestroy {
                 {
                     cards: [],
                     invalidCards: [],
-                    name: "Mainboard"
+                    name: "Mainboard",
+                    cardBlob: "",
                 }
             ],
             id: undefined,
@@ -201,5 +201,29 @@ export class DeckComponent implements OnInit, OnDestroy {
 
     private updateTitle = () => {
         document.title = this.deck.name;
+    }
+
+    private loadPrices = async (cardGroups: app.CardGroup[]) => {
+        const cardsAndGroupsWithoutUsd = selectMany(cardGroups.map(cardGroup => cardGroup.cards.map(card => ({cardGroup, card}))))
+
+        if (cardsAndGroupsWithoutUsd.length === 0) {
+            return;
+        }
+
+        this.isLoadingPrices = true;
+        const cardNamesWithoutUsd = distinct(cardsAndGroupsWithoutUsd.map(group => group.card.definition.name));
+        const cardPrices = await app.firstValue(this.cardPriceService.getCardPrices(cardNamesWithoutUsd).pipe(takeUntil(this.unsubscribe)));
+        const cardPricesDict = toDictionary(cardPrices, card => card.name.toLowerCase());
+        const changedCardGroups = new Set<app.CardGroup>();
+        cardsAndGroupsWithoutUsd.forEach(group => {
+            const { card, cardGroup } = group;
+            const cardPrice = cardPricesDict[card.definition.name.toLowerCase()];
+            if (cardPrice !== undefined) {
+                card.usd = Number(cardPrice.usd) * card.quantity;
+                changedCardGroups.add(cardGroup);
+            }
+        });
+        this.isLoadingPrices = false;
+        this.deckEvents.cardGroupPricesChanged$.next(Array.from(changedCardGroups));
     }
 }

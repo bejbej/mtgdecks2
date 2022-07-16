@@ -1,4 +1,4 @@
-<main class="{{(showPrices | async) ? 'show-prices' : 'hide-prices'}}">
+<main class="{{showPrices ? 'show-prices' : 'hide-prices'}}">
     <nav>
         <a routerLink="/decks">My Decks</a>
         <div class="pull-right">
@@ -11,27 +11,27 @@
     <div *ngIf="deck">
         <section>
             <header class="deck-info">
-                <div class="deck-name" *ngIf="!(canEdit | async)">{{deck.name}}</div>
+                <div class="deck-name" *ngIf="!(canEdit$ | async)">{{deck.name}}</div>
                 <input class="deck-name-input"
                     type="text"
                     [(value)]="deck.name"
                     [debounce]="2000"
-                    (valueChange)="save()"
-                    *ngIf="canEdit | async" />
+                    (valueChange)="deckChanged$.next(deck)"
+                    *ngIf="canEdit$ | async" />
                 <div class="flex-lte-xs flex-padding deck-actions margin-top">
                     <button class="btn btn-default round" (click)="togglePrices()">
-                        <span *ngIf="!(showPrices | async)">Show<br class="hidden-gte-sm"> Prices</span>
-                        <span *ngIf="showPrices | async">
+                        <span *ngIf="!showPrices">Show<br class="hidden-gte-sm"> Prices</span>
+                        <span *ngIf="showPrices">
                             Hide
                             <br class="hidden-gte-sm">
                             Prices
-                            <app-spinner *ngIf="numberOfLoaders > 0"></app-spinner>
+                            <app-spinner *ngIf="isLoadingPrices"></app-spinner>
                         </span>
                     </button>
-                    <button class="btn btn-default round" (click)="toggleEditGroups()" *ngIf="canEdit | async">
+                    <button class="btn btn-default round" (click)="toggleEditGroups()" *ngIf="canEdit$ | async">
                         <span>Toggle<br class="hidden-gte-sm"> Groups</span>
                     </button>
-                    <button class="btn btn-default round" (click)="delete()" *ngIf="(canEdit | async) && deck.id" [disabled]="isDeleting">
+                    <button class="btn btn-default round" (click)="delete()" *ngIf="(canEdit$ | async) && deck.id" [disabled]="isDeleting">
                         <span *ngIf="!isDeleting">Delete<br class="hidden-gte-sm"> this Deck</span>
                         <span *ngIf="isDeleting">Deleting <app-spinner></app-spinner></span>
                     </button>
@@ -40,38 +40,26 @@
         </section>
 
         <section class="flex-gte-md">
-            <div class="flex-2">
-                <edit-card-groups
-                    [deck]="deck"
-                    *ngIf="isEditingGroups"
-                    (deckChanged)="isDirty = true"></edit-card-groups>
-
-                <div *ngIf="!isEditingGroups">
-                    <section *ngFor="let cardGroup of deck.cardGroups">
-                        <app-card-group
-                            [cardGroup]="cardGroup"
-                            [showPrices$]="showPrices"
-                            [canEdit$]="canEdit"
-                            [isInitiallyEditing]="!deck.id"
-                            (cardGroupChanged)="cardGroupChanged($event)"
-                            (pricesLoading)="pricesLoading($event)"></app-card-group>
-                    </section>
-                </div>
-
+            <div class="flex-2" *ngIf="isEditingGroups">
+                <edit-card-groups [deck]="deck"></edit-card-groups>
+            </div>
+            <div class="flex-2" *ngIf="!isEditingGroups">
+                <section *ngFor="let cardGroup of deck.cardGroups">
+                    <app-card-group
+                        [deck]="deck"
+                        [cardGroup]="cardGroup"
+                        [isInitiallyEditing]="!isDirty && !deck.id"></app-card-group>
+                </section>
             </div>
             <div class="border-left-gte-md">
                 <section>
                     <header class="padding">Notes</header>
-                    <app-deck-info
-                        [deck]="deck"
-                        [canEdit$]="canEdit"
-                        (deckChanged)="save()"
-                    ></app-deck-info>
+                    <app-deck-info [deck]="deck"></app-deck-info>
                 </section>
 
                 <section>
                     <header class="padding">Stats</header>
-                    <app-stats [update]="updateStats"></app-stats>
+                    <app-stats [deck]="deck"></app-stats>
                 </section>
             </div>
         </section>

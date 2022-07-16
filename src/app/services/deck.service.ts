@@ -46,7 +46,6 @@ export class DeckService {
 
                 return {
                     ...cardGroup,
-                    cardBlob: undefined,
                     cards: cards,
                     invalidCards: invalidCards
                 }
@@ -60,7 +59,7 @@ export class DeckService {
             cardGroups: deck.cardGroups.map(cardGroup => {
                 return  {
                     name: cardGroup.name,
-                    cardBlob: this.cardBlobService.stringify(cardGroup.cards, cardGroup.invalidCards)
+                    cardBlob: cardGroup.cardBlob
                 }
             })
         };

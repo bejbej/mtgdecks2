@@ -1,9 +1,5 @@
 import * as app from "@app";
-import { ActivatedRoute, Router } from "@angular/router";
-import { BehaviorSubject, Observable, Subject } from "rxjs";
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, OnInit, Output } from "@angular/core";
-import { first, takeUntil } from "rxjs/operators";
-import { Location } from "@angular/common";
+import { ChangeDetectionStrategy, Component, Input, OnDestroy, OnInit } from "@angular/core";
 
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -13,20 +9,18 @@ import { Location } from "@angular/common";
 export class DeckInfoComponent implements OnInit, OnDestroy {
 
     tags: string;
-
-    private unsubscribe: Subject<void> = new Subject<void>();
+    canEdit$ = this.deckEvents.canEdit$;
+    deckChanged$ = this.deckEvents.deckChanged$;
 
     @Input() deck: app.Deck;
-    @Input() canEdit$: Observable<boolean>;
-    @Output() deckChanged: EventEmitter<void> = new EventEmitter<void>();
+
+    constructor(private deckEvents: app.DeckEvents) { }
 
     ngOnInit(): void {
         this.tags = this.deck.tags.join(", ");
     }
 
     ngOnDestroy(): void {
-        this.unsubscribe.next();
-        this.unsubscribe.complete();
     }
 
     tagsChanged = () => {
@@ -37,6 +31,6 @@ export class DeckInfoComponent implements OnInit, OnDestroy {
             this.deck.tags = this.tags.split(/\s*,\s*/).map(x => x.toLowerCase());
         }
         
-        this.deckChanged.next();
+        this.deckEvents.deckChanged$.next(this.deck);
     }
 }
