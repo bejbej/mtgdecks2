@@ -40,10 +40,10 @@
         </section>
 
         <section class="flex-gte-md">
-            <div class="flex-2" *ngIf="isEditingGroups">
+            <div class="flex-2" *ngIf="isEditingGroups$ | async">
                 <edit-card-groups [deck]="deck"></edit-card-groups>
             </div>
-            <div class="flex-2" *ngIf="!isEditingGroups">
+            <div class="flex-2" *ngIf="!(isEditingGroups$ | async)">
                 <section *ngFor="let cardGroup of deck.cardGroups">
                     <app-card-group
                         [deck]="deck"
@@ -59,7 +59,7 @@
 
                 <section>
                     <header class="padding">Stats</header>
-                    <app-stats [deck]="deck"></app-stats>
+                    <app-stats [deck]="deck" *ngIf="!(isEditingGroups$ | async)"></app-stats>
                 </section>
             </div>
         </section>

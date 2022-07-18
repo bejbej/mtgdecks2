@@ -1,12 +1,12 @@
 import * as app from "@app";
-import { ChangeDetectionStrategy, Component, Input, OnDestroy, OnInit } from "@angular/core";
+import { ChangeDetectionStrategy, Component, Input, OnInit } from "@angular/core";
 
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
     selector: "app-deck-info",
     templateUrl: "./deckInfo.html"
 })
-export class DeckInfoComponent implements OnInit, OnDestroy {
+export class DeckInfoComponent implements OnInit {
 
     tags: string;
     canEdit$ = this.deckEvents.canEdit$;
@@ -18,9 +18,6 @@ export class DeckInfoComponent implements OnInit, OnDestroy {
 
     ngOnInit(): void {
         this.tags = this.deck.tags.join(", ");
-    }
-
-    ngOnDestroy(): void {
     }
 
     tagsChanged = () => {

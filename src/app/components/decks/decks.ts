@@ -34,7 +34,7 @@ export class DecksComponent implements OnInit, OnDestroy {
         }
 
         this.updateCurrentTagName();
-        authService.getObservable().pipe(takeUntil(this.unsubscribe)).subscribe(() => this.sync());
+        authService.authChanged$.pipe(takeUntil(this.unsubscribe)).subscribe(() => this.sync());
     }
 
     ngOnInit() {

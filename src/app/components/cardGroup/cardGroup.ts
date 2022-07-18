@@ -1,8 +1,8 @@
 import * as app from "@app";
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit } from "@angular/core";
 import { contains, sum } from "@array";
-import { map, takeUntil } from "rxjs/operators";
-import { Subject } from "rxjs";
+import { distinctUntilChanged, filter, map, startWith, takeUntil, tap } from "rxjs/operators";
+import { Observable, Subject } from "rxjs";
 
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -17,7 +17,7 @@ export class CardGroupComponent implements OnInit, OnDestroy {
 
     // Data
     columns: app.CardView[][];
-    count: number = 0;
+    count: number;
     usd: number;
     cardGrouper = app.CardGrouper;
     private initialCardBlob: string;
@@ -37,51 +37,48 @@ export class CardGroupComponent implements OnInit, OnDestroy {
         private ref: ChangeDetectorRef) { }
 
     ngOnInit() {
+        // Update the card count when the card group changes
+        this.deckEvents.deckChanged$
+            .pipe(
+                startWith(this.deck),
+                map(() => this.cardGroup.cards),
+                distinctUntilChanged(),
+                map(cards => sum(cards, card => card.quantity)),
+                distinctUntilChanged(),
+                takeUntil(this.unsubscribe)
+            )
+            .subscribe(count => this.count = count);
+
         // Discard changes when editing is no longer allowed
         this.deckEvents.canEdit$
-            .pipe(takeUntil(this.unsubscribe))
-            .subscribe(canEdit => {
-                if (!canEdit) {
-                    this.discardChanges();
-                    this.ref.markForCheck();
-                }
-            });
-
-        // Update the card count when the card group changes
-        this.deckEvents.cardGroupCardsChanged$
-            .pipe(takeUntil(this.unsubscribe))
-            .subscribe(cardGroups => {
-                if (contains(cardGroups, this.cardGroup)) {
-                    this.count = sum(this.cardGroup.cards, card => card.quantity);
-                }
-            });
-
-        // Clear the price total when prices start loading
-        this.deckEvents.cardGroupPricesChanged$
-            .pipe(takeUntil(this.unsubscribe))
-            .subscribe(cardGroups => {
-                if (contains(cardGroups, this.cardGroup)) {
-                    delete this.usd;
-                }
+            .pipe(
+                filter(canEdit => !canEdit),
+                takeUntil(this.unsubscribe)
+            )
+            .subscribe(() => {
+                this.discardChanges();
+                this.ref.markForCheck();
             });
 
         // Update the price total when card prices change
         this.deckEvents.cardGroupPricesChanged$
-            .pipe(takeUntil(this.unsubscribe))
-            .subscribe(cardGroups => {
-                if (contains(cardGroups, this.cardGroup)) {
-                    this.usd = sum(this.cardGroup.cards, card => card.usd);
-                }
-            });
+            .pipe(
+                filter(cardGroups => contains(cardGroups, this.cardGroup)),
+                map(() => sum(this.cardGroup.cards, card => card.usd)),
+                takeUntil(this.unsubscribe)
+            )
+            .subscribe(usd => this.usd = usd)
 
-        // Redraw cards when prices changes
+        // Redraw cards when prices change
         this.deckEvents.cardGroupPricesChanged$
-            .pipe(map(() => {
-                return this.groupFunc === app.CardGrouper.groupByPrice ?
-                    this.groupFunc(this.cardGroup.cards) :
-                    this.columns.slice();
-            }))
-            .pipe(takeUntil(this.unsubscribe))
+            .pipe(
+                map(() => {
+                    return this.groupFunc === app.CardGrouper.groupByPrice ?
+                        this.groupFunc(this.cardGroup.cards) :
+                        this.columns.slice();
+                }),
+                takeUntil(this.unsubscribe)
+            )
             .subscribe(columns => {
                 this.columns = columns;
                 this.ref.markForCheck();
@@ -92,7 +89,6 @@ export class CardGroupComponent implements OnInit, OnDestroy {
         }
 
         this.setGroupFunc(app.CardGrouper.groupByType);
-        this.deckEvents.cardGroupCardsChanged$.next([this.cardGroup]);
     }
 
     ngOnDestroy() {

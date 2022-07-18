@@ -1,10 +1,11 @@
 import * as app from "@app";
 import { ActivatedRoute, Router } from "@angular/router";
+import { BehaviorSubject, combineLatest, merge, Observable, Subject } from "rxjs";
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit } from "@angular/core";
-import { combineLatest, Observable, Subject } from "rxjs";
 import { contains, distinct, selectMany } from "@array";
 import { DeckEvents } from "./deck.events";
-import { filter, takeUntil, tap } from "rxjs/operators";
+import { filter, map, startWith, takeUntil, tap, withLatestFrom } from "rxjs/operators";
+import { firstValue } from "@app";
 import { Location } from "@angular/common";
 import { toDictionary } from "@dictionary";
 
@@ -23,16 +24,15 @@ export class DeckComponent implements OnInit, OnDestroy {
 
     // State Tracking
     isDeleting: boolean;
-    isCardGroupsChanged: boolean = false;
     isDirty: boolean = false;
     isLoading: boolean;
-    isEditingGroups: boolean;
     showPrices: boolean;
     isLoadingPrices: boolean = false;
     canEdit$: Observable<boolean>;
-
+    
     // Event Management
     deckChanged$ = this.deckEvents.deckChanged$;
+    isEditingGroups$ = new BehaviorSubject<boolean>(false);
     private unsubscribe: Subject<void> = new Subject<void>();;
 
     constructor(
@@ -50,30 +50,48 @@ export class DeckComponent implements OnInit, OnDestroy {
         route.params.pipe(takeUntil(this.unsubscribe)).subscribe(params => this.id = params.id);
 
         // Update permissions whenever the auth user changes
-        this.authService.getObservable().pipe(takeUntil(this.unsubscribe)).subscribe(() => this.sync());
-
-        // Keep track if card groups have changed while card groups are being edited
-        this.deckEvents.cardGroupsChanged$.pipe(takeUntil(this.unsubscribe)).subscribe(() => this.isCardGroupsChanged = true);
+        this.authService.authChanged$
+            .pipe(takeUntil(this.unsubscribe))
+            .subscribe(() => this.sync());
 
         // When card groups change, load prices as needed
-        this.deckEvents.cardGroupCardsChanged$.pipe(filter(() => this.showPrices), takeUntil(this.unsubscribe)).subscribe(cardGroups => this.loadPrices(cardGroups));
+        this.deckEvents.cardGroupCardsChanged$
+            .pipe(
+                filter(() => this.showPrices),
+                takeUntil(this.unsubscribe))
+            .subscribe(cardGroups => this.loadPrices(cardGroups));
 
-        const deckChanged$ = this.deckEvents.deckChanged$.pipe(tap(() => {
-            this.updateTitle();
-            this.isDirty = true;
-        }));
-        combineLatest([deckChanged$, this.authService.getObservable()])
-            .pipe(filter(() => this.isDirty), takeUntil(this.unsubscribe))
-            .subscribe(async combined => {
-                const [deck] = combined;
-                const authUser = this.authService.getAuthUser();
+        // Stop editing card groups when the user is no longer able to edit them
+        this.deckEvents.canEdit$
+            .pipe(
+                filter(canEdit => !canEdit),
+                takeUntil(this.unsubscribe))
+            .subscribe(() => this.isEditingGroups$.next(false));
 
-                if (authUser === undefined || !deck.owners.includes(authUser.id)) {
-                    return;
-                }
+        // When the user is done editing card groups, determine if the user actually changed anything
+        const cardGroupsChanged$ = this.isEditingGroups$
+            .pipe(
+                filter(x => !x),
+                withLatestFrom(this.deckEvents.cardGroupsChanged$)
+            );
 
-                await this.save();
-            });
+        // Mark the deck as dirty when it changes
+        const deckChanged$ = merge(this.deckEvents.deckChanged$, cardGroupsChanged$)
+            .pipe(tap(() => {
+                this.updateTitle();
+                this.isDirty = true;
+            }));
+
+        // Save the deck when the deck is dirty and the user is an owner of the deck
+        combineLatest([deckChanged$, this.authService.authChanged$])
+            .pipe(
+                filter(() => this.isDirty),
+                filter(() => {
+                    const authUser = this.authService.getAuthUser();
+                    return authUser && (!this.deck.id || contains(this.deck.owners, authUser.id));
+                }))
+            .pipe(takeUntil(this.unsubscribe))
+            .subscribe(() => this.save());
     }
 
     async ngOnInit() {
@@ -86,6 +104,7 @@ export class DeckComponent implements OnInit, OnDestroy {
     ngOnDestroy() {
         this.unsubscribe.next();
         this.unsubscribe.complete();
+        this.isEditingGroups$.complete();
     }
 
     togglePrices = async () => {
@@ -96,12 +115,9 @@ export class DeckComponent implements OnInit, OnDestroy {
         }
     }
 
-    toggleEditGroups = () => {
-        this.isEditingGroups = !this.isEditingGroups;
-        if (!this.isEditingGroups && this.isCardGroupsChanged) {
-            this.deckEvents.deckChanged$.next(this.deck);
-            this.isCardGroupsChanged = false;
-        }
+    toggleEditGroups = async () => {
+        const value = await firstValue(this.isEditingGroups$);
+        this.isEditingGroups$.next(!value);
     }
 
     delete = async () => {
@@ -110,13 +126,11 @@ export class DeckComponent implements OnInit, OnDestroy {
         }
 
         this.isDeleting = true;
-        let deleteDeck$ = this.deckService.deleteDeck(this.deck.id).pipe(takeUntil(this.unsubscribe));
-        try
-        {
+        const deleteDeck$ = this.deckService.deleteDeck(this.deck.id).pipe(takeUntil(this.unsubscribe));
+        try {
             await app.firstValue(deleteDeck$);
         }
-        finally
-        {
+        finally {
             this.isDeleting = false;
             this.ref.markForCheck();
         }
@@ -124,18 +138,18 @@ export class DeckComponent implements OnInit, OnDestroy {
     }
 
     save = async () => {
-        this.updateTitle();
-        let authUser = this.authService.getAuthUser();
+        const authUser = this.authService.getAuthUser();
         if (authUser === undefined) {
             return;
         }
 
         if (this.deck.id) {
-            let updateDeck$ = this.deckService.updateDeck(this.deck).pipe(takeUntil(this.unsubscribe));
+            const updateDeck$ = this.deckService.updateDeck(this.deck).pipe(takeUntil(this.unsubscribe));
             await app.firstValue(updateDeck$);
         }
         else {
-            let createDeck$ = this.deckService.createDeck(this.deck).pipe(takeUntil(this.unsubscribe))
+            this.deck.owners = [authUser.id];
+            const createDeck$ = this.deckService.createDeck(this.deck).pipe(takeUntil(this.unsubscribe))
             this.deck.id = await app.firstValue(createDeck$);
             this.deck.owners = this.deck.owners || [authUser.id];
             this.location.replaceState("/decks/" + this.deck.id);
@@ -147,18 +161,12 @@ export class DeckComponent implements OnInit, OnDestroy {
         if (!this.deck) {
             return;
         }
-        const authUser = this.authService.getAuthUser();
-        if (!this.deck.id && authUser) {
-            this.deck.owners = [authUser.id];
-        }
         
-        const newDeckAndNotLoggedIn = authUser === undefined && this.deck.id === undefined;
-        const existingDeckAndOwner = authUser !== undefined && contains(this.deck.owners, authUser.id);
-        const canEdit = newDeckAndNotLoggedIn || existingDeckAndOwner;
+        const authUser = this.authService.getAuthUser();
+        const newDeck = !this.deck.id;
+        const existingDeckAndOwner = authUser && contains(this.deck.owners, authUser.id);
+        const canEdit = newDeck || existingDeckAndOwner;
         this.deckEvents.canEdit$.next(canEdit);
-        if (!canEdit) {
-            this.isEditingGroups = false;
-        }
     }
 
     private getDeck = async (id: string): Promise<app.Deck> => {
@@ -204,8 +212,7 @@ export class DeckComponent implements OnInit, OnDestroy {
     }
 
     private loadPrices = async (cardGroups: app.CardGroup[]) => {
-        const cardsAndGroupsWithoutUsd = selectMany(cardGroups.map(cardGroup => cardGroup.cards.map(card => ({cardGroup, card}))))
-
+        const cardsAndGroupsWithoutUsd = selectMany(cardGroups.map(cardGroup => cardGroup.cards.map(card => ({cardGroup, card}))));
         if (cardsAndGroupsWithoutUsd.length === 0) {
             return;
         }

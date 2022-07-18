@@ -15,7 +15,7 @@
 <textarea class="transparent"
     placeholder="notes"
     [(value)]="deck.notes"
-    (valueChange)="deckChanged$.next()"
+    (valueChange)="deckChanged$.next(deck)"
     [debounce]="2000"
     [disabled]="!(canEdit$ | async)"
     allow-tabs

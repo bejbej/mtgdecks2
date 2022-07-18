@@ -1,8 +1,7 @@
 import * as app from "@app";
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit } from "@angular/core";
-import { contains } from "@array";
-import { Subject } from "rxjs";
-import { takeUntil } from "rxjs/operators";
+import { ChangeDetectionStrategy, Component, Input, OnInit } from "@angular/core";
+import { distinctUntilChanged, map, startWith } from "rxjs/operators";
+import { Observable } from "rxjs";
 import { toDictionary } from "@dictionary";
 
 @Component({
@@ -10,37 +9,29 @@ import { toDictionary } from "@dictionary";
     selector: "app-stats",
     templateUrl: "./stats.html"
 })
-export class StatsComponent implements OnInit, OnDestroy {
+export class StatsComponent implements OnInit {
     @Input() deck: app.Deck;
-    stats: string[];
 
-    private unsubscribe: Subject<void> = new Subject<void>();
+    stats$: Observable<string[]>;
 
     private static cardTypes = toDictionary(["creature", "artifact", "enchantment", "planeswalker", "instant", "sorcery"], x => x);
 
-    constructor(
-        private ref: ChangeDetectorRef,
-        private deckEvents: app.DeckEvents) {
-            this.deckEvents.cardGroupCardsChanged$.pipe(takeUntil(this.unsubscribe)).subscribe(cardGroups => {
-                if (contains(cardGroups, this.deck.cardGroups[0])) {
-                    this.computeStats(this.deck.cardGroups[0].cards);
-                    this.ref.markForCheck();
-                }
-            });
-        }
+    constructor(private deckEvents: app.DeckEvents) { }
 
     ngOnInit() {
+        // Update stats whenever the first card group changes
+        this.stats$ = this.deckEvents.deckChanged$
+            .pipe(
+                startWith(this.deck),
+                map(deck => deck.cardGroups.length === 0 ? [] : deck.cardGroups[0].cards),
+                distinctUntilChanged(),
+                map(cards => this.computeStats(cards))
+            )
     }
 
-    ngOnDestroy(): void {
-        this.unsubscribe.next();
-        this.unsubscribe.complete();
-    }
-
-    private computeStats = (cards: app.Card[]) => {
+    private computeStats = (cards: app.Card[]): string[] => {
         if (!cards) {
-            delete this.stats;
-            return;
+            return [];
         }
 
         let stats = new Array(17).fill(0);
@@ -57,6 +48,6 @@ export class StatsComponent implements OnInit, OnDestroy {
             stats.pop();
         }
 
-        this.stats = stats.map(stat => new Array(stat).fill("X").join(""));
+        return stats.map(stat => new Array(stat).fill("X").join(""));
     }
 }
