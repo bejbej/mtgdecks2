@@ -4,7 +4,7 @@ import { BehaviorSubject, combineLatest, merge, Observable, Subject } from "rxjs
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit } from "@angular/core";
 import { contains, distinct, selectMany } from "@array";
 import { DeckEvents } from "./deck.events";
-import { filter, map, startWith, takeUntil, tap, withLatestFrom } from "rxjs/operators";
+import { filter, takeUntil, tap, withLatestFrom } from "rxjs/operators";
 import { firstValue } from "@app";
 import { Location } from "@angular/common";
 import { toDictionary } from "@dictionary";

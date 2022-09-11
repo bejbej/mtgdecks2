@@ -37,14 +37,14 @@ export * from "./services/deck.service";
 
 // Components
 export * from "./components/auth/auth";
-export * from "./components/cardGroup/cardGroup";
-export * from "./components/cardView/cardView";
-export * from "./components/deck/deck";
-export * from "./components/deck/deck.events";
-export * from "./components/deckInfo/deckInfo";
-export * from "./components/decks/decks";
-export * from "./components/editCardGroups/editCardGroups";
+export * from "./pages/deck/cardGroup/cardGroup";
+export * from "./pages/deck/cardView/cardView";
+export * from "./pages/deck/deck";
+export * from "./pages/deck/deck.events";
+export * from "./pages/deck/deckInfo/deckInfo";
+export * from "./pages/decks/decks";
+export * from "./pages/deck/editCardGroups/editCardGroups";
 export * from "./components/largeSpinner/largeSpinner";
-export * from "./components/notfound/notfound";
+export * from "./pages/notfound/notfound";
 export * from "./components/spinner/spinner";
-export * from "./components/stats/stats";
+export * from "./pages/deck/stats/stats";
