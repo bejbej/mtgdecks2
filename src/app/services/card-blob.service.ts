@@ -28,23 +28,22 @@ export class CardBlobService {
         const invalidCards: string[] = [];
         const cardDict: Dictionary<app.Card> = {};
     
-        cardBlob.split(/\n[\s\n]*/).forEach(line => {
+        for (let line of cardBlob.split(/\n[\s\n]*/)) {
             const result = /^(?:(\d+)[Xx]?\s)?\s*([^0-9]+)$/.exec(line.trim());
             if (!result) {
                 invalidCards.push(line);
-                return;
+                continue;
             }
     
             const cardDefinition = this.cardDefinitionService.getCardDictionary()[result[2].toLowerCase()];
             if (!cardDefinition) {
                 invalidCards.push(line);
-                return;
+                continue;
             }
     
             const card = cardDict[cardDefinition.name] = cardDict[cardDefinition.name] || { definition: cardDefinition, quantity: 0, usd: undefined };
-    
             card.quantity += Number(result[1]) || 1;
-        });
+        };
     
         return {
             cards: toArray(cardDict),

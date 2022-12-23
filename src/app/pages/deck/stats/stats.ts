@@ -36,13 +36,11 @@ export class StatsComponent implements OnInit {
 
         let stats = new Array(17).fill(0);
 
-        cards.forEach(card => {
-            if (StatsComponent.cardTypes[card.definition.primaryType] === undefined) {
-                return;
+        for (let card of cards) {
+            if (StatsComponent.cardTypes[card.definition.primaryType] !== undefined) {
+                stats[card.definition.cmc] += card.quantity;
             }
-
-            stats[card.definition.cmc] += card.quantity;
-        });
+        };
 
         for (var i = stats.length - 1; i > -1 && stats[i] === 0; --i) {
             stats.pop();

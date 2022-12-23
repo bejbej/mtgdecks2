@@ -1,8 +1,9 @@
 import * as app from "@app";
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit } from "@angular/core";
-import { contains, sum } from "@array";
-import { distinctUntilChanged, filter, map, startWith, takeUntil, tap } from "rxjs/operators";
-import { Observable, Subject } from "rxjs";
+import { distinctUntilChanged, filter, map, startWith, takeUntil } from "rxjs/operators";
+import { firstValue, isDefined } from "@app";
+import { Subject } from "rxjs";
+import { sum } from "@array";
 
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -33,6 +34,7 @@ export class CardGroupComponent implements OnInit, OnDestroy {
 
     constructor(
         private cardBlobService: app.CardBlobService,
+        private cardPriceService: app.CardPriceService,
         private deckEvents: app.DeckEvents,
         private ref: ChangeDetectorRef) { }
 
@@ -61,27 +63,37 @@ export class CardGroupComponent implements OnInit, OnDestroy {
             });
 
         // Update the price total when card prices change
-        this.deckEvents.cardGroupPricesChanged$
-            .pipe(
-                filter(cardGroups => contains(cardGroups, this.cardGroup)),
-                map(() => sum(this.cardGroup.cards, card => card.usd)),
-                takeUntil(this.unsubscribe)
-            )
-            .subscribe(usd => this.usd = usd)
+        this.deckEvents.cardPrices$
+            .pipe(takeUntil(this.unsubscribe))
+            .subscribe(cardPrices => {
+                const cardsWithoutUsd = this.cardGroup.cards.filter(card => card.usd === undefined);
+                if (cardsWithoutUsd.length === 0) {
+                    return;
+                }
+                let isAnyCardUsdChanged = false;
+                for (let card of cardsWithoutUsd) {
+                    const cardPrice = cardPrices[card.definition.name.toLowerCase()];
+                    if (cardPrice === null) {
+                        card.usd = null;
+                    }
+                    else if (isDefined(cardPrice)) {
+                        card.usd = Number(cardPrice) * card.quantity;
+                        isAnyCardUsdChanged = true;
+                    }
+                }
 
-        // Redraw cards when prices change
-        this.deckEvents.cardGroupPricesChanged$
-            .pipe(
-                map(() => {
-                    return this.groupFunc === app.CardGrouper.groupByPrice ?
-                        this.groupFunc(this.cardGroup.cards) :
-                        this.columns.slice();
-                }),
-                takeUntil(this.unsubscribe)
-            )
-            .subscribe(columns => {
-                this.columns = columns;
-                this.ref.markForCheck();
+                if (isAnyCardUsdChanged) {
+                    this.usd = sum(this.cardGroup.cards.filter(x => isDefined(x.usd)), x => x.usd);
+
+                    if (this.groupFunc === app.CardGrouper.groupByPrice) {
+                        this.columns = this.groupFunc(this.cardGroup.cards);
+                    }
+                    else {
+                        this.columns = this.columns.slice();
+                    }
+
+                    this.ref.markForCheck();
+                }
             });
 
         if (this.isInitiallyEditing) {
@@ -89,6 +101,7 @@ export class CardGroupComponent implements OnInit, OnDestroy {
         }
 
         this.setGroupFunc(app.CardGrouper.groupByType);
+        this.usd = sum(this.cardGroup.cards.filter(x => isDefined(x.usd)), x => x.usd);
     }
 
     ngOnDestroy() {
@@ -96,10 +109,14 @@ export class CardGroupComponent implements OnInit, OnDestroy {
         this.unsubscribe.complete();
     }
 
-    setGroupFunc = (func: app.GroupFunc) => {
+    setGroupFunc = async (func: app.GroupFunc) => {
         this.showToolbar = false;
         this.groupFunc = func;
         this.groupCards();
+        
+        if (this.groupFunc == app.CardGrouper.groupByPrice) {
+            await this.loadPrices();
+        }
     }
 
     startEditing = () => {
@@ -140,5 +157,18 @@ export class CardGroupComponent implements OnInit, OnDestroy {
 
     discardChanges = () => {
         this.isEditing = false;
+    }
+
+    private loadPrices = async () => {
+        const cardNamesWithoutUsd = this.cardGroup.cards
+            .filter(card => card.usd === undefined)
+            .map(card => card.definition.name);
+        if (cardNamesWithoutUsd.length > 0) {
+            const cardPrices$ = this.cardPriceService
+                .getCardPrices(cardNamesWithoutUsd)
+                .pipe(takeUntil(this.unsubscribe));
+            const cardPrices = await firstValue(cardPrices$);
+            this.deckEvents.cardPrices$.next(cardPrices);
+        }
     }
 }

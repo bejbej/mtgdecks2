@@ -212,25 +212,21 @@ export class DeckComponent implements OnInit, OnDestroy {
     }
 
     private loadPrices = async (cardGroups: app.CardGroup[]) => {
-        const cardsAndGroupsWithoutUsd = selectMany(cardGroups.map(cardGroup => cardGroup.cards.map(card => ({cardGroup, card}))));
-        if (cardsAndGroupsWithoutUsd.length === 0) {
+        const cardNamesWithoutUsd = selectMany(cardGroups.map(cardGroup => cardGroup.cards))
+            .filter(card => card.usd === undefined)
+            .map(card => card.definition.name);
+            
+        if (cardNamesWithoutUsd.length === 0) {
             return;
         }
 
         this.isLoadingPrices = true;
-        const cardNamesWithoutUsd = distinct(cardsAndGroupsWithoutUsd.map(group => group.card.definition.name));
-        const cardPrices = await app.firstValue(this.cardPriceService.getCardPrices(cardNamesWithoutUsd).pipe(takeUntil(this.unsubscribe)));
-        const cardPricesDict = toDictionary(cardPrices, card => card.name.toLowerCase());
-        const changedCardGroups = new Set<app.CardGroup>();
-        cardsAndGroupsWithoutUsd.forEach(group => {
-            const { card, cardGroup } = group;
-            const cardPrice = cardPricesDict[card.definition.name.toLowerCase()];
-            if (cardPrice !== undefined) {
-                card.usd = Number(cardPrice.usd) * card.quantity;
-                changedCardGroups.add(cardGroup);
-            }
-        });
+        const cardPrices$ = this.cardPriceService
+            .getCardPrices(cardNamesWithoutUsd)
+            .pipe(takeUntil(this.unsubscribe));
+        const cardPrices = await firstValue(cardPrices$);
+        this.deckEvents.cardPrices$.next(cardPrices);
         this.isLoadingPrices = false;
-        this.deckEvents.cardGroupPricesChanged$.next(Array.from(changedCardGroups));
+        this.ref.markForCheck();
     }
 }

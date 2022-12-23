@@ -7,6 +7,7 @@ export * from "./common/first-value";
 export * from "./common/get-autocomplete-entries";
 export * from "./common/get-caret-coordinates";
 export * from "./common/group-evenly";
+export * from "./common/is-defined";
 export * from "./common/throttle";
 
 // Directives
