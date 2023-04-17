@@ -6,7 +6,7 @@ export type GroupFunc = (cards: app.Card[]) => app.CardView[][];
 export class CardGrouper {
     static groupByType: GroupFunc = (cards: app.Card[]): app.CardView[][] => {
         return CardGrouper.groupEvenly(CardGrouper.groupBy(
-            ["creature", "artifact", "enchantment", "planeswalker", "land", "instant", "sorcery", "conspiracy"],
+            ["creature", "artifact", "enchantment", "battle", "planeswalker", "land", "instant", "sorcery", "conspiracy"],
             x => x,
             card => card.definition.primaryType,
             cards

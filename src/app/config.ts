@@ -1,7 +1,7 @@
 export const config = {
-    types: ["conspiracy", "creature", "artifact", "enchantment", "planeswalker", "land", "instant", "sorcery"],
+    types: ["conspiracy", "creature", "artifact", "enchantment", "battle", "planeswalker", "land", "instant", "sorcery"],
     statCategories: [
-        { name: "cmc", types: ["creature", "artifact", "enchantment", "planeswalker", "instant", "sorcery"] }
+        { name: "cmc", types: ["creature", "artifact", "enchantment", "battle", "planeswalker", "instant", "sorcery"] }
     ],
     localStorage: {
         prefix: "mtgdecks2",
