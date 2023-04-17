@@ -31,6 +31,7 @@
       "@array": ["src/app/common/array"],
       "@dictionary": ["src/app/common/dictionary"],
       "@csv": ["src/app/common/csv"],
+      "@types": ["src/app/common/types"]
     }
   }
 }

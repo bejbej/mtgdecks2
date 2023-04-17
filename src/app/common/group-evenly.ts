@@ -1,3 +1,5 @@
+import { sum } from "@array";
+
 interface SplitResults {
     groupSizes: number[];
     largestSize: number;
@@ -14,9 +16,7 @@ export class GroupEvenly {
         var referenceArray = GroupEvenly.generateReferenceArray(words);
 
         var currentGroupSizes = [words.length];
-        var currentLargestSize = words.reduce((a, b) => {
-            return a + b;
-        }, 0);
+        var currentLargestSize = sum(words, x => x);
 
         while (true) {
             var results = GroupEvenly.split(referenceArray, currentLargestSize - 1);

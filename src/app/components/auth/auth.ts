@@ -18,7 +18,7 @@ export class AuthComponent implements OnInit, OnDestroy {
     constructor(private authService: app.AuthService, private ref: ChangeDetectorRef) { }
 
     ngOnInit() {
-        this.authService.getObservable().pipe(takeUntil(this.unsubscribe)).subscribe(() => this.sync());
+        this.authService.authChanged$.pipe(takeUntil(this.unsubscribe)).subscribe(() => this.sync());
         this.isLoggedIn = this.authService.isLoggedIn();
     }
 

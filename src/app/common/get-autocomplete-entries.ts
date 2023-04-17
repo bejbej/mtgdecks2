@@ -1,3 +1,5 @@
+import { Func } from "@types";
+
 export function getAutocompleteEntries<T>(items: T[], query: string, selector: Func<T, string>, maximumNumberOfMatches: number) {
     let i = findAlphabeticalIndex(items, query, selector);
     let array: T[] = [];

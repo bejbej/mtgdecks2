@@ -1,3 +1,4 @@
+@use "sass:math";
 $spinkit-spinner-margin: 40px auto !default;
 $spinkit-size: 40px !default;
 $spinkit-spinner-color: white !default;
@@ -51,11 +52,11 @@ $spinkit-spinner-color: white !default;
   }
 
   @for $i from 2 through $circleCount {
-    .sk-circle#{$i} { transform: rotate(360deg / $circleCount * ($i - 1)); }
+    .sk-circle#{$i} { transform: rotate(math.div(360deg, $circleCount) * ($i - 1)); }
   }
 
   @for $i from 2 through $circleCount {
-    .sk-circle#{$i}:before { animation-delay: - $animationDuration + $animationDuration / $circleCount * ($i - 1); }
+    .sk-circle#{$i}:before { animation-delay: - $animationDuration + math.div($animationDuration, $circleCount) * ($i - 1); }
   }
 
 }

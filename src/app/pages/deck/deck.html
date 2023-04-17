@@ -1,0 +1,67 @@
+<main class="{{showPrices ? 'show-prices' : 'hide-prices'}}">
+    <nav>
+        <a routerLink="/decks">My Decks</a>
+        <div class="pull-right">
+            <app-auth></app-auth>
+        </div>
+    </nav>
+
+    <app-large-spinner *ngIf="isLoading"></app-large-spinner>
+
+    <div *ngIf="deck">
+        <section>
+            <header class="deck-info">
+                <div class="deck-name" *ngIf="!(canEdit$ | async)">{{deck.name}}</div>
+                <input class="deck-name-input"
+                    type="text"
+                    [(value)]="deck.name"
+                    [debounce]="2000"
+                    (valueChange)="deckChanged$.next(deck)"
+                    *ngIf="canEdit$ | async" />
+                <div class="flex-lte-xs flex-padding deck-actions margin-top">
+                    <button class="btn btn-default round" (click)="togglePrices()">
+                        <span *ngIf="!showPrices">Show<br class="hidden-gte-sm"> Prices</span>
+                        <span *ngIf="showPrices">
+                            Hide
+                            <br class="hidden-gte-sm">
+                            Prices
+                            <app-spinner *ngIf="isLoadingPrices"></app-spinner>
+                        </span>
+                    </button>
+                    <button class="btn btn-default round" (click)="toggleEditGroups()" *ngIf="canEdit$ | async">
+                        <span>Toggle<br class="hidden-gte-sm"> Groups</span>
+                    </button>
+                    <button class="btn btn-default round" (click)="delete()" *ngIf="(canEdit$ | async) && deck.id" [disabled]="isDeleting">
+                        <span *ngIf="!isDeleting">Delete<br class="hidden-gte-sm"> this Deck</span>
+                        <span *ngIf="isDeleting">Deleting <app-spinner></app-spinner></span>
+                    </button>
+                </div>
+            </header>
+        </section>
+
+        <section class="flex-gte-md">
+            <div class="flex-2" *ngIf="isEditingGroups$ | async">
+                <edit-card-groups [deck]="deck"></edit-card-groups>
+            </div>
+            <div class="flex-2" *ngIf="!(isEditingGroups$ | async)">
+                <section *ngFor="let cardGroup of deck.cardGroups">
+                    <app-card-group
+                        [deck]="deck"
+                        [cardGroup]="cardGroup"
+                        [isInitiallyEditing]="!isDirty && !deck.id"></app-card-group>
+                </section>
+            </div>
+            <div class="border-left-gte-md">
+                <section>
+                    <header class="padding">Notes</header>
+                    <app-deck-info [deck]="deck"></app-deck-info>
+                </section>
+
+                <section>
+                    <header class="padding">Stats</header>
+                    <app-stats [deck]="deck" *ngIf="!(isEditingGroups$ | async)"></app-stats>
+                </section>
+            </div>
+        </section>
+    </div>
+</main>

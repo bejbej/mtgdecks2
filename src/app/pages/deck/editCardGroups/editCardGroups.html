@@ -16,7 +16,7 @@
                     type="text"
                     [(value)]="cardGroup.name"
                     [debounce]="2000"
-                    (valueChange)="onCardGroupsChanged()" />
+                    (valueChange)="cardGroupsChanged()" />
                 <div class="check" (click)="selectedGroups[i] = !selectedGroups[i]" style="display:flex;align-items: center; justify-content: center;">
                     <input type="checkbox" [(ngModel)]="selectedGroups[i]" />
                 </div>

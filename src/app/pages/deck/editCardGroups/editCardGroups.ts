@@ -1,6 +1,6 @@
 import * as app from "@app";
 import { CdkDragDrop, moveItemInArray } from "@angular/cdk/drag-drop";
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from "@angular/core";
+import { ChangeDetectionStrategy, Component, Input } from "@angular/core";
 
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -12,7 +12,8 @@ export class EditCardGroupsComponent {
     selectedGroups: any = {};
 
     @Input() deck: app.Deck;
-    @Output() cardGroupsChanged: EventEmitter<app.Deck> = new EventEmitter<app.Deck>();
+
+    constructor(private deckEvents: app.DeckEvents) { }
 
     addCardGroup = () => {
         const defaultGroupNames = ["Mainboard", "Sideboard", "Maybeboard"];
@@ -20,9 +21,11 @@ export class EditCardGroupsComponent {
 
         this.deck.cardGroups.push({
             cardBlob: "",
+            cards: [],
+            invalidCards: [],
             name: name
         });
-        this.cardGroupsChanged.next(this.deck);
+        this.cardGroupsChanged();
     }
 
     deleteSelectedCardGroups = () => {
@@ -32,15 +35,15 @@ export class EditCardGroupsComponent {
             this.deck.cardGroups.splice(index , 1);
         }
         this.selectedGroups = {};
-        this.onCardGroupsChanged();
+        this.cardGroupsChanged();
     }
 
     drop = (event: CdkDragDrop<string>) => {
         moveItemInArray(this.deck.cardGroups, event.previousIndex, event.currentIndex);
-        this.onCardGroupsChanged();
+        this.cardGroupsChanged();
     }
 
-    onCardGroupsChanged = () => {
-        this.cardGroupsChanged.next(this.deck);
+    cardGroupsChanged = () => {
+        this.deckEvents.cardGroupsChanged$.next(this.deck.cardGroups);
     }
 }
