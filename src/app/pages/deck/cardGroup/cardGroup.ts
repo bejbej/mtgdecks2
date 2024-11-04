@@ -1,8 +1,7 @@
 import * as app from "@app";
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit } from "@angular/core";
-import { distinctUntilChanged, filter, map, startWith, takeUntil } from "rxjs/operators";
-import { firstValue, isDefined } from "@app";
-import { Subject } from "rxjs";
+import { BehaviorSubject, combineLatest, merge, Observable } from "rxjs";
+import { ChangeDetectionStrategy, Component, Input } from "@angular/core";
+import { distinctUntilChanged, first, map, tap } from "rxjs/operators";
 import { sum } from "@array";
 
 @Component({
@@ -10,165 +9,107 @@ import { sum } from "@array";
     selector: "app-card-group",
     templateUrl: "./cardGroup.html"
 })
-export class CardGroupComponent implements OnInit, OnDestroy {
+export class CardGroupComponent {
 
-    @Input() deck: app.Deck;
-    @Input() cardGroup: app.CardGroup;
-    @Input() isInitiallyEditing: boolean;
+    @Input() cardGroupId: number;
 
     // Data
-    columns: app.CardView[][];
-    count: number;
-    usd: number;
+    cardGroup$: Observable<app.CardGroup>;
+    price$: Observable<number>;
+    count$: Observable<number>;
+    cardBlob$: Observable<string>;
+    groupBy$: BehaviorSubject<app.GroupFunc> = new BehaviorSubject<app.GroupFunc>(app.CardGrouper.groupByType);
+    isEditing$: Observable<boolean>;
+    canEdit$: Observable<boolean>;
+    
+    columns$: Observable<app.CardView[][]>;
+    shoudEdit$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
+
     cardGrouper = app.CardGrouper;
-    private initialCardBlob: string;
-    private groupFunc: app.GroupFunc;
 
     // State Tracking
-    canEdit$ = this.deckEvents.canEdit$;
-    isEditing: boolean;
     showToolbar: boolean = false;
-
-    // Subscriptions
-    private unsubscribe = new Subject<void>();
+    private initalCardBlob: string = null;
+    private cardBlob: string = null;
 
     constructor(
         private cardBlobService: app.CardBlobService,
-        private cardPriceService: app.CardPriceService,
-        private deckEvents: app.DeckEvents,
-        private ref: ChangeDetectorRef) { }
+        private deckManager: app.DeckManager) {
 
-    ngOnInit() {
-        // Update the card count when the card group changes
-        this.deckEvents.deckChanged$
-            .pipe(
-                startWith(this.deck),
-                map(() => this.cardGroup.cards),
-                distinctUntilChanged(),
-                map(cards => sum(cards, card => card.quantity)),
-                distinctUntilChanged(),
-                takeUntil(this.unsubscribe)
-            )
-            .subscribe(count => this.count = count);
+            const state$ = deckManager.state$;
 
-        // Discard changes when editing is no longer allowed
-        this.deckEvents.canEdit$
-            .pipe(
-                filter(canEdit => !canEdit),
-                takeUntil(this.unsubscribe)
-            )
-            .subscribe(() => {
-                this.discardChanges();
-                this.ref.markForCheck();
-            });
+            this.canEdit$ = state$.pipe(
+                map(state => state.canEdit),
+                distinctUntilChanged()
+            );
 
-        // Update the price total when card prices change
-        this.deckEvents.cardPrices$
-            .pipe(takeUntil(this.unsubscribe))
-            .subscribe(cardPrices => {
-                const cardsWithoutUsd = this.cardGroup.cards.filter(card => card.usd === undefined);
-                if (cardsWithoutUsd.length === 0) {
-                    return;
-                }
-                let isAnyCardUsdChanged = false;
-                for (let card of cardsWithoutUsd) {
-                    const cardPrice = cardPrices[card.definition.name.toLowerCase()];
-                    if (cardPrice === null) {
-                        card.usd = null;
-                    }
-                    else if (isDefined(cardPrice)) {
-                        card.usd = Number(cardPrice) * card.quantity;
-                        isAnyCardUsdChanged = true;
-                    }
-                }
+            const isInitiallyEditing$ = state$.pipe(
+                first(),
+                map(state => state.isNew && !state.isDirty)
+            );
 
-                if (isAnyCardUsdChanged) {
-                    this.usd = sum(this.cardGroup.cards.filter(x => isDefined(x.usd)), x => x.usd);
+            const isEditing$ = combineLatest([this.canEdit$, this.shoudEdit$]).pipe(
+                map(([canEdit, shouldEdit]) => canEdit && shouldEdit)
+            );
 
-                    if (this.groupFunc === app.CardGrouper.groupByPrice) {
-                        this.columns = this.groupFunc(this.cardGroup.cards);
-                    }
-                    else {
-                        this.columns = this.columns.slice();
-                    }
+            this.isEditing$ = merge(isEditing$, isInitiallyEditing$).pipe(
+                distinctUntilChanged()
+            );
 
-                    this.ref.markForCheck();
-                }
-            });
+            this.cardGroup$ = state$.pipe(
+                map(state => state.deck.cardGroups[this.cardGroupId]),
+                distinctUntilChanged()
+            );
 
-        if (this.isInitiallyEditing) {
-            this.startEditing();
+            this.count$ = this.cardGroup$.pipe(
+                map(cardGroup => sum(cardGroup.cards, x => x.quantity)),
+                distinctUntilChanged()
+            );
+
+            this.price$ = this.cardGroup$.pipe(
+                map(cardGroup => sum(cardGroup.cards, x => x.quantity * x.definition.price)),
+                distinctUntilChanged()
+            );
+
+            this.cardBlob$ = this.cardGroup$.pipe(
+                map(cardGroup => this.cardBlobService.stringify(cardGroup.cards, cardGroup.invalidCards)),
+                distinctUntilChanged()
+            );
+
+            this.columns$ = combineLatest([this.cardGroup$, this.groupBy$]).pipe(
+                map(([cardGroup, groupBy]) => groupBy(cardGroup.cards)),
+                distinctUntilChanged()
+            );
         }
 
-        this.setGroupFunc(app.CardGrouper.groupByType);
-        this.usd = sum(this.cardGroup.cards.filter(x => isDefined(x.usd)), x => x.usd);
+    updateCardBlob(cardBlob: string): void {
+        this.cardBlob = cardBlob;
     }
 
-    ngOnDestroy() {
-        this.unsubscribe.next();
-        this.unsubscribe.complete();
-    }
-
-    setGroupFunc = async (func: app.GroupFunc) => {
+    setGroupFunc(func: app.GroupFunc) {
         this.showToolbar = false;
-        this.groupFunc = func;
-        this.groupCards();
-        
-        if (this.groupFunc == app.CardGrouper.groupByPrice) {
-            await this.loadPrices();
-        }
+        this.groupBy$.next(func);
     }
 
-    startEditing = () => {
-        this.isEditing = true;
-        this.showToolbar = false;
-        this.initialCardBlob = this.cardGroup.cardBlob;
+    startEditing() {
+        this.shoudEdit$.next(true);
+        this.cardBlob$.pipe(first()).subscribe(cardBlob => {
+            this.initalCardBlob = cardBlob;
+            this.cardBlob = cardBlob;
+        });
     }
 
-    applyChanges = () => {
-        if (!this.isEditing) {
-            return;
-        }
-
-        this.isEditing = false;
-
-        if (this.cardGroup.cardBlob === this.initialCardBlob) {
-            return;
-        }
-
-        const { cards, invalidCards } = this.cardBlobService.parse(this.cardGroup.cardBlob);
-        const newCardBlob = this.cardBlobService.stringify(cards, invalidCards);
-        
-        if (this.initialCardBlob === newCardBlob) {
+    applyChanges() {
+        this.shoudEdit$.next(false);
+        if (this.initalCardBlob === this.cardBlob) {
             return;
         }
         
-        this.cardGroup.cards = cards;
-        this.cardGroup.invalidCards = invalidCards;
-        this.cardGroup.cardBlob = newCardBlob;
-        this.groupCards();
-        this.deckEvents.deckChanged$.next(this.deck);
-        this.deckEvents.cardGroupCardsChanged$.next([this.cardGroup]);
+        const parsedCards = this.cardBlobService.parse(this.cardBlob);
+        this.deckManager.patchCardGroup(this.cardGroupId, parsedCards);
     }
 
-    groupCards = () => {
-        this.columns = this.groupFunc(this.cardGroup.cards);
-    }
-
-    discardChanges = () => {
-        this.isEditing = false;
-    }
-
-    private loadPrices = async () => {
-        const cardNamesWithoutUsd = this.cardGroup.cards
-            .filter(card => card.usd === undefined)
-            .map(card => card.definition.name);
-        if (cardNamesWithoutUsd.length > 0) {
-            const cardPrices$ = this.cardPriceService
-                .getCardPrices(cardNamesWithoutUsd)
-                .pipe(takeUntil(this.unsubscribe));
-            const cardPrices = await firstValue(cardPrices$);
-            this.deckEvents.cardPrices$.next(cardPrices);
-        }
+    discardChanges() {
+        this.shoudEdit$.next(false);
     }
 }

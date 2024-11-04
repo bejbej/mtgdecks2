@@ -1,11 +1,11 @@
 <main class="sm">
     <nav>
-        <div class="select">
-            <div class="select-label">{{currentTagName}}
+        <div class="select" *ngIf="tags$ | async as tags">
+            <div class="select-label">{{(currentTagName$ | async)}}
                 <span class="spacer"></span>
                 <span class="icon" style="position:absolute;right:15px;" [hidden]="tags.length === 0">4</span>
             </div>
-            <select [(ngModel)]="currentTag" (change)="onCurrentTagChanged()" *ngIf="tags.length > 0">
+            <select [ngModel]="currentTag$ | async" (ngModelChange)="updateCurrentTag($event)" *ngIf="tags.length > 0">
                 <option [ngValue]="undefined">- All -</option>
                 <option [ngValue]="null">- Untagged -</option>
                 <option *ngFor="let tag of tags" value="{{tag}}">{{tag}}&nbsp;&nbsp;</option>
@@ -20,10 +20,10 @@
             <strong>+</strong>
             Build a New Deck
         </a>
-        <a class="list-group-item" routerLink="/decks/{{deck.id}}" *ngFor="let deck of visibleDecks">
+        <a class="list-group-item" routerLink="/decks/{{deck.id}}" *ngFor="let deck of visibleDecks$ | async">
             {{deck.name}}
             <span class="badge pull-right" *ngFor="let tag of deck.tags">{{tag}}</span>
         </a>
     </div>
-    <app-large-spinner *ngIf="isLoading"></app-large-spinner>
+    <app-large-spinner *ngIf="isLoading$ | async"></app-large-spinner>
 </main>

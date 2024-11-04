@@ -7,7 +7,7 @@ export function toDictionary<T>(array: T[], keyFunc: Func<T, string>): Dictionar
     }, <Dictionary<T>>{});
 }
 
-export function toDictionary2<Tin, Tout>(array: Tin[], keyFunc: Func<Tin, string>, valueFunc: Func<Tin, Tout>): Dictionary<Tout> {
+export function toDictionary2<Tin, Tout>(array: Tin[], keyFunc: Func<Tin, string | number>, valueFunc: Func<Tin, Tout>): Dictionary<Tout> {
     return array.reduce((dictionary, item) => {
         dictionary[keyFunc(item)] = valueFunc(item);
         return dictionary;

@@ -39,29 +39,40 @@ export class DeckService {
     }
 
     private mapApiDeckToDeck(apiDeck: app.ApiDeck): app.Deck {
+        const cardGroups = {};
+        for (let i = 0; i < apiDeck.cardGroups.length; ++i) {
+            const parsedCardBlob = this.cardBlobService.parse(apiDeck.cardGroups[i].cardBlob);
+            cardGroups[i] = {
+                ...parsedCardBlob,
+                name: apiDeck.cardGroups[i].name
+            };
+        }
+
         return {
             ...apiDeck,
-            cardGroups: apiDeck.cardGroups.map(cardGroup => {
-                const { cards, invalidCards } = this.cardBlobService.parse(cardGroup.cardBlob);
-
-                return {
-                    ...cardGroup,
-                    cards: cards,
-                    invalidCards: invalidCards
-                }
-            })
+            cardGroups: cardGroups,
+            cardGroupOrder: Object.keys(cardGroups).map(x => Number(x))
         }
     }
 
     private mapDeckToApiDeck(deck: app.Deck): app.ApiDeck {
-        return {
-            ...deck,
-            cardGroups: deck.cardGroups.map(cardGroup => {
-                return  {
+        const cardGroups = deck.cardGroupOrder
+            .map(key => deck.cardGroups[key])
+            .map(cardGroup => {
+                const cardBlob = this.cardBlobService.stringify(cardGroup.cards, cardGroup.invalidCards);
+                return {
                     name: cardGroup.name,
-                    cardBlob: cardGroup.cardBlob
-                }
-            })
+                    cardBlob: cardBlob
+                };
+            });
+
+        return {
+            name: deck.name,
+            notes: deck.notes,
+            owners: deck.owners,
+            tags: deck.tags,
+            id: deck.id,
+            cardGroups: cardGroups,
         };
     }
 }

@@ -22,8 +22,6 @@ export * from "./directives/lightbox.directive";
 export * from "./interceptors/auth.interceptor";
 
 // Interfaces
-export * from "./interfaces/card";
-export * from "./interfaces/card-price";
 export * from "./interfaces/card-view";
 export * from "./interfaces/deck";
 export * from "./interfaces/tag-state";
@@ -33,7 +31,6 @@ export * from "./interfaces/user";
 export * from "./services/auth.service";
 export * from "./services/card-blob.service";
 export * from "./services/card-definition.service";
-export * from "./services/card-price.service";
 export * from "./services/deck.service";
 
 // Components
@@ -41,7 +38,7 @@ export * from "./components/auth/auth";
 export * from "./pages/deck/cardGroup/cardGroup";
 export * from "./pages/deck/cardView/cardView";
 export * from "./pages/deck/deck";
-export * from "./pages/deck/deck.events";
+export * from "./pages/deck/deck.manager";
 export * from "./pages/deck/deckInfo/deckInfo";
 export * from "./pages/decks/decks";
 export * from "./pages/deck/editCardGroups/editCardGroups";

@@ -1,5 +1,5 @@
-<button (click)="login()" *ngIf="!isLoggedIn" [disabled]="isLoggingIn">
-    <span *ngIf="isLoggingIn">Logging In <app-spinner></app-spinner></span>
-    <span *ngIf="!isLoggingIn">Login</span>
+<button (click)="login()" *ngIf="!(isLoggedIn$ | async)" [disabled]="isLoggingIn$ | async">
+    <span *ngIf="isLoggingIn$ | async">Logging In <app-spinner></app-spinner></span>
+    <span *ngIf="!(isLoggingIn$ | async)">Login</span>
 </button>
-<button (click)="logout()" *ngIf="isLoggedIn">Logout</button>
+<button (click)="logout()" *ngIf="isLoggedIn$ | async">Logout</button>

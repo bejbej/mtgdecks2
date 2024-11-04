@@ -41,7 +41,7 @@ export class CardBlobService {
                 continue;
             }
     
-            const card = cardDict[cardDefinition.name] = cardDict[cardDefinition.name] || { definition: cardDefinition, quantity: 0, usd: undefined };
+            const card = cardDict[cardDefinition.name] = cardDict[cardDefinition.name] || { definition: cardDefinition, quantity: 0 };
             card.quantity += Number(result[1]) || 1;
         };
     

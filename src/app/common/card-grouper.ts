@@ -59,7 +59,7 @@ export class CardGrouper {
 
     static groupByPrice: GroupFunc = (cards: app.Card[]): app.CardView[][] => {
         cards = cards.slice().sort((a, b) => {
-            return (a.usd || 0) > (b.usd || 0) ? 1 : -1;
+            return (a.definition.price || 0) > (b.definition.price || 0) ? 1 : -1;
         });
 
         let columnLength = Math.ceil(cards.length / 3);

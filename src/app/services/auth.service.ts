@@ -1,92 +1,65 @@
 import * as app from "@app";
 import { AuthService as AuthService2, SharedService } from "ng2-ui-auth";
-import { HttpClient } from "@angular/common/http";
+import { BehaviorSubject, Observable, of } from "rxjs";
+import { delay, map, switchMap, tap } from "rxjs/operators";
 import { Injectable } from "@angular/core";
-import { Observable, ReplaySubject, Subject } from "rxjs";
+
+interface Token {
+    sub: string;
+    exp: number;
+}
 
 @Injectable({
     providedIn: "root"
 })
 export class AuthService {
 
-    public authChanged$: Observable<void>;
+    public user$: Observable<app.User>;
+    public isLoggingIn$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
 
-    private userKey = app.config.localStorage.user;
+    private token$: BehaviorSubject<Token> = new BehaviorSubject<Token>(undefined);
     private tagKey = app.config.localStorage.tags;
-    private isAuthenticated: boolean;
-    private subject: Subject<void> = new ReplaySubject(1);
-    private isLoggingIn: boolean;
-    private url = app.config.usersUrl;
 
-    constructor(private auth: AuthService2, private http: HttpClient, sharedService: SharedService) {
-        this.authChanged$ = this.subject;
+    constructor(private auth: AuthService2, sharedService: SharedService) {
         sharedService.tokenName = app.config.localStorage.token;
-        this.updateAuthenticationStatus();
+
+        this.user$ = this.token$.pipe(map(token => token ? { id: token.sub } : undefined));
+
+        this.token$.pipe(
+            switchMap(token => {
+                if (token === undefined) {
+                    return of();
+                }
+
+                const expiration = token.exp * 1000;
+                const now = Date.now();
+                return of(undefined).pipe(delay(now - expiration));
+            }),
+            tap(() => {
+                this.auth.removeToken();
+                this.token$.next(undefined);
+            })
+        ).subscribe();
+
+        this.token$.next(this.auth.getPayload() as Token);
     }
 
-    logIn = async (): Promise<any> => {
-        if (this.isLoggingIn || this.isAuthenticated) {
-            return;
-        }
-
-        this.isLoggingIn = true;
-        try {
-            await app.firstValue(this.auth.authenticate("google"));
-            let url = this.url + "/me";
-            let user = await app.firstValue(this.http.post(url, undefined));
-            localStorage.setItem(this.userKey, JSON.stringify(user));
-        }
-        catch {
-            await app.firstValue(this.auth.logout());
-        }
-        finally {
-            this.isLoggingIn = false;
-            this.updateAuthenticationStatus();
-        }
+    logIn(): void {
+        this.isLoggingIn$.next(true);
+        this.auth.authenticate("google").pipe(
+            tap(() => {
+                const token = this.auth.getPayload() as Token;
+                this.token$.next(token);
+            })
+        ).subscribe({
+            error: () => this.isLoggingIn$.next(false),
+            complete: () => this.isLoggingIn$.next(false)
+        });
     }
 
-    logout = async (): Promise<any> => {
-        await app.firstValue(this.auth.logout());
-        localStorage.removeItem(this.userKey);
+    logOut(): void {
+        this.auth.removeToken();
         localStorage.removeItem(this.tagKey);
-        this.updateAuthenticationStatus();
-    }
-    
-    getAuthUser = (): app.User => {
-        var user = undefined;
-        if (this.auth.isAuthenticated()) {
-            var user = JSON.parse(localStorage.getItem(this.userKey));
-            if (!user) {
-                this.logout();
-            }
-        } else {
-            if (this.isAuthenticated) {
-                this.logout();
-            }
-        }
-        return user;
-    }
-
-    isLoggedIn = (): boolean => {
-        if (this.isLoggingIn) {
-            return false
-        }
-        else if (this.auth.isAuthenticated()) {
-            return true;
-        }
-        else {
-            if (this.isAuthenticated) {
-                this.logout();
-            }
-            return false;
-        }
-    }
-
-    private updateAuthenticationStatus = (): void => {
-        let isAuthenticated = this.auth.isAuthenticated();
-        if (this.isAuthenticated !== isAuthenticated) {
-            this.isAuthenticated = this.auth.isAuthenticated();
-            this.subject.next();
-        }
+        this.token$.next(undefined);
     }
 }

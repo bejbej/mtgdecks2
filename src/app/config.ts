@@ -4,10 +4,7 @@ export const config = {
         { name: "cmc", types: ["creature", "artifact", "enchantment", "battle", "planeswalker", "instant", "sorcery"] }
     ],
     localStorage: {
-        prefix: "mtgdecks2",
-        user: "mtgdecks2-user",
         tags: "mtgdecks2-tags",
-        cards: "mtgdecks2-cards-v1",
         token: "mtgdecks2-token"
     },
     authClients: {
@@ -17,12 +14,8 @@ export const config = {
             redirectUri: window.location.origin + window.location.pathname
         }
     },
-    cardCacheLimit: 1000,
-    cardExpirationMs: 259200000, //3 days
     enableHover: true,
-    cardsUrl: "https://mtgdecks-api.herokuapp.com/api/cards",
     decksUrl: "https://mtgdecks-api.herokuapp.com/api/decks",
-    usersUrl: "https://mtgdecks-api.herokuapp.com/api/users",
     imagesUrl: "https://c1.scryfall.com/file/scryfall-cards/border_crop"
 };
 

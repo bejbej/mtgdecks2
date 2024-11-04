@@ -1,232 +1,116 @@
 import * as app from "@app";
 import { ActivatedRoute, Router } from "@angular/router";
-import { BehaviorSubject, combineLatest, merge, Observable, Subject } from "rxjs";
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit } from "@angular/core";
-import { contains, distinct, selectMany } from "@array";
-import { DeckEvents } from "./deck.events";
-import { filter, takeUntil, tap, withLatestFrom } from "rxjs/operators";
-import { firstValue } from "@app";
+import { BehaviorSubject, combineLatest, Observable, Subject } from "rxjs";
+import { ChangeDetectionStrategy, Component, OnDestroy } from "@angular/core";
+import { DeckManager } from "./deck.manager";
+import { distinctUntilChanged, filter, map, startWith, switchMap, takeUntil, tap } from "rxjs/operators";
 import { Location } from "@angular/common";
-import { toDictionary } from "@dictionary";
 
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
-    providers: [DeckEvents],
+    providers: [DeckManager],
     selector: "app-deck",
     templateUrl: "./deck.html"
 })
-export class DeckComponent implements OnInit, OnDestroy {
+export class DeckComponent implements OnDestroy {
 
-    // Data
-    deck: app.Deck;
-    statCards: app.Card[];
-    private id: string;
-
-    // State Tracking
-    isDeleting: boolean;
-    isDirty: boolean = false;
-    isLoading: boolean;
-    showPrices: boolean;
-    isLoadingPrices: boolean = false;
     canEdit$: Observable<boolean>;
-    
-    // Event Management
-    deckChanged$ = this.deckEvents.deckChanged$;
-    isEditingGroups$ = new BehaviorSubject<boolean>(false);
-    private unsubscribe: Subject<void> = new Subject<void>();;
+    deck$: Observable<app.Deck>;
+    isDeleting$: Observable<boolean>;
+    isEditingGroups$: Observable<boolean>;
+    isLoading$: Observable<boolean>;
+    showPrices$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
+
+    private shouldEditGroups$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
+    private unsubscribe: Subject<void> = new Subject<void>();
 
     constructor(
-        private authService: app.AuthService,
-        private cardPriceService: app.CardPriceService,
-        private deckEvents: app.DeckEvents,
-        private deckService: app.DeckService, 
-        private location: Location,
-        private ref: ChangeDetectorRef,
-        private router: Router,
+        private deckManager: app.DeckManager,
+        location: Location,
+        router: Router,
         route: ActivatedRoute) {
 
-        document.title = "Loading...";
-        this.canEdit$ = deckEvents.canEdit$;
-        route.params.pipe(takeUntil(this.unsubscribe)).subscribe(params => this.id = params.id);
+        const state$ = deckManager.state$;
+        
+        this.canEdit$ = state$.pipe(
+            map(state => state && state.canEdit),
+            distinctUntilChanged()
+        );
 
-        // Update permissions whenever the auth user changes
-        this.authService.authChanged$
-            .pipe(takeUntil(this.unsubscribe))
-            .subscribe(() => this.sync());
+        this.deck$ = state$.pipe(
+            map(state => state?.deck),
+            filter(deck => deck !== undefined),
+            distinctUntilChanged()
+        );
+        
+        this.isLoading$ = state$.pipe(
+            map(state => state === null),
+            distinctUntilChanged()
+        );
+        
+        this.isDeleting$ = state$.pipe(
+            map(state => state && state.isDeleted),
+            distinctUntilChanged()
+        );
 
-        // When card groups change, load prices as needed
-        this.deckEvents.cardGroupCardsChanged$
-            .pipe(
-                filter(() => this.showPrices),
-                takeUntil(this.unsubscribe))
-            .subscribe(cardGroups => this.loadPrices(cardGroups));
+        this.isEditingGroups$ = combineLatest([this.canEdit$, this.shouldEditGroups$]).pipe(
+            map(([canEdit, shouldEditGroups]) => canEdit && shouldEditGroups),
+            distinctUntilChanged()
+        );
 
-        // Stop editing card groups when the user is no longer able to edit them
-        this.deckEvents.canEdit$
-            .pipe(
-                filter(canEdit => !canEdit),
-                takeUntil(this.unsubscribe))
-            .subscribe(() => this.isEditingGroups$.next(false));
+        // Load a new deck each time route params change
+        route.params.pipe(
+            map(params => params.id),
+            distinctUntilChanged(),
+            switchMap(id => id === "new" ? this.deckManager.createDeck() : this.deckManager.loadDeck(id)),
+            takeUntil(this.unsubscribe)
+        ).subscribe();
 
-        // When the user is done editing card groups, determine if the user actually changed anything
-        const cardGroupsChanged$ = this.isEditingGroups$
-            .pipe(
-                filter(x => !x),
-                withLatestFrom(this.deckEvents.cardGroupsChanged$)
-            );
+        // Update the page name whenever the deck's name changes
+        this.deck$.pipe(
+            map(deck => deck.name),
+            distinctUntilChanged(),
+            startWith("Loading..."),
+            takeUntil(this.unsubscribe),
+            tap(name => document.title = name)
+        ).subscribe();
 
-        // Mark the deck as dirty when it changes
-        const deckChanged$ = merge(this.deckEvents.deckChanged$, cardGroupsChanged$)
-            .pipe(tap(() => {
-                this.updateTitle();
-                this.isDirty = true;
-            }));
+        // Update the page url when the deck's id changes
+        this.deck$.pipe(
+            map(deck => deck.id ?? "new"),
+            distinctUntilChanged(),
+            takeUntil(this.unsubscribe),
+            tap(id => location.replaceState("/decks/" + id))
+        ).subscribe();
 
-        // Save the deck when the deck is dirty and the user is an owner of the deck
-        combineLatest([deckChanged$, this.authService.authChanged$])
-            .pipe(
-                filter(() => this.isDirty),
-                filter(() => {
-                    const authUser = this.authService.getAuthUser();
-                    return authUser && (!this.deck.id || contains(this.deck.owners, authUser.id));
-                }))
-            .pipe(takeUntil(this.unsubscribe))
-            .subscribe(() => this.save());
-    }
-
-    async ngOnInit() {
-        this.deck = await this.getDeck(this.id);
-        this.updateTitle(); 
-        this.sync();
-        this.ref.markForCheck();
+        // Navigate to the dacks page when the deck is deleted and persisted
+        state$.subscribe(state => {
+            if (state && state.isDeleted && !state.isDirty) {
+                router.navigateByUrl("/decks");
+            }
+        });
     }
 
     ngOnDestroy() {
         this.unsubscribe.next();
         this.unsubscribe.complete();
-        this.isEditingGroups$.complete();
     }
 
-    togglePrices = async () => {
-        this.showPrices = !this.showPrices;
-
-        if (this.showPrices && !this.isLoadingPrices) {
-            await this.loadPrices(this.deck.cardGroups);
-        }
+    togglePrices() {
+        this.showPrices$.next(!this.showPrices$.value);
     }
 
-    toggleEditGroups = async () => {
-        const value = await firstValue(this.isEditingGroups$);
-        this.isEditingGroups$.next(!value);
+    toggleEditGroups() {
+        this.shouldEditGroups$.next(!this.shouldEditGroups$.value);
+    }
+
+    updateName = (name: string): void => {
+        this.deckManager.patchDeck({ name });
     }
 
     delete = async () => {
-        if (!confirm("Are you sure you want to delete this deck?")) {
-            return;
+        if (confirm("Are you sure you want to delete this deck?")) {
+            this.deckManager.deleteDeck();
         }
-
-        this.isDeleting = true;
-        const deleteDeck$ = this.deckService.deleteDeck(this.deck.id).pipe(takeUntil(this.unsubscribe));
-        try {
-            await app.firstValue(deleteDeck$);
-        }
-        finally {
-            this.isDeleting = false;
-            this.ref.markForCheck();
-        }
-        this.router.navigateByUrl("/decks");
-    }
-
-    save = async () => {
-        const authUser = this.authService.getAuthUser();
-        if (authUser === undefined) {
-            return;
-        }
-
-        if (this.deck.id) {
-            const updateDeck$ = this.deckService.updateDeck(this.deck).pipe(takeUntil(this.unsubscribe));
-            await app.firstValue(updateDeck$);
-        }
-        else {
-            this.deck.owners = [authUser.id];
-            const createDeck$ = this.deckService.createDeck(this.deck).pipe(takeUntil(this.unsubscribe))
-            this.deck.id = await app.firstValue(createDeck$);
-            this.deck.owners = this.deck.owners || [authUser.id];
-            this.location.replaceState("/decks/" + this.deck.id);
-        }
-        this.isDirty = false;
-    }
-
-    private sync = () => {
-        if (!this.deck) {
-            return;
-        }
-        
-        const authUser = this.authService.getAuthUser();
-        const newDeck = !this.deck.id;
-        const existingDeckAndOwner = authUser && contains(this.deck.owners, authUser.id);
-        const canEdit = newDeck || existingDeckAndOwner;
-        this.deckEvents.canEdit$.next(canEdit);
-    }
-
-    private getDeck = async (id: string): Promise<app.Deck> => {
-        if (id === "new") {
-            return this.createDeck();
-        }
-        this.isLoading = true;
-        try {
-            const getDeck$ = this.deckService.getById(id).pipe(takeUntil(this.unsubscribe));
-            return await app.firstValue(getDeck$);
-        }
-        finally {
-            this.isLoading = false;
-        }
-    }
-
-    private createDeck = () => {
-        const tags = [];
-        const tagState = JSON.parse(localStorage.getItem(app.config.localStorage.tags)) as app.TagState;
-        if (tagState && tagState.current) {
-            tags.push(tagState.current);
-        }
-
-        return {
-            cardGroups: [
-                {
-                    cards: [],
-                    invalidCards: [],
-                    name: "Mainboard",
-                    cardBlob: "",
-                }
-            ],
-            id: undefined,
-            name: "New Deck",
-            notes: "",
-            owners: [],
-            tags: tags
-        };
-    }
-
-    private updateTitle = () => {
-        document.title = this.deck.name;
-    }
-
-    private loadPrices = async (cardGroups: app.CardGroup[]) => {
-        const cardNamesWithoutUsd = selectMany(cardGroups.map(cardGroup => cardGroup.cards))
-            .filter(card => card.usd === undefined)
-            .map(card => card.definition.name);
-            
-        if (cardNamesWithoutUsd.length === 0) {
-            return;
-        }
-
-        this.isLoadingPrices = true;
-        const cardPrices$ = this.cardPriceService
-            .getCardPrices(cardNamesWithoutUsd)
-            .pipe(takeUntil(this.unsubscribe));
-        const cardPrices = await firstValue(cardPrices$);
-        this.deckEvents.cardPrices$.next(cardPrices);
-        this.isLoadingPrices = false;
-        this.ref.markForCheck();
     }
 }

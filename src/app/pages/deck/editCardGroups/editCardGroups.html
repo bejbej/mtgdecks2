@@ -1,4 +1,4 @@
-<section>
+<section *ngIf="cardGroups$ | async as cardGroups">
     <div class="margin">
         <div class="flex-lte-xs flex-padding">
             <button class="btn btn-default round" (click)="addCardGroup()">
@@ -10,15 +10,15 @@
             </button>
         </div>
         <div class="card-group-edit-container margin-top" cdkDropList (cdkDropListDropped)="drop($event)">
-            <div class="card-group-edit flex" *ngFor="let cardGroup of deck.cardGroups; let i = index" cdkDrag cdkDragLockAxis="y" cdkDragBoundary=".card-group-edit-container">
+            <div class="card-group-edit flex" *ngFor="let cardGroupKey of cardGroupOrder$ | async; let i = index" cdkDrag cdkDragLockAxis="y" cdkDragBoundary=".card-group-edit-container">
                 <div class="drag-handle" cdkDragHandle>⣿</div>
                 <input class="name"
                     type="text"
-                    [(value)]="cardGroup.name"
-                    [debounce]="2000"
-                    (valueChange)="cardGroupsChanged()" />
-                <div class="check" (click)="selectedGroups[i] = !selectedGroups[i]" style="display:flex;align-items: center; justify-content: center;">
-                    <input type="checkbox" [(ngModel)]="selectedGroups[i]" />
+                    [value]="cardGroups[cardGroupKey].name"
+                    (valueChange)="updateCardGroupName(cardGroupKey, $event)"
+                    [debounce]="2000" />
+                <div class="check" (click)="selectedGroups[cardGroupKey] = !selectedGroups[cardGroupKey]" style="display:flex;align-items: center; justify-content: center;">
+                    <input type="checkbox" [(ngModel)]="selectedGroups[cardGroupKey]" />
                 </div>
                 <div *cdkDragPlaceholder class="card-group-edit-placeholder">
                     <input type="text">
