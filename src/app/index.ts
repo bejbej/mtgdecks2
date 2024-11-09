@@ -24,8 +24,8 @@ export * from "./interceptors/auth.interceptor";
 // Interfaces
 export * from "./interfaces/card-view";
 export * from "./interfaces/deck";
+export * from "./interfaces/queried-deck";
 export * from "./interfaces/tag-state";
-export * from "./interfaces/user";
 
 // Services
 export * from "./services/auth.service";

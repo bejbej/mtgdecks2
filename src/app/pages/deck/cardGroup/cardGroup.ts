@@ -36,14 +36,12 @@ export class CardGroupComponent {
         private cardBlobService: app.CardBlobService,
         private deckManager: app.DeckManager) {
 
-            const state$ = deckManager.state$;
-
-            this.canEdit$ = state$.pipe(
+            this.canEdit$ = deckManager.state$.pipe(
                 map(state => state.canEdit),
                 distinctUntilChanged()
             );
 
-            const isInitiallyEditing$ = state$.pipe(
+            const isInitiallyEditing$ = deckManager.state$.pipe(
                 first(),
                 map(state => state.isNew && !state.isDirty)
             );
@@ -56,8 +54,8 @@ export class CardGroupComponent {
                 distinctUntilChanged()
             );
 
-            this.cardGroup$ = state$.pipe(
-                map(state => state.deck.cardGroups[this.cardGroupId]),
+            this.cardGroup$ = deckManager.deck$.pipe(
+                map(deck => deck.cardGroups[this.cardGroupId]),
                 distinctUntilChanged()
             );
 

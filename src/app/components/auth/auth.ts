@@ -14,7 +14,7 @@ export class AuthComponent {
     isLoggingIn$: Observable<boolean>;
 
     constructor(private authService: app.AuthService) {
-        this.isLoggedIn$ = authService.user$.pipe(map(user => user !== undefined));
+        this.isLoggedIn$ = authService.user$.pipe(map(user => user.isAuthenticated));
         this.isLoggingIn$ = authService.isLoggingIn$;
     }
 

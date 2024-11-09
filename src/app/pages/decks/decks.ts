@@ -2,7 +2,7 @@ import * as app from "@app";
 import { BehaviorSubject, combineLatest, merge, Observable, of } from "rxjs";
 import { ChangeDetectionStrategy, Component } from "@angular/core";
 import { contains, distinct, orderBy, selectMany } from "@array";
-import { map, shareReplay, switchMap, tap } from "rxjs/operators";
+import { filter, map, shareReplay, startWith, switchMap, tap } from "rxjs/operators";
 
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -11,8 +11,7 @@ import { map, shareReplay, switchMap, tap } from "rxjs/operators";
 })
 export class DecksComponent {
 
-    decks$: Observable<app.Deck[]>;
-    visibleDecks$: Observable<app.Deck[]>;
+    visibleDecks$: Observable<app.QueriedDeck[]>;
     tags$: Observable<string[]>;
     currentTag$: BehaviorSubject<string> = new BehaviorSubject<string>(undefined);
     currentTagName$: Observable<string>;
@@ -25,7 +24,7 @@ export class DecksComponent {
 
         document.title = "My Decks";
 
-        const tagState = JSON.parse(localStorage.getItem(app.config.localStorage.tags)) as app.TagState;
+        const tagState = JSON.parse(localStorage.getItem(app.config.localStorage.tags) ?? null) as app.TagState;
         if (tagState) {
             this.updateCurrentTag(tagState.current);
         }
@@ -35,19 +34,24 @@ export class DecksComponent {
             map(tag => tag === undefined ? "All" : tag === null ? "Untagged" : tag)
         );
 
-        this.decks$ = this.authService.user$.pipe(
+        const state$ = this.authService.user$.pipe(
             switchMap(user => {
                 if (user === undefined) {
-                    return of([] as app.Deck[]);
+                    return of({ isLoading: false, decks: [] as app.QueriedDeck[] });
                 }
                 
-                return this.deckService.getByQuery({ owner: user.id });
+                return this.deckService.getByQuery({ owner: user.id }).pipe(
+                    map(decks => ({ isLoading: false, decks: orderBy(decks, x => x.name) })),
+                    startWith({ isLoading: true, decks: [] as app.QueriedDeck[] })
+                );
             }),
-            map(decks => orderBy(decks, x => x.name)),
             shareReplay()
         );
 
-        this.visibleDecks$ = combineLatest([this.decks$, this.currentTag$]).pipe(
+        this.isLoading$ = state$.pipe(map(x => x.isLoading));
+        const decks$ = state$.pipe(map(x => x.decks));
+
+        this.visibleDecks$ = combineLatest([decks$, this.currentTag$]).pipe(
             map(([decks, currentTag]) => {
                 switch (currentTag) {
                     case undefined:
@@ -60,12 +64,10 @@ export class DecksComponent {
             })
         );
 
-        this.isLoading$ = merge(
-            this.authService.user$.pipe(map(_ => true)),
-            this.decks$.pipe(map(_ => false))
+        const deckTags$ = state$.pipe(
+            filter(state => state.isLoading === false),
+            map(state => distinct(selectMany(state.decks.map(deck => deck.tags))))
         );
-
-        const deckTags$ = this.decks$.pipe(map(decks => distinct(selectMany(decks.map(deck => deck.tags)))));
 
         this.tags$ = merge(storedTags$, deckTags$).pipe(map(tags => orderBy(tags, x => x)));
 
@@ -81,7 +83,7 @@ export class DecksComponent {
         ).subscribe();
     }
 
-    updateCurrentTag(tag: string) {
+    updateCurrentTag(tag: string | null | undefined) {
         this.currentTag$.next(tag);
     }
 }

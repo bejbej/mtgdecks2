@@ -30,26 +30,20 @@ export class DeckComponent implements OnDestroy {
         router: Router,
         route: ActivatedRoute) {
 
-        const state$ = deckManager.state$;
-        
-        this.canEdit$ = state$.pipe(
-            map(state => state && state.canEdit),
+        this.canEdit$ = deckManager.state$.pipe(
+            map(state => state.canEdit),
             distinctUntilChanged()
         );
 
-        this.deck$ = state$.pipe(
-            map(state => state?.deck),
-            filter(deck => deck !== undefined),
+        this.deck$ = deckManager.deck$;
+        
+        this.isLoading$ = deckManager.state$.pipe(
+            map(state => state.deck === undefined),
             distinctUntilChanged()
         );
         
-        this.isLoading$ = state$.pipe(
-            map(state => state === null),
-            distinctUntilChanged()
-        );
-        
-        this.isDeleting$ = state$.pipe(
-            map(state => state && state.isDeleted),
+        this.isDeleting$ = deckManager.state$.pipe(
+            map(state => state.isDeleted && state.isDirty),
             distinctUntilChanged()
         );
 
@@ -84,11 +78,14 @@ export class DeckComponent implements OnDestroy {
         ).subscribe();
 
         // Navigate to the dacks page when the deck is deleted and persisted
-        state$.subscribe(state => {
-            if (state && state.isDeleted && !state.isDirty) {
-                router.navigateByUrl("/decks");
-            }
-        });
+        deckManager.state$.pipe(
+            tap(state => {
+                if (state.isDeleted && !state.isDirty) {
+                    router.navigateByUrl("/decks");
+                }
+            }),
+            takeUntil(this.unsubscribe)
+        ).subscribe();
     }
 
     ngOnDestroy() {

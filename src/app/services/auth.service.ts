@@ -9,12 +9,17 @@ interface Token {
     exp: number;
 }
 
+export class User {
+    isAuthenticated: boolean = false;
+    id: string = "";
+}
+
 @Injectable({
     providedIn: "root"
 })
 export class AuthService {
 
-    public user$: Observable<app.User>;
+    public user$: Observable<User>;
     public isLoggingIn$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
 
     private token$: BehaviorSubject<Token> = new BehaviorSubject<Token>(undefined);
@@ -23,7 +28,12 @@ export class AuthService {
     constructor(private auth: AuthService2, sharedService: SharedService) {
         sharedService.tokenName = app.config.localStorage.token;
 
-        this.user$ = this.token$.pipe(map(token => token ? { id: token.sub } : undefined));
+        this.user$ = this.token$.pipe(map(token => {
+            return {
+                isAuthenticated: token !== undefined,
+                id: token?.sub ?? ""
+            };
+        }));
 
         this.token$.pipe(
             switchMap(token => {
@@ -35,10 +45,7 @@ export class AuthService {
                 const now = Date.now();
                 return of(undefined).pipe(delay(now - expiration));
             }),
-            tap(() => {
-                this.auth.removeToken();
-                this.token$.next(undefined);
-            })
+            tap(() => this.logOut())
         ).subscribe();
 
         this.token$.next(this.auth.getPayload() as Token);

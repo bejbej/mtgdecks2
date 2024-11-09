@@ -19,13 +19,13 @@ export class EditCardGroupsComponent {
     selectedGroups: any = {};
 
     constructor(private deckManager: app.DeckManager) {
-        this.cardGroups$ = this.deckManager.state$.pipe(
-            map(state => state.deck.cardGroups),
+        this.cardGroups$ = this.deckManager.deck$.pipe(
+            map(deck => deck.cardGroups),
             distinctUntilChanged(),
         )
 
-        this.cardGroupOrder$ = this.deckManager.state$.pipe(
-            map(state => state.deck.cardGroupOrder),
+        this.cardGroupOrder$ = this.deckManager.deck$.pipe(
+            map(deck => deck.cardGroupOrder),
             distinctUntilChanged(),
         )
     }

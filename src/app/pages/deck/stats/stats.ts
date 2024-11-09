@@ -9,16 +9,15 @@ import { toDictionary } from "@dictionary";
     selector: "app-stats",
     templateUrl: "./stats.html"
 })
-export class StatsComponent implements OnInit {
+export class StatsComponent {
     stats$: Observable<string[]>;
 
     private static cardTypes = toDictionary(["creature", "artifact", "enchantment", "planeswalker", "instant", "sorcery"], x => x);
 
-    constructor(private deckEvents: app.DeckManager) { }
-
-    ngOnInit() {
-        this.stats$ = this.deckEvents.state$.pipe(
-            map(state => state.deck.cardGroups[state.deck.cardGroupOrder[0]]),
+    constructor(private deckManager: app.DeckManager)
+    {
+        this.stats$ = this.deckManager.deck$.pipe(
+            map(deck => deck.cardGroups[deck.cardGroupOrder[0]]),
             distinctUntilChanged(),
             map(cardGroup => this.computeStats(cardGroup?.cards ?? []))
         )

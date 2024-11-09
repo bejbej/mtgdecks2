@@ -2,7 +2,7 @@ import * as app from "@app";
 import { HttpClient } from "@angular/common/http";
 import { Injectable } from "@angular/core";
 import { map } from "rxjs/operators";
-import { Observable } from "rxjs";
+import { noop, Observable } from "rxjs";
 
 @Injectable({
     providedIn: "root"
@@ -18,8 +18,8 @@ export class DeckService {
             .pipe(map(x => this.mapApiDeckToDeck(x)));
     }
 
-    getByQuery(query?): Observable<any[]> {
-        return this.http.get<{ results: Object[] }>(this._url, { params: query })
+    getByQuery(query?): Observable<app.QueriedDeck[]> {
+        return this.http.get<{ results: app.QueriedDeck[] }>(this._url, { params: query })
             .pipe(map(response => response.results));
     }
 
@@ -28,14 +28,14 @@ export class DeckService {
             .pipe(map(response => response.id));
     }
 
-    updateDeck(deck: app.Deck): Observable<any> {
+    updateDeck(deck: app.Deck): Observable<void> {
         let url = this._url + "/" + deck.id;
-        return this.http.put(url, this.mapDeckToApiDeck(deck));
+        return this.http.put(url, this.mapDeckToApiDeck(deck)).pipe(map(noop));
     }
 
-    deleteDeck(id: string): Observable<any> {
+    deleteDeck(id: string): Observable<void> {
         let url = this._url + "/" + id;
-        return this.http.delete(url);
+        return this.http.delete(url).pipe(map(noop));
     }
 
     private mapApiDeckToDeck(apiDeck: app.ApiDeck): app.Deck {

@@ -1,62 +1,62 @@
 import * as app from "@app";
-import { audit, filter, map, switchMap, takeUntil, tap, withLatestFrom } from "rxjs/operators";
-import { BehaviorSubject, Observable, of, Subject } from "rxjs";
+import { audit, distinctUntilChanged, filter, map, switchMap, takeUntil, tap } from "rxjs/operators";
+import { BehaviorSubject, noop, Observable, of, Subject } from "rxjs";
 import { contains } from "@array";
 import { Func } from "@types";
 import { Injectable, OnDestroy } from "@angular/core";
 
-interface State {
-    canEdit: boolean;
-    canSave: boolean;
-    deck: app.Deck;
-    isDeleted: boolean;
-    isDirty: boolean;
-    isNew: boolean;
+export class State {
+    canEdit: boolean = false;
+    canSave: boolean = false;
+    isDeleted: boolean = false;
+    isDirty: boolean = false;
+    isNew: boolean = false;
+
+    deck: app.Deck | undefined;
+    user: app.User = new app.User();
 }
 
 @Injectable()
 export class DeckManager implements OnDestroy {
 
-    state$: BehaviorSubject<State> = new BehaviorSubject<State>(null);
+    state$: Subject<State> = new BehaviorSubject<State>(new State());
+    deck$: Observable<app.Deck>;
 
-    private user$: BehaviorSubject<app.User> = new BehaviorSubject<app.User>(undefined);
-    private saveBusy$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
+    private saveBusy$: Subject<boolean> = new BehaviorSubject<boolean>(false);
     private unsubscribe: Subject<void> = new Subject<void>();
+
+    private state: State = new State();
 
     constructor(private deckService: app.DeckService, private authService: app.AuthService)
     {
         this.authService.user$.pipe(takeUntil(this.unsubscribe))
-            .subscribe(user => this.user$.next(user));
-
-        this.user$.pipe(
-            withLatestFrom(this.state$),
-            filter(([_, state]) => state !== null),
-            tap(([user, state]) => {
-                const canEdit = state.isNew || contains(state.deck.owners, user?.id);
-                const canSave = canEdit && user !== undefined;
-                this.patchState({ canEdit, canSave });
-            })
-        ).subscribe();
+            .subscribe(user => this.patchState({ user }));
 
         // Persist the deck
         this.state$.pipe(
-            filter(state => state && state.isDirty && state.canSave),
+            filter(state => state.isDirty && state.canSave),
             audit(() => this.saveBusy$.pipe(filter(x => x === false))),
             tap(() => this.saveBusy$.next(true)),
             switchMap(state => this.persist(state)),
             tap(() => this.saveBusy$.next(false))
         ).subscribe();
+
+        this.deck$ = this.state$.pipe(
+            map(state => state.deck),
+            filter(deck => deck !== undefined),
+            distinctUntilChanged()
+        );
     }
 
     loadDeck(id: string): Observable<void> {
         return this.deckService.getById(id).pipe(
-            tap(deck => this.createState(deck)),
-            map(() => {})
+            tap(deck => this.patchState({ deck })),
+            map(noop)
         );
     }
 
     createDeck(): Observable<void> {
-        const tags = [];
+        const tags = [] as string[];
         const tagState = JSON.parse(localStorage.getItem(app.config.localStorage.tags)) as app.TagState;
         if (tagState && tagState.current) {
             tags.push(tagState.current);
@@ -70,20 +70,24 @@ export class DeckManager implements OnDestroy {
                     name: "Mainboard",
                 }
             },
-            cardGroupOrder: [0],
             id: undefined,
+            cardGroupOrder: [0],
             name: "New Deck",
             notes: "",
-            owners: this.user$.value ? [this.user$.value.id] : [],
+            owners: [],
             tags: tags
         };
 
-        this.createState(deck);
+        this.patchState({ deck });
         return of(undefined);
     }
 
     updateDeck(func: Func<app.Deck, app.Deck>): void {
         this.updateState(prevState => {
+            if (prevState.deck === undefined) {
+                return prevState;
+            }
+
             const nextDeck = func(prevState.deck);
             return {
                 ...prevState,
@@ -135,28 +139,20 @@ export class DeckManager implements OnDestroy {
         this.unsubscribe.complete();
     }
 
-    private createState(deck: app.Deck) {
-        const user = this.user$.value;
-        const isNew = deck.id === undefined;
-        const canEdit = isNew || contains(deck.owners, user?.id);
-        const canSave = canEdit && user != null;
-
-        const state: State = {
-            isNew,
-            canEdit,
-            canSave,
-            isDirty: false,
-            isDeleted: false,
-            deck: deck
-        };
-
-        this.state$.next(state);
-    }
-
     private updateState(func: Func<State, State>): void {
-        const prevState = this.state$.value;
-        const nextState = func(prevState);
-        this.state$.next(nextState);
+        const nextState = func(this.state);
+
+        const isNew = nextState.deck && nextState.deck.id === undefined;
+        const canEdit = isNew || contains(nextState.deck?.owners ?? [], nextState.user.id);
+        const canSave = canEdit && nextState.user.isAuthenticated;
+
+        nextState.isNew = isNew;
+        nextState.canEdit = canEdit;
+        nextState.canSave = canSave;
+
+        this.state = nextState;
+
+        this.state$.next(this.state);
     }
 
     private patchState(partialState: Partial<State>): void {
@@ -169,26 +165,34 @@ export class DeckManager implements OnDestroy {
     }
 
     private persist(state: State): Observable<void> {
-        if (state.isDeleted) {
+        if (state.deck === undefined) {
+            return of(undefined);
+        }
+
+        if (state.isDeleted && state.deck.id !== undefined) {
             return this.deckService.deleteDeck(state.deck.id)
                 .pipe(tap(_ => this.patchState({ isDirty: false })));
         }
 
-        if (state.isNew) {
+        if (state.isNew && state.deck.id === undefined) {
             return this.deckService.createDeck(state.deck).pipe(
                 tap(id => {
                     const deck = {
                         ...state.deck,
                         id: id,
-                        owners: [this.user$.value.id]
+                        owners: [state.user.id]
                     };
-                    this.createState(deck);
+                    this.patchState({ deck, isDirty: false });
                 }),
-                map(() => {})
+                map(noop)
             );
         }
 
-        return this.deckService.updateDeck(state.deck)
-            .pipe(tap(_ => this.patchState({ isDirty: false })));
+        if (state.deck.id !== undefined) {
+            return this.deckService.updateDeck(state.deck)
+                .pipe(tap(_ => this.patchState({ isDirty: false })));
+        }
+
+        return of(undefined);
     }
 }

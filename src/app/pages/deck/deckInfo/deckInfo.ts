@@ -18,12 +18,12 @@ export class DeckInfoComponent {
     constructor(private deckManager: app.DeckManager) {
 
         this.canEdit$ = deckManager.state$.pipe(
-            map(state => state && state.canEdit),
+            map(state => state.canEdit),
             distinctUntilChanged()
         );
 
-        this.tags$ = this.deckManager.state$.pipe(
-            map(state => state.deck.tags),
+        this.tags$ = this.deckManager.deck$.pipe(
+            map(deck => deck.tags),
             distinctUntilChanged()
         );
 
@@ -32,8 +32,8 @@ export class DeckInfoComponent {
             distinctUntilChanged()
         );
 
-        this.notes$ = this.deckManager.state$.pipe(
-            map(state => state.deck.notes),
+        this.notes$ = this.deckManager.deck$.pipe(
+            map(deck => deck.notes),
             distinctUntilChanged()
         );
     }
