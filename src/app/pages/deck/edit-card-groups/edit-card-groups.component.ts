@@ -10,7 +10,7 @@ import { toDictionary2 } from "@dictionary";
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
     selector: "edit-card-groups",
-    templateUrl: "./editCardGroups.html"
+    templateUrl: "./edit-card-groups.component.html"
 })
 export class EditCardGroupsComponent {
 
@@ -18,7 +18,7 @@ export class EditCardGroupsComponent {
     cardGroupOrder$: Observable<number[]>;
     selectedGroups: any = {};
 
-    constructor(private deckManager: app.DeckManager) {
+    constructor(private deckManager: app.DeckManagerService) {
         this.cardGroups$ = this.deckManager.deck$.pipe(
             map(deck => deck.cardGroups),
             distinctUntilChanged(),

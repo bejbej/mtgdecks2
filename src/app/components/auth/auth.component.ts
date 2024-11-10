@@ -6,7 +6,7 @@ import { Observable } from "rxjs";
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
     selector: "app-auth",
-    templateUrl: "./auth.html"
+    templateUrl: "./auth.component.html"
 })
 export class AuthComponent {
 

@@ -2,15 +2,15 @@ import * as app from "@app";
 import { ActivatedRoute, Router } from "@angular/router";
 import { BehaviorSubject, combineLatest, Observable, Subject } from "rxjs";
 import { ChangeDetectionStrategy, Component, OnDestroy } from "@angular/core";
-import { DeckManager } from "./deck.manager";
+import { DeckManagerService } from "./deck-manager/deck.manager.service";
 import { distinctUntilChanged, filter, map, startWith, switchMap, takeUntil, tap } from "rxjs/operators";
 import { Location } from "@angular/common";
 
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
-    providers: [DeckManager],
+    providers: [DeckManagerService],
     selector: "app-deck",
-    templateUrl: "./deck.html"
+    templateUrl: "./deck.component.html"
 })
 export class DeckComponent implements OnDestroy {
 
@@ -25,7 +25,7 @@ export class DeckComponent implements OnDestroy {
     private unsubscribe: Subject<void> = new Subject<void>();
 
     constructor(
-        private deckManager: app.DeckManager,
+        private deckManager: app.DeckManagerService,
         location: Location,
         router: Router,
         route: ActivatedRoute) {

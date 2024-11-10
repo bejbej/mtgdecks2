@@ -7,7 +7,7 @@ import { sum } from "@array";
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
     selector: "app-card-group",
-    templateUrl: "./cardGroup.html"
+    templateUrl: "./card-group.component.html"
 })
 export class CardGroupComponent {
 
@@ -34,7 +34,7 @@ export class CardGroupComponent {
 
     constructor(
         private cardBlobService: app.CardBlobService,
-        private deckManager: app.DeckManager) {
+        private deckManager: app.DeckManagerService) {
 
             this.canEdit$ = deckManager.state$.pipe(
                 map(state => state.canEdit),

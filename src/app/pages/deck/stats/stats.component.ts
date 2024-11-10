@@ -7,14 +7,14 @@ import { toDictionary } from "@dictionary";
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
     selector: "app-stats",
-    templateUrl: "./stats.html"
+    templateUrl: "./stats.component.html"
 })
 export class StatsComponent {
     stats$: Observable<string[]>;
 
     private static cardTypes = toDictionary(["creature", "artifact", "enchantment", "planeswalker", "instant", "sorcery"], x => x);
 
-    constructor(private deckManager: app.DeckManager)
+    constructor(private deckManager: app.DeckManagerService)
     {
         this.stats$ = this.deckManager.deck$.pipe(
             map(deck => deck.cardGroups[deck.cardGroupOrder[0]]),

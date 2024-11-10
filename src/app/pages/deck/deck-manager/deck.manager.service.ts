@@ -17,7 +17,7 @@ export class State {
 }
 
 @Injectable()
-export class DeckManager implements OnDestroy {
+export class DeckManagerService implements OnDestroy {
 
     state$: Subject<State> = new BehaviorSubject<State>(new State());
     deck$: Observable<app.Deck>;

@@ -2,6 +2,6 @@ import { Component } from "@angular/core";
 
 @Component({
     selector: "app-large-spinner",
-    templateUrl: "./largeSpinner.html"
+    templateUrl: "./large-spinner.component.html"
 })
 export class LargeSpinner { }

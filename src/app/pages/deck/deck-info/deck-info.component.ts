@@ -6,7 +6,7 @@ import { Observable } from "rxjs";
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
     selector: "app-deck-info",
-    templateUrl: "./deckInfo.html"
+    templateUrl: "./deck-info.component.html"
 })
 export class DeckInfoComponent {
 
@@ -15,7 +15,7 @@ export class DeckInfoComponent {
     notes$: Observable<string>;
     canEdit$: Observable<boolean>;
 
-    constructor(private deckManager: app.DeckManager) {
+    constructor(private deckManager: app.DeckManagerService) {
 
         this.canEdit$ = deckManager.state$.pipe(
             map(state => state.canEdit),

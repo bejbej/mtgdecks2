@@ -2,7 +2,7 @@ import { Component, ElementRef, NgZone, OnDestroy, OnInit } from "@angular/core"
 
 @Component({
     selector: "app-spinner",
-    templateUrl: "./spinner.html"
+    templateUrl: "./spinner.component.html"
 })
 export class SpinnerComponent implements OnInit, OnDestroy {
 

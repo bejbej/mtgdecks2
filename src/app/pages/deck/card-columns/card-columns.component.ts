@@ -4,9 +4,9 @@ import { ChangeDetectionStrategy, Component, Input, OnChanges } from "@angular/c
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
     selector: "app-card-view",
-    templateUrl: "./cardView.html"
+    templateUrl: "./card-columns.component.html"
 })
-export class CardViewComponent implements OnChanges {
+export class CardColumnsComponent implements OnChanges {
     @Input() columns: app.CardView[][];
 
     showHeaders: boolean;

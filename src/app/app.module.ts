@@ -14,7 +14,7 @@ import { NgModule } from "@angular/core";
         // Components
         app.AuthComponent,
         app.CardGroupComponent,
-        app.CardViewComponent,
+        app.CardColumnsComponent,
         app.DeckComponent,
         app.DeckInfoComponent,
         app.DecksComponent,
