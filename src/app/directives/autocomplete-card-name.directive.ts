@@ -110,7 +110,7 @@ export class AutocompleteCardNameDirective implements OnInit {
             this.autocompleteDiv.appendChild(entry);
         }
 
-        this.element.parentElement.appendChild(this.autocompleteDiv);
+        document.body.appendChild(this.autocompleteDiv);
     }
 
     computeAutocomplete(): void {
