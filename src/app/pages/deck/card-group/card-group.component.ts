@@ -4,6 +4,11 @@ import { ChangeDetectionStrategy, Component, Input } from "@angular/core";
 import { distinctUntilChanged, first, map, tap } from "rxjs/operators";
 import { sum } from "@array";
 
+interface ViewOption {
+    name: string;
+    groupFunc: app.GroupFunc;
+}
+
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
     selector: "app-card-group",
@@ -25,7 +30,26 @@ export class CardGroupComponent {
     columns$: Observable<app.CardView[][]>;
     shoudEdit$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
 
-    cardGrouper = app.CardGrouper;
+    viewOptions: ViewOption[] = [{
+        name: "Card Type",
+        groupFunc: app.CardGrouper.groupByType
+    },
+    {
+        name: "Color",
+        groupFunc: app.CardGrouper.groupByColor
+    },
+    {
+        name: "Mana Value",
+        groupFunc: app.CardGrouper.groupByManaValue
+    },
+    {
+        name: "Name",
+        groupFunc: app.CardGrouper.groupByName
+    },
+    {
+        name: "Price",
+        groupFunc: app.CardGrouper.groupByPrice
+    }];
 
     // State Tracking
     showToolbar: boolean = false;
@@ -78,15 +102,12 @@ export class CardGroupComponent {
                 map(([cardGroup, groupBy]) => groupBy(cardGroup.cards)),
                 distinctUntilChanged()
             );
+
+            this.groupBy$.subscribe(() => this.showToolbar = false);
         }
 
     updateCardBlob(cardBlob: string): void {
         this.cardBlob = cardBlob;
-    }
-
-    setGroupFunc(func: app.GroupFunc) {
-        this.showToolbar = false;
-        this.groupBy$.next(func);
     }
 
     startEditing() {

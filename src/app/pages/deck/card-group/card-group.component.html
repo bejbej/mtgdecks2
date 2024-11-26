@@ -8,27 +8,11 @@
             <button class="header-button" *ngIf="canEdit$ | async" (click)="startEditing()">Edit</button>
         </header>
 
-        <form>
-            <div class="radio-group" [hidden]="cardGroup.cards.length === 0 || !showToolbar">
-                <label>
-                    <input type="radio" name="view" checked="checked" (click)="setGroupFunc(cardGrouper.groupByType)"/>
-                    Card Type
-                </label>
-                <label>
-                    <input type="radio" name="view" (click)="setGroupFunc(cardGrouper.groupByColor)"/>
-                    Color
-                </label>
-                <label>
-                    <input type="radio" name="view" (click)="setGroupFunc(cardGrouper.groupByCmc)"/>
-                    Mana Value
-                </label>
-                <label>
-                    <input type="radio" name="view" (click)="setGroupFunc(cardGrouper.groupByName)"/>
-                    Name
-                </label>
-                <label>
-                    <input type="radio" name="view" (click)="setGroupFunc(cardGrouper.groupByPrice)"/>
-                    Price
+        <form [hidden]="cardGroup.cards.length === 0 || !showToolbar">
+            <div class="radio-group">
+                <label *ngFor="let viewOption of viewOptions">
+                    <input type="radio" name="view" [value]="viewOption.groupFunc" [ngModel]="groupBy$ | async" (ngModelChange)="groupBy$.next($event)"/>
+                    {{viewOption.name}}
                 </label>
             </div>
         </form>
