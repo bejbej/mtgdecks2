@@ -26,9 +26,9 @@ export interface CardDefinition {
     name: string;
     primaryType: string;
     color: string;
-    cmc: number;
+    manaValue: number;
     price: number;
-    imageUri: string;
+    imageId: string;
     isDoubleSided: boolean;
 }
 

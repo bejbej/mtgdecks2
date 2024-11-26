@@ -32,7 +32,7 @@ export class StatsComponent {
 
         for (let card of cards) {
             if (StatsComponent.cardTypes[card.definition.primaryType] !== undefined) {
-                stats[card.definition.cmc] += card.quantity;
+                stats[card.definition.manaValue] += card.quantity;
             }
         };
 

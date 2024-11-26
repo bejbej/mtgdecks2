@@ -32,11 +32,13 @@ export class LightboxDirective implements OnInit {
     }
 
     singleSided = () => {
+        const imageUri = app.createImageUri(this.cardDefinition.imageId);
+
         const lightbox = document.createElement("div");
         lightbox.className = "lightbox";
 
         const img = document.createElement("img");
-        img.src = `${app.config.imagesUrl}/front/${this.cardDefinition.imageUri}.jpg`;
+        img.src = `${app.config.imagesUrl}/front/${imageUri}`;
 
         let width = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
         let height = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
@@ -58,14 +60,16 @@ export class LightboxDirective implements OnInit {
     }
 
     doubleSided = () => {
+        const imageUri = app.createImageUri(this.cardDefinition.imageId);
+
         const lightbox = document.createElement("div");
         lightbox.className = "lightbox";
 
         const imgFront = document.createElement("img");
-        imgFront.src = `${app.config.imagesUrl}/front/${this.cardDefinition.imageUri}.jpg`;
+        imgFront.src = `${app.config.imagesUrl}/front/${imageUri}`;
 
         const imgBack = document.createElement("img");
-        imgBack.src = `${app.config.imagesUrl}/back/${this.cardDefinition.imageUri}.jpg`;
+        imgBack.src = `${app.config.imagesUrl}/back/${imageUri}`;
 
         let width = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
         let height = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;

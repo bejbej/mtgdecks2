@@ -14,19 +14,25 @@ export class CardDefinitionService {
     private _cardArray: app.CardDefinition[];
 
     constructor() {
-        this._cardArray = cardsCSV.split("\n").slice(1).map(cardText => {
-            const parameters = cardText.split("\t");
-            return {
-                name: parameters[0],
-                primaryType: parameters[1],
-                cmc: Number(parameters[2]),
-                color: parameters[3],
-                price: Number(parameters[4]),
-                imageUri: parameters[5],
-                isDoubleSided: parameters[6] === "1"
-            }
-        });
+        const items = cardsCSV.split(/[\t\n]/);
+        const cards: app.CardDefinition[] = [];
+        for (let i = 7; i < items.length; i = i + 7) {
+            cards.push({
+                name: items[i],
+                primaryType: items[i+1],
+                manaValue: Number(items[i+2]),
+                color: items[i+3],
+                isDoubleSided: items[i+4] === "1",
+                price: Number(items[i+5]),
+                imageId: items[i+6]
+            });
+        }
+
+        this._cardArray = cards;
         this._cardDictionary = toDictionary(this._cardArray, card => card.name.toLowerCase());
+        
+        // Free up memory maybe
+        cardsCSV = undefined;
     }
 
     getCardDictionary = () => this._cardDictionary;

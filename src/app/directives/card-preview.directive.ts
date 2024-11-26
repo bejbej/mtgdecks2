@@ -52,6 +52,7 @@ export class CardPreviewDirective implements OnInit, OnDestroy {
     }
 
     showCardPreview = (): void => {
+        const imageUri = app.createImageUri(this.cardDefinition.imageId);
         let rect = this.element.getBoundingClientRect();
 
         let scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
@@ -64,7 +65,7 @@ export class CardPreviewDirective implements OnInit, OnDestroy {
 
         this.img.style.top = top + scrollTop + "px";
         this.img.style.left = left + scrollLeft + "px";
-        this.img.src = `${app.config.imagesUrl}/front/${this.cardDefinition.imageUri}.jpg`;
+        this.img.src = `${app.config.imagesUrl}/front/${imageUri}`;
     }
 
     hideCardPreview = (): void => {
