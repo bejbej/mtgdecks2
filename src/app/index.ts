@@ -3,7 +3,6 @@ export * from "./config";
 // Common
 export * from "./common/card-grouper";
 export * from "./common/create-image-uri";
-export * from "./common/find-common-prefix-length";
 export * from "./common/first-value";
 export * from "./common/get-autocomplete-entries";
 export * from "./common/get-caret-coordinates";

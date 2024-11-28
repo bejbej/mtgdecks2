@@ -21,9 +21,10 @@ export class AutocompleteCardNameDirective implements OnInit {
     isAutocompleteBoxActive: boolean;
     isInsertingValue: boolean;
     autocompleteThrottle: app.Throttle = new app.Throttle(100, () => this.computeAutocomplete());
+    selectedAutocompleteIndex: number = 0;
 
     readonly minimumNumberOfCharacters: number = 1;
-    readonly maximumNumberOfMatches: number = 4;
+    readonly maximumNumberOfMatches: number = 8;
 
     constructor(cardDefinitionService: app.CardDefinitionService, elementRef: ElementRef, private ngZone: NgZone) {
         this.cards = cardDefinitionService.getCardArray();
@@ -42,15 +43,26 @@ export class AutocompleteCardNameDirective implements OnInit {
             });
 
             this.element.addEventListener("keydown", (event: KeyboardEvent) => {
-                // Arrow keys or esc hides the autocomplete box
-                if ((event.keyCode > 36 && event.keyCode < 41) || event.keyCode == 27) {
+                if (!this.isVisible) {
+                    return;
+                }
+                else if (event.key === "ArrowDown") {
+                    event.preventDefault();
+                    const newIndex = Math.min(this.selectedAutocompleteIndex + 1, this.currentCardNames.length - 1);
+                    this.updateSelectedAutocompleteIndex(newIndex);
+                }
+                else if (event.key === "ArrowUp") {
+                    event.preventDefault();
+                    const newIndex = Math.max(this.selectedAutocompleteIndex - 1, 0);
+                    this.updateSelectedAutocompleteIndex(newIndex);
+                }
+                else if (event.key === "Escape" || event.key === "ArrowLeft" || event.key === "ArrowRight") {
                     this.hideAutocomplete();
                 }
-                // Tab performs an autocomplete insert
-                else if (event.keyCode == 9) {
+                else if (event.key === "Tab") {
                     event.preventDefault();
                     if (this.isVisible) {
-                        this.insertAutocomplete();
+                        this.insertAutocomplete2(this.autocompleteDiv.childNodes[this.selectedAutocompleteIndex].childNodes[1].textContent);
                     }
                 }
             });
@@ -77,37 +89,22 @@ export class AutocompleteCardNameDirective implements OnInit {
         this.autocompleteDiv = document.createElement("div");
         this.autocompleteDiv.className = "autocomplete";
         this.autocompleteDiv.style.display = "none";
-        this.autocompleteDiv.addEventListener("mousedown", () => {
-            // mark the autocomplete box as active so it doesn't get hidden by the blur event handler
-            // add a click event handler to the entire page
-            // when the click event handler fires, check to see if the event target was an ancestor of the autocomplete box
-
-            let clickHandler = event => {
-                window.removeEventListener("click", clickHandler);
-                this.isAutocompleteBoxActive = false;
-                
-                let target = event.target;
-                while (target) {
-                    if (target == this.autocompleteDiv) {
-                        this.insertAutocomplete();
-                        this.element.focus();
-                        return;
-                    }
-                    target = target.parentNode;
-                }
-                // If the autocomplete box wasn't clicked, hide it
-                this.hideAutocomplete();
-            }
-
-            window.addEventListener("click", clickHandler);
-            this.isAutocompleteBoxActive = true;
-        });
 
         for (let i = 0; i < this.maximumNumberOfMatches; ++i) {
-            let entry = document.createElement("div");
+            const entry = document.createElement("div");
             entry.appendChild(document.createElement("b"));
             entry.appendChild(document.createElement("span"));
             this.autocompleteDiv.appendChild(entry);
+
+            entry.addEventListener("mousedown", () => {
+                const clickHandler = () => {
+                    window.removeEventListener("click", clickHandler);
+                    this.insertAutocomplete2(entry.childNodes[1].textContent);
+                };
+
+                window.addEventListener("click", clickHandler);
+                this.isAutocompleteBoxActive = true;
+            });
         }
 
         document.body.appendChild(this.autocompleteDiv);
@@ -132,24 +129,15 @@ export class AutocompleteCardNameDirective implements OnInit {
             return;
         }
         this.updateAutocompleteDisplay();
+        this.updateSelectedAutocompleteIndex(0);
         this.updateAutocompleteLocation();
         this.showAutocomplete();
     }
 
-    insertAutocomplete(): void {
-        this.autocompleteThrottle.flush();
-        if (this.currentCardNames.length == 1) {
-            this.insertValue(this.currentCardNames[0].substring(this.currentQuery.query.length));
-            this.hideAutocomplete();
-        }
-        else {
-            let prefixLength = app.findCommonPrefixLength(this.currentCardNames, true);
-            if (prefixLength == this.currentQuery.query.length) {
-                return;
-            }
-            this.insertValue(this.currentCardNames[0].substring(this.currentQuery.query.length, prefixLength));
-            this.computeAutocomplete();
-        }
+    insertAutocomplete2(text: string): void {
+        this.autocompleteThrottle.clear();
+        this.insertValue(text);
+        this.hideAutocomplete();
     }
 
     insertValue(value: string): void {
@@ -191,6 +179,12 @@ export class AutocompleteCardNameDirective implements OnInit {
                 node.childNodes[1].textContent = "";
             }
         }
+    }
+
+    updateSelectedAutocompleteIndex(newIndex: number) : void {
+        (<HTMLDivElement> this.autocompleteDiv.childNodes[this.selectedAutocompleteIndex]).classList.remove("active");
+        this.selectedAutocompleteIndex = newIndex;
+        (<HTMLDivElement> this.autocompleteDiv.childNodes[this.selectedAutocompleteIndex]).classList.add("active");
     }
 
     updateAutocompleteLocation() {
