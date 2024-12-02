@@ -44,7 +44,7 @@
     "karma-coverage-istanbul-reporter": "~3.0.3",
     "karma-jasmine": "~4.0.1",
     "karma-jasmine-html-reporter": "^1.5.4",
-    "npm-check-updates": "^11.1.10",
+    "npm-check-updates": "^16.7.4",
     "protractor": "~7.0.0",
     "source-map-explorer": "^2.5.2",
     "ts-node": "^9.1.1",
