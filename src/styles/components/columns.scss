@@ -1,0 +1,10 @@
+.card-view-columns {
+    @media (min-width: $screen-sm-min) {
+        columns: 3;
+        column-gap: 0;
+    }
+}
+
+.avoid-break-inside {
+    break-inside: avoid;
+}

@@ -54,7 +54,7 @@ export class CardBlobService {
     stringify(cards: app.Card[], invalidCards: string[]): string {
         return invalidCards 
             .concat(cards
-                .sort((a, b) => a.definition.name > b.definition.name ? 1 : -1)
+                //.sort((a, b) => a.definition.name > b.definition.name ? 1 : -1)
                 .map(card => `${card.quantity}x ${card.definition.name}`))
             .join("\n");
     }

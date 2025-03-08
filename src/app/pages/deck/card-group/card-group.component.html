@@ -21,7 +21,7 @@
             <span *ngFor="let card of cardGroup.invalidCards">{{card}}<br></span>
         </div>
 
-        <app-card-view [columns]="columns$ | async"></app-card-view>
+        <app-card-view [cardViews]="cardViews$ | async"></app-card-view>
     </ng-container>
 
     <ng-container *ngIf="isEditing$ | async">

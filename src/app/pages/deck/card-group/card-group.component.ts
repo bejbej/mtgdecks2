@@ -2,7 +2,7 @@ import * as app from "@app";
 import { BehaviorSubject, combineLatest, merge, Observable } from "rxjs";
 import { ChangeDetectionStrategy, Component, Input } from "@angular/core";
 import { distinctUntilChanged, first, map, tap } from "rxjs/operators";
-import { sum } from "@array";
+import { selectMany, sum } from "@array";
 
 interface ViewOption {
     name: string;
@@ -27,7 +27,7 @@ export class CardGroupComponent {
     isEditing$: Observable<boolean>;
     canEdit$: Observable<boolean>;
     
-    columns$: Observable<app.CardView[][]>;
+    cardViews$: Observable<app.CardView[]>;
     shoudEdit$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
 
     viewOptions: ViewOption[] = [{
@@ -93,15 +93,24 @@ export class CardGroupComponent {
                 distinctUntilChanged()
             );
 
+            /*
             this.cardBlob$ = this.cardGroup$.pipe(
                 map(cardGroup => this.cardBlobService.stringify(cardGroup.cards, cardGroup.invalidCards)),
                 distinctUntilChanged()
             );
+            */
 
-            this.columns$ = combineLatest([this.cardGroup$, this.groupBy$]).pipe(
+            this.cardViews$ = combineLatest([this.cardGroup$, this.groupBy$]).pipe(
                 map(([cardGroup, groupBy]) => groupBy(cardGroup.cards)),
                 distinctUntilChanged()
             );
+
+            this.cardBlob$ = combineLatest([this.cardGroup$, this.cardViews$]).pipe(
+                map(([cardGroup, cardViews]) => {
+                    const cards = selectMany(cardViews.map(x => x.cards));
+                    return this.cardBlobService.stringify(cards, cardGroup.invalidCards);
+                })
+            ) 
 
             this.groupBy$.subscribe(() => this.showToolbar = false);
         }
