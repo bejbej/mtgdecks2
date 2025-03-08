@@ -5,7 +5,6 @@ import { BrowserModule } from "@angular/platform-browser";
 import { DragDropModule } from "@angular/cdk/drag-drop";
 import { FormsModule } from "@angular/forms";
 import { HTTP_INTERCEPTORS, HttpClientModule } from "@angular/common/http";
-import { Ng2UiAuthModule } from "ng2-ui-auth";
 import { NgModule } from "@angular/core";
 
 @NgModule({
@@ -36,15 +35,7 @@ import { NgModule } from "@angular/core";
         BrowserModule,
         DragDropModule,
         FormsModule,
-        HttpClientModule,
-        Ng2UiAuthModule.forRoot({
-            providers: {
-                google: {
-                    clientId: app.config.authClients.google.clientId,
-                    url: app.config.authClients.google.authUrl
-                }
-            }
-        })
+        HttpClientModule
     ],
     providers: [{
         provide: HTTP_INTERCEPTORS,
