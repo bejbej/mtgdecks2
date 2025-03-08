@@ -36,7 +36,7 @@ export class DecksComponent {
 
         const state$ = this.authService.user$.pipe(
             switchMap(user => {
-                if (user === undefined) {
+                if (!user.isAuthenticated) {
                     return of({ isLoading: false, decks: [] as app.QueriedDeck[] });
                 }
                 
