@@ -1,22 +1,33 @@
 import * as app from "@app";
 import { HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from "@angular/common/http";
-import { Injectable } from "@angular/core";
+import { inject, Injectable } from "@angular/core";
+import { LocalStorageService } from "../services/local-storage.service";
 import { Observable } from "rxjs";
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
 
-    intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-        if (request.url === app.config.authClients.google.authUrl) {
-            request = request.clone({
-                body: {
-                    code: request.body.oauthData.code,
-                    clientId: request.body.authorizationData.client_id,
-                    redirectUri: request.body.authorizationData.redirect_uri
-                }
-            });
+    private localStorageService = inject(LocalStorageService);
+
+    public intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+        if (!this.isAuthorizationRequired(request.url)) {
+            return next.handle(request);
         }
 
-        return next.handle(request);
+        const identity = this.localStorageService.getObject<app.Identity>(app.config.localStorage.identity);
+
+        if (identity === null) {
+            return next.handle(request);
+        }
+
+        const header = "Bearer " + identity.accessToken;
+        const headers = request.headers.set("Authorization", header);
+        const updatedRequest = request.clone({ headers });
+
+        return next.handle(updatedRequest);
+    }
+
+    private isAuthorizationRequired(url: string): boolean {
+        return url.toLowerCase().startsWith(app.config.decksUrl.toLowerCase());
     }
 }

@@ -4,15 +4,17 @@ export const config = {
         { name: "cmc", types: ["creature", "artifact", "enchantment", "battle", "planeswalker", "instant", "sorcery"] }
     ],
     localStorage: {
-        tags: "mtgdecks2-tags",
-        token: "mtgdecks2-token"
+        prefix: "mtgdecks2-",
+        accessToken: "access_token",
+        identity: "identity",
+        tags: "mtgdecks2-tags"
     },
-    authClients: {
-        google: {
-            authUrl: "https://mtgdecks-api.herokuapp.com/api/auth/google",
-            clientId: "762466157003-hq2jn040hivudvem4n0jjas9edu02ruj.apps.googleusercontent.com",
-            redirectUri: window.location.origin + window.location.pathname
-        }
+    auth: {
+        clientId: "762466157003-hq2jn040hivudvem4n0jjas9edu02ruj.apps.googleusercontent.com",
+        authUrl: "https://mtgdecks-api.herokuapp.com/api/auth/google2",
+        issuer: "https://accounts.google.com",
+        redirectUri: window.location.origin + window.location.pathname + "callback.html",
+        scope: "email"
     },
     enableHover: true,
     decksUrl: "https://mtgdecks-api.herokuapp.com/api/decks",

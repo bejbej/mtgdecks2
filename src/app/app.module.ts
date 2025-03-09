@@ -5,7 +5,9 @@ import { BrowserModule } from "@angular/platform-browser";
 import { DragDropModule } from "@angular/cdk/drag-drop";
 import { FormsModule } from "@angular/forms";
 import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
+import { LocalStorageService } from "./services/local-storage.service";
 import { NgModule } from "@angular/core";
+import { OAuthModule, OAuthStorage } from "angular-oauth2-oidc";
 
 @NgModule({ declarations: [
         AppComponent,
@@ -29,12 +31,25 @@ import { NgModule } from "@angular/core";
         app.DebounceDirective,
         app.LightboxDirective,
     ],
-    bootstrap: [AppComponent], imports: [AppRoutingModule,
+    bootstrap: [AppComponent],
+    imports: [
+        AppRoutingModule,
         BrowserModule,
         DragDropModule,
-        FormsModule], providers: [{
+        FormsModule,
+        OAuthModule.forRoot()
+    ],
+    providers: [
+        {
             provide: HTTP_INTERCEPTORS,
             useClass: app.AuthInterceptor,
             multi: true
-        }, provideHttpClient(withInterceptorsFromDi())] })
+        },
+        provideHttpClient(withInterceptorsFromDi()),
+        {
+            provide: OAuthStorage,
+            useExisting: LocalStorageService
+        }
+    ]
+})
 export class AppModule { }

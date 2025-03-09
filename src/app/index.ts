@@ -31,6 +31,7 @@ export * from "./services/auth.service";
 export * from "./services/card-blob.service";
 export * from "./services/card-definition.service";
 export * from "./services/deck.service";
+export * from "./services/local-storage.service";
 
 // Components
 export * from "./components/auth/auth.component";
