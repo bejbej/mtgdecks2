@@ -7,7 +7,7 @@ export const config = {
         prefix: "mtgdecks2-",
         accessToken: "access_token",
         identity: "identity",
-        tags: "mtgdecks2-tags"
+        tags: "tags"
     },
     auth: {
         clientId: "762466157003-hq2jn040hivudvem4n0jjas9edu02ruj.apps.googleusercontent.com",

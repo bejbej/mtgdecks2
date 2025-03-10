@@ -3,7 +3,7 @@ import { audit, distinctUntilChanged, filter, map, switchMap, takeUntil, tap } f
 import { BehaviorSubject, noop, Observable, of, Subject } from "rxjs";
 import { contains } from "@array";
 import { Func } from "@types";
-import { Injectable, OnDestroy } from "@angular/core";
+import { inject, Injectable, OnDestroy } from "@angular/core";
 
 export class State {
     canEdit: boolean = false;
@@ -19,6 +19,10 @@ export class State {
 @Injectable()
 export class DeckManagerService implements OnDestroy {
 
+    private authService = inject(app.AuthService);
+    private deckService = inject(app.DeckService);
+    private localStorageService = inject(app.LocalStorageService);
+
     state$: Subject<State> = new BehaviorSubject<State>(new State());
     deck$: Observable<app.Deck>;
 
@@ -27,8 +31,7 @@ export class DeckManagerService implements OnDestroy {
 
     private state: State = new State();
 
-    constructor(private deckService: app.DeckService, private authService: app.AuthService)
-    {
+    constructor() {
         this.authService.user$.pipe(takeUntil(this.unsubscribe))
             .subscribe(user => this.patchState({ user }));
 
@@ -57,7 +60,7 @@ export class DeckManagerService implements OnDestroy {
 
     createDeck(): Observable<void> {
         const tags = [] as string[];
-        const tagState = JSON.parse(localStorage.getItem(app.config.localStorage.tags)) as app.TagState;
+        const tagState = this.localStorageService.getObject<app.TagState>(app.config.localStorage.tags);
         if (tagState && tagState.current) {
             tags.push(tagState.current);
         }

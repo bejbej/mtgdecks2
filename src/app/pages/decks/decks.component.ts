@@ -1,6 +1,6 @@
 import * as app from "@app";
 import { BehaviorSubject, combineLatest, merge, Observable, of } from "rxjs";
-import { ChangeDetectionStrategy, Component } from "@angular/core";
+import { ChangeDetectionStrategy, Component, inject } from "@angular/core";
 import { contains, distinct, orderBy, selectMany } from "@array";
 import { filter, map, shareReplay, startWith, switchMap, tap } from "rxjs/operators";
 
@@ -12,6 +12,10 @@ import { filter, map, shareReplay, startWith, switchMap, tap } from "rxjs/operat
 })
 export class DecksComponent {
 
+    private authService = inject(app.AuthService);
+    private deckService = inject(app.DeckService);
+    private localStorageService = inject(app.LocalStorageService);
+
     visibleDecks$: Observable<app.QueriedDeck[]>;
     tags$: Observable<string[]>;
     currentTag$: BehaviorSubject<string> = new BehaviorSubject<string>(undefined);
@@ -19,13 +23,11 @@ export class DecksComponent {
 
     isLoading$: Observable<boolean>;
 
-    constructor(
-        private authService: app.AuthService,
-        private deckService: app.DeckService) {
+    constructor() {
 
         document.title = "My Decks";
 
-        const tagState = JSON.parse(localStorage.getItem(app.config.localStorage.tags) ?? null) as app.TagState;
+        const tagState = this.localStorageService.getObject<app.TagState>(app.config.localStorage.tags);
         if (tagState) {
             this.updateCurrentTag(tagState.current);
         }
@@ -79,7 +81,7 @@ export class DecksComponent {
                     current: currentTag
                 };
 
-                localStorage.setItem(app.config.localStorage.tags, JSON.stringify(tagState));
+                this.localStorageService.setObject(app.config.localStorage.tags, tagState);
             })
         ).subscribe();
     }
