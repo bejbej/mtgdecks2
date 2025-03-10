@@ -7,7 +7,8 @@ import { toDictionary } from "@dictionary";
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
     selector: "app-stats",
-    templateUrl: "./stats.component.html"
+    templateUrl: "./stats.component.html",
+    standalone: false
 })
 export class StatsComponent {
     stats$: Observable<string[]>;

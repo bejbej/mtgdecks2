@@ -1,7 +1,6 @@
 {
   "compileOnSave": false,
   "angularCompilerOptions": {
-    "enableIvy": true,
     "strictInjectionParameters": true,
     "strictInputAccessModifiers": true,
     "strictTemplates": true,
@@ -9,6 +8,7 @@
   "compilerOptions": {
     "baseUrl": "./",
     "outDir": "./dist/out-tsc",
+    "esModuleInterop": true,
     "sourceMap": true,
     "declaration": false,
     "moduleResolution": "node",
@@ -18,7 +18,7 @@
     "noImplicitReturns": true,
     "strictNullChecks": false,
     "strictPropertyInitialization": false,
-    "target": "es5",
+    "target": "ES2022",
     "typeRoots": [
       "node_modules/@types"
     ],
@@ -27,11 +27,22 @@
       "dom"
     ],
     "paths": {
-      "@app": ["src/app/index"],
-      "@array": ["src/app/common/array"],
-      "@dictionary": ["src/app/common/dictionary"],
-      "@csv": ["src/app/common/csv"],
-      "@types": ["src/app/common/types"]
-    }
+      "@app": [
+        "src/app/index"
+      ],
+      "@array": [
+        "src/app/common/array"
+      ],
+      "@dictionary": [
+        "src/app/common/dictionary"
+      ],
+      "@csv": [
+        "src/app/common/csv"
+      ],
+      "@types": [
+        "src/app/common/types"
+      ]
+    },
+    "useDefineForClassFields": false
   }
 }

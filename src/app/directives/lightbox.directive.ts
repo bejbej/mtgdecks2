@@ -2,7 +2,8 @@ import * as app from "@app";
 import { Directive, ElementRef, Input, NgZone, OnInit } from "@angular/core";
 
 @Directive({
-    selector: "[lightbox]"
+    selector: "[lightbox]",
+    standalone: false
 })
 export class LightboxDirective implements OnInit {
 

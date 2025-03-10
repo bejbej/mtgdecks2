@@ -4,7 +4,8 @@ import { ChangeDetectionStrategy, Component, Input } from "@angular/core";
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
     selector: "app-card-view",
-    templateUrl: "./card-columns.component.html"
+    templateUrl: "./card-columns.component.html",
+    standalone: false
 })
 export class CardColumnsComponent {
     @Input() cardViews: app.CardView[];

@@ -8,7 +8,8 @@ interface QueryResult {
 }
 
 @Directive({
-    selector: "input[autocomplete-card-name],textarea[autocomplete-card-name]"
+    selector: "input[autocomplete-card-name],textarea[autocomplete-card-name]",
+    standalone: false
 })
 export class AutocompleteCardNameDirective implements OnInit {
 

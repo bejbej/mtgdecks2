@@ -2,7 +2,8 @@ import * as app from "@app";
 import { Directive, ElementRef, Input, NgZone, OnDestroy, OnInit } from "@angular/core";
 
 @Directive({
-    selector: "[card-preview]"
+    selector: "[card-preview]",
+    standalone: false
 })
 export class CardPreviewDirective implements OnInit, OnDestroy {
 

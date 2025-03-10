@@ -2,7 +2,8 @@ import * as app from "@app";
 import { AfterContentInit, Directive, ElementRef, NgZone, OnChanges, OnDestroy, OnInit, SimpleChanges } from "@angular/core";
 
 @Directive({
-    selector: 'textarea[autosize]'
+    selector: 'textarea[autosize]',
+    standalone: false
 })
 
 export class AutosizeDirective implements OnInit, OnChanges, AfterContentInit, OnDestroy {

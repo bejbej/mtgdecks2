@@ -10,7 +10,8 @@ import { Location } from "@angular/common";
     changeDetection: ChangeDetectionStrategy.OnPush,
     providers: [DeckManagerService],
     selector: "app-deck",
-    templateUrl: "./deck.component.html"
+    templateUrl: "./deck.component.html",
+    standalone: false
 })
 export class DeckComponent implements OnDestroy {
 

@@ -12,7 +12,8 @@ interface ViewOption {
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
     selector: "app-card-group",
-    templateUrl: "./card-group.component.html"
+    templateUrl: "./card-group.component.html",
+    standalone: false
 })
 export class CardGroupComponent {
 

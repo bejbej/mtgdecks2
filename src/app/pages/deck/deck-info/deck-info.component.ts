@@ -6,7 +6,8 @@ import { Observable } from "rxjs";
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
     selector: "app-deck-info",
-    templateUrl: "./deck-info.component.html"
+    templateUrl: "./deck-info.component.html",
+    standalone: false
 })
 export class DeckInfoComponent {
 

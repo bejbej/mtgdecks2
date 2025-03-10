@@ -4,11 +4,10 @@ import { AppRoutingModule } from "src/app//app-routing.module";
 import { BrowserModule } from "@angular/platform-browser";
 import { DragDropModule } from "@angular/cdk/drag-drop";
 import { FormsModule } from "@angular/forms";
-import { HTTP_INTERCEPTORS, HttpClientModule } from "@angular/common/http";
+import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
 import { NgModule } from "@angular/core";
 
-@NgModule({
-    declarations: [
+@NgModule({ declarations: [
         AppComponent,
         // Components
         app.AuthComponent,
@@ -30,18 +29,12 @@ import { NgModule } from "@angular/core";
         app.DebounceDirective,
         app.LightboxDirective,
     ],
-    imports: [
-        AppRoutingModule,
+    bootstrap: [AppComponent], imports: [AppRoutingModule,
         BrowserModule,
         DragDropModule,
-        FormsModule,
-        HttpClientModule
-    ],
-    providers: [{
-        provide: HTTP_INTERCEPTORS,
-        useClass: app.AuthInterceptor,
-        multi: true
-      }],
-    bootstrap: [AppComponent]
-})
+        FormsModule], providers: [{
+            provide: HTTP_INTERCEPTORS,
+            useClass: app.AuthInterceptor,
+            multi: true
+        }, provideHttpClient(withInterceptorsFromDi())] })
 export class AppModule { }

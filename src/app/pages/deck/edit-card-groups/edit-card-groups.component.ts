@@ -10,7 +10,8 @@ import { toDictionary2 } from "@dictionary";
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
     selector: "edit-card-groups",
-    templateUrl: "./edit-card-groups.component.html"
+    templateUrl: "./edit-card-groups.component.html",
+    standalone: false
 })
 export class EditCardGroupsComponent {
 

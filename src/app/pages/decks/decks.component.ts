@@ -7,7 +7,8 @@ import { filter, map, shareReplay, startWith, switchMap, tap } from "rxjs/operat
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
     selector: "app-decks",
-    templateUrl: "./decks.component.html"
+    templateUrl: "./decks.component.html",
+    standalone: false
 })
 export class DecksComponent {
 

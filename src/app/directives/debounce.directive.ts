@@ -9,7 +9,8 @@ export const DEFAULT_VALUE_ACCESSOR: any = {
 
 @Directive({
     selector: 'input[debounce],textarea[debounce]',
-    providers: [DEFAULT_VALUE_ACCESSOR]
+    providers: [DEFAULT_VALUE_ACCESSOR],
+    standalone: false
 })
 export class DebounceDirective implements ControlValueAccessor, OnChanges, OnInit {
 
