@@ -1,15 +1,24 @@
 <div class="margin card-view-columns">
-    <div *ngFor="let cardView of cardViews()" class="{{cardView.name ? 'avoid-break-inside' : ''}}">
-        <p class="large capitalize" *ngIf="cardView.name">{{cardView.name}} <span class="light">&#8226; {{cardView.numberOfCards}}</span></p>
-        <p>
-            <span *ngFor="let card of cardView.cards">
-                <span class="quantity light">{{card.quantity}}x</span>
-                <span>&nbsp;</span> 
-                <a href="#" class="name" card-preview lightbox [cardDefinition]="card.definition">{{card.definition.name}}</a>
-                <span>&nbsp;</span> 
-                <span class="price small light">{{card.quantity * card.definition.price | number: '1.2-2'}}</span>
-                <br>
-            </span>
+  @for (cardView of cardViews(); track cardView) {
+    <div class="{{cardView.name ? 'avoid-break-inside' : ''}}">
+      @if (cardView.name) {
+        <p class="large capitalize">
+          {{cardView.name}}
+          <span class="light">&#8226; {{cardView.numberOfCards}}</span>
         </p>
+      }
+      <p>
+        @for (card of cardView.cards; track card) {
+          <span>
+            <span class="quantity light">{{card.quantity}}x</span>
+            <span>&nbsp;</span>
+            <a href="#" class="name" card-preview lightbox [cardDefinition]="card.definition">{{card.definition.name}}</a>
+            <span>&nbsp;</span>
+            <span class="price small light">{{card.quantity * card.definition.price | number: '1.2-2'}}</span>
+            <br>
+          </span>
+        }
+      </p>
     </div>
+  }
 </div>

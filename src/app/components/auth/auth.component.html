@@ -1,5 +1,11 @@
-<button (click)="login()" *ngIf="!isLoggedIn()" [disabled]="isLoggingIn()">
-    <span *ngIf="isLoggingIn()">Logging In <app-spinner></app-spinner></span>
-    <span *ngIf="!isLoggingIn()">Login</span>
-</button>
-<button (click)="logout()" *ngIf="isLoggedIn()">Logout</button>
+@if (isLoggingIn()) {
+  <button disabled>
+    <span>Logging In <app-spinner></app-spinner></span>
+  </button>
+}
+@else if (!isLoggedIn()) {
+  <button (click)="login()">Login</button>
+}
+@else {
+  <button (click)="logout()">Logout</button>
+}

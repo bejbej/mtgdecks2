@@ -1,10 +1,16 @@
-<div class="stat-group margin" *ngIf="stats().length > 0">
+@if (stats().length > 0) {
+  <div class="stat-group margin">
     <p class="large capitalize">Mana Value</p>
-    <div class="stat-group-row" *ngFor="let stat of stats(); let i = index">
+    @for (stat of stats(); track stat; let i = $index) {
+      <div class="stat-group-row">
         <span class="name">{{i}}</span>
         <span>&nbsp;</span>
         <span class="bar">{{stat}}</span>
         <span>&nbsp;</span>
-        <span class="light" *ngIf="stat.length > 0">{{stat.length}}</span>
-    </div>
-</div>
+        @if (stat.length > 0) {
+          <span class="light">{{stat.length}}</span>
+        }
+      </div>
+    }
+  </div>
+}

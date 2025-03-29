@@ -1,22 +1,32 @@
-<div *ngIf="!canEdit() && tags().length > 0">
-    <div class="tags"><span class="badge" *ngFor="let tag of tags()">{{tag}}</span></div>
-    <hr class="dashed">
-</div>
-<div class="tag-input" *ngIf="canEdit() && tags()">
+@if (!canEdit() && tags().length > 0) {
+  <div class="tags">
+    @for (tag of tags(); track tag) {
+      <span class="badge">{{tag}}</span>
+    }
+  </div>
+  <hr class="dashed">
+}
+@if (canEdit()) {
+  <div class="tag-input">
     <input type="text"
-    class="tags transparent"
-    placeholder="tags"
-    [value]="tagsInput()"
-    (valueChange)="updateTags($event)"
-    [debounce]="2000">
+      class="tags transparent"
+      placeholder="tags"
+      [value]="tagsInput()"
+      (valueChange)="updateTags($event)"
+      [debounce]="2000">
     <hr class="dashed">
-    <div><span class="badge" *ngFor="let tag of tags()">{{tag}}</span></div>
-</div>
+    <div>
+      @for (tag of tags(); track tag) {
+        <span class="badge">{{tag}}</span>
+      }
+    </div>
+  </div>
+}
 <textarea class="transparent"
-    placeholder="notes"
-    [value]="notes()"
-    (valueChange)="updateNotes($event)"
-    [debounce]="2000"
-    [disabled]="!canEdit()"
-    allow-tabs
-    autosize></textarea>
+  placeholder="notes"
+  [value]="notes()"
+  (valueChange)="updateNotes($event)"
+  [debounce]="2000"
+  [disabled]="!canEdit()"
+  allow-tabs
+  autosize></textarea>
