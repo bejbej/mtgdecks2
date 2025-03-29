@@ -1,10 +1,10 @@
 import * as app from "@app";
 import { ActivatedRoute, Router } from "@angular/router";
-import { BehaviorSubject, combineLatest, Observable, Subject } from "rxjs";
-import { ChangeDetectionStrategy, Component, OnDestroy } from "@angular/core";
+import { ChangeDetectionStrategy, Component, computed, effect, inject, OnDestroy, signal, Signal, WritableSignal } from "@angular/core";
 import { DeckManagerService } from "./deck-manager/deck.manager.service";
-import { distinctUntilChanged, filter, map, startWith, switchMap, takeUntil, tap } from "rxjs/operators";
+import { distinctUntilChanged, map, takeUntil, tap } from "rxjs/operators";
 import { Location } from "@angular/common";
+import { Subject } from "rxjs";
 
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -15,78 +15,67 @@ import { Location } from "@angular/common";
 })
 export class DeckComponent implements OnDestroy {
 
-    canEdit$: Observable<boolean>;
-    deck$: Observable<app.Deck>;
-    isDeleting$: Observable<boolean>;
-    isEditingGroups$: Observable<boolean>;
-    isLoading$: Observable<boolean>;
-    showPrices$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
+    // inject
+    private deckManager = inject(app.DeckManagerService);
+    private location = inject(Location);
+    private router = inject(Router);
+    private route = inject(ActivatedRoute);
 
-    private shouldEditGroups$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
+    // state
+    canEdit: Signal<boolean>;
+    deck: Signal<app.Deck>;
+    isDeleting: Signal<boolean>
+    isEditingGroups: Signal<boolean>
+    isLoading: Signal<boolean>
+    showPrices: WritableSignal<boolean> = signal(false);
+    private shouldEditGroups: WritableSignal<boolean> = signal(false);
+
     private unsubscribe: Subject<void> = new Subject<void>();
 
-    constructor(
-        private deckManager: app.DeckManagerService,
-        location: Location,
-        router: Router,
-        route: ActivatedRoute) {
+    constructor() {
 
-        this.canEdit$ = deckManager.state$.pipe(
-            map(state => state.canEdit),
-            distinctUntilChanged()
-        );
-
-        this.deck$ = deckManager.deck$;
-        
-        this.isLoading$ = deckManager.state$.pipe(
-            map(state => state.deck === undefined),
-            distinctUntilChanged()
-        );
-        
-        this.isDeleting$ = deckManager.state$.pipe(
-            map(state => state.isDeleted && state.isDirty),
-            distinctUntilChanged()
-        );
-
-        this.isEditingGroups$ = combineLatest([this.canEdit$, this.shouldEditGroups$]).pipe(
-            map(([canEdit, shouldEditGroups]) => canEdit && shouldEditGroups),
-            distinctUntilChanged()
-        );
+        document.title = "Loading...";
 
         // Load a new deck each time route params change
-        route.params.pipe(
+        this.route.params.pipe(
             map(params => params.id),
             distinctUntilChanged(),
-            switchMap(id => id === "new" ? this.deckManager.createDeck() : this.deckManager.loadDeck(id)),
+            tap(id => this.deckManager.loadDeck(id)),
             takeUntil(this.unsubscribe)
         ).subscribe();
+
+        this.canEdit = computed(() => this.deckManager.state().canEdit);
+        this.deck = this.deckManager.deck;
+        this.isLoading = computed(() => this.deckManager.state().deck === undefined);
+        this.isDeleting = computed(() => {
+            const state = this.deckManager.state();
+            return state.isDeleted && state.isDirty;
+        });
+        this.isEditingGroups = computed(() => this.deckManager.state().canEdit && this.shouldEditGroups());
 
         // Update the page name whenever the deck's name changes
-        this.deck$.pipe(
-            map(deck => deck.name),
-            distinctUntilChanged(),
-            startWith("Loading..."),
-            takeUntil(this.unsubscribe),
-            tap(name => document.title = name)
-        ).subscribe();
-
+        const deckName = computed(() => this.deck()?.name);
+        effect(() => {
+            if (deckName() !== undefined) {
+                document.title = deckName();
+            }
+        });
+        
         // Update the page url when the deck's id changes
-        this.deck$.pipe(
-            map(deck => deck.id ?? "new"),
-            distinctUntilChanged(),
-            takeUntil(this.unsubscribe),
-            tap(id => location.replaceState("/decks/" + id))
-        ).subscribe();
+        const deckId = computed(() => this.deck()?.id);
+        effect(() => {
+            if (deckId() !== undefined) {
+                this.location.replaceState("/decks/" + deckId());
+            }
+        })
 
         // Navigate to the dacks page when the deck is deleted and persisted
-        deckManager.state$.pipe(
-            tap(state => {
-                if (state.isDeleted && !state.isDirty) {
-                    router.navigateByUrl("/decks");
-                }
-            }),
-            takeUntil(this.unsubscribe)
-        ).subscribe();
+        effect(() => {
+            const state = this.deckManager.state();
+            if (state.isDeleted && !state.isDirty) {
+                this.router.navigateByUrl("/decks");
+            }
+        });
     }
 
     ngOnDestroy() {
@@ -95,11 +84,11 @@ export class DeckComponent implements OnDestroy {
     }
 
     togglePrices() {
-        this.showPrices$.next(!this.showPrices$.value);
+        this.showPrices.update(value => !value);
     }
 
     toggleEditGroups() {
-        this.shouldEditGroups$.next(!this.shouldEditGroups$.value);
+        this.shouldEditGroups.update(value => !value);
     }
 
     updateName = (name: string): void => {

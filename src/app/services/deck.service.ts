@@ -1,19 +1,25 @@
 import * as app from "@app";
 import { HttpClient } from "@angular/common/http";
-import { Injectable } from "@angular/core";
+import { inject, Injectable } from "@angular/core";
 import { map } from "rxjs/operators";
-import { noop, Observable } from "rxjs";
+import { noop, Observable, of } from "rxjs";
 
 @Injectable({
     providedIn: "root"
 })
 export class DeckService {
 
+    private localStorageService = inject(app.LocalStorageService);
+    private cardBlobService = inject(app.CardBlobService);
+    private http = inject(HttpClient);
+
     private _url = app.config.decksUrl;
 
-    constructor(private cardBlobService: app.CardBlobService, private http: HttpClient) { }
-
     getById(id: string): Observable<app.Deck> {
+        if (id === "new") {
+            return of(this.createDefaultDeck());
+        }
+
         return this.http.get<app.ApiDeck>(this._url + "/" + id)
             .pipe(map(x => this.mapApiDeckToDeck(x)));
     }
@@ -73,6 +79,30 @@ export class DeckService {
             tags: deck.tags,
             id: deck.id,
             cardGroups: cardGroups,
+        };
+    }
+
+    private createDefaultDeck(): app.Deck {
+        const tags = [] as string[];
+        const tagState = this.localStorageService.getObject<app.TagState>(app.config.localStorage.tags);
+        if (tagState && tagState.current) {
+            tags.push(tagState.current);
+        }
+
+        return {
+            cardGroups: {
+                0 : {
+                    cards: [],
+                    invalidCards: [],
+                    name: "Mainboard",
+                }
+            },
+            id: undefined,
+            cardGroupOrder: [0],
+            name: "New Deck",
+            notes: "",
+            owners: [],
+            tags: tags
         };
     }
 }

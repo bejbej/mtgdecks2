@@ -1,9 +1,10 @@
 import * as app from "@app";
-import { audit, distinctUntilChanged, filter, map, switchMap, takeUntil, tap } from "rxjs/operators";
+import { audit, filter, map, switchMap, takeUntil, tap } from "rxjs/operators";
 import { BehaviorSubject, noop, Observable, of, Subject } from "rxjs";
+import { computed, inject, Injectable, OnDestroy, signal, Signal, WritableSignal } from "@angular/core";
 import { contains } from "@array";
 import { Func } from "@types";
-import { inject, Injectable, OnDestroy } from "@angular/core";
+import { toObservable } from "@angular/core/rxjs-interop";
 
 export class State {
     canEdit: boolean = false;
@@ -19,24 +20,33 @@ export class State {
 @Injectable()
 export class DeckManagerService implements OnDestroy {
 
+    // inject
     private authService = inject(app.AuthService);
     private deckService = inject(app.DeckService);
-    private localStorageService = inject(app.LocalStorageService);
 
-    state$: Subject<State> = new BehaviorSubject<State>(new State());
-    deck$: Observable<app.Deck>;
+    // state
+    state: WritableSignal<State> = signal(new State());
+    deck: Signal<app.Deck>;
 
+    // events
+    private deckId$: Subject<string> = new Subject<string>();
     private saveBusy$: Subject<boolean> = new BehaviorSubject<boolean>(false);
     private unsubscribe: Subject<void> = new Subject<void>();
 
-    private state: State = new State();
-
     constructor() {
-        this.authService.user$.pipe(takeUntil(this.unsubscribe))
+        this.authService.user$
+            .pipe(takeUntil(this.unsubscribe))
             .subscribe(user => this.patchState({ user }));
 
+        // Load the deck
+        this.deckId$.pipe(
+            switchMap(deckId => this.deckService.getById(deckId)),
+            tap(deck => this.patchState({ deck })),
+            takeUntil(this.unsubscribe)
+        ).subscribe();
+
         // Persist the deck
-        this.state$.pipe(
+        toObservable(this.state).pipe(
             filter(state => state.isDirty && state.canSave),
             audit(() => this.saveBusy$.pipe(filter(x => x === false))),
             tap(() => this.saveBusy$.next(true)),
@@ -44,45 +54,11 @@ export class DeckManagerService implements OnDestroy {
             tap(() => this.saveBusy$.next(false))
         ).subscribe();
 
-        this.deck$ = this.state$.pipe(
-            map(state => state.deck),
-            filter(deck => deck !== undefined),
-            distinctUntilChanged()
-        );
+        this.deck = computed(() => this.state().deck);
     }
 
-    loadDeck(id: string): Observable<void> {
-        return this.deckService.getById(id).pipe(
-            tap(deck => this.patchState({ deck })),
-            map(noop)
-        );
-    }
-
-    createDeck(): Observable<void> {
-        const tags = [] as string[];
-        const tagState = this.localStorageService.getObject<app.TagState>(app.config.localStorage.tags);
-        if (tagState && tagState.current) {
-            tags.push(tagState.current);
-        }
-
-        const deck: app.Deck = {
-            cardGroups: {
-                0 : {
-                    cards: [],
-                    invalidCards: [],
-                    name: "Mainboard",
-                }
-            },
-            id: undefined,
-            cardGroupOrder: [0],
-            name: "New Deck",
-            notes: "",
-            owners: [],
-            tags: tags
-        };
-
-        this.patchState({ deck });
-        return of(undefined);
+    loadDeck(deckId: string): void {
+        this.deckId$.next(deckId);
     }
 
     updateDeck(func: Func<app.Deck, app.Deck>): void {
@@ -127,7 +103,7 @@ export class DeckManagerService implements OnDestroy {
         })
     }
 
-    patchCardGroup(cardGroupId, cardGroup: Partial<app.CardGroup>): void {
+    patchCardGroup(cardGroupId: number, cardGroup: Partial<app.CardGroup>): void {
         this.updateCardGroup(cardGroupId, prevCardGroup => {
             return {
                 ...prevCardGroup,
@@ -137,13 +113,12 @@ export class DeckManagerService implements OnDestroy {
     }
 
     ngOnDestroy(): void {
-        this.state$.complete();
         this.unsubscribe.next();
         this.unsubscribe.complete();
     }
 
     private updateState(func: Func<State, State>): void {
-        const nextState = func(this.state);
+        const nextState = func(this.state());
 
         const isNew = nextState.deck && nextState.deck.id === undefined;
         const canEdit = isNew || contains(nextState.deck?.owners ?? [], nextState.user.id);
@@ -153,9 +128,7 @@ export class DeckManagerService implements OnDestroy {
         nextState.canEdit = canEdit;
         nextState.canSave = canSave;
 
-        this.state = nextState;
-
-        this.state$.next(this.state);
+        this.state.set(nextState);
     }
 
     private patchState(partialState: Partial<State>): void {

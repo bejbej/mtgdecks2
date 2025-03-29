@@ -1,5 +1,5 @@
 import * as app from "@app";
-import { distinctUntilChanged, filter, map, refCount, shareReplay, startWith, tap } from "rxjs/operators";
+import { distinctUntilChanged, filter, map, shareReplay } from "rxjs/operators";
 import { fromEvent, merge, Observable, Subject } from "rxjs";
 import { Injectable } from "@angular/core";
 
@@ -15,7 +15,7 @@ export class LocalStorageService {
     
     private prefix = app.config.localStorage.prefix;
 
-    public storageEvent$: Observable<StorageEvent2>;
+    private storageEvent$: Observable<StorageEvent2>;
 
     private internalStorageEvent$: Subject<StorageEvent2> = new Subject<StorageEvent2>();
 

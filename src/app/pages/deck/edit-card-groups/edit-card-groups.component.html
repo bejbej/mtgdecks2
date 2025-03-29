@@ -1,4 +1,4 @@
-<section *ngIf="cardGroups$ | async as cardGroups">
+<section>
     <div class="margin">
         <div class="flex-lte-xs flex-padding">
             <button class="btn btn-default round" (click)="addCardGroup()">
@@ -10,11 +10,11 @@
             </button>
         </div>
         <div class="card-group-edit-container margin-top" cdkDropList (cdkDropListDropped)="drop($event)">
-            <div class="card-group-edit flex" *ngFor="let cardGroupKey of cardGroupOrder$ | async; let i = index" cdkDrag cdkDragLockAxis="y" cdkDragBoundary=".card-group-edit-container">
+            <div class="card-group-edit flex" *ngFor="let cardGroupKey of cardGroupOrder(); let i = index" cdkDrag cdkDragLockAxis="y" cdkDragBoundary=".card-group-edit-container">
                 <div class="drag-handle" cdkDragHandle>⣿</div>
                 <input class="name"
                     type="text"
-                    [value]="cardGroups[cardGroupKey].name"
+                    [value]="cardGroups()[cardGroupKey].name"
                     (valueChange)="updateCardGroupName(cardGroupKey, $event)"
                     [debounce]="2000" />
                 <div class="check" (click)="selectedGroups[cardGroupKey] = !selectedGroups[cardGroupKey]" style="display:flex;align-items: center; justify-content: center;">

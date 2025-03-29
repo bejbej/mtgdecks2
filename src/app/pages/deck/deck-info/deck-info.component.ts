@@ -1,7 +1,5 @@
 import * as app from "@app";
-import { ChangeDetectionStrategy, Component } from "@angular/core";
-import { distinctUntilChanged, map } from "rxjs/operators";
-import { Observable } from "rxjs";
+import { ChangeDetectionStrategy, Component, computed, Signal } from "@angular/core";
 
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -11,32 +9,16 @@ import { Observable } from "rxjs";
 })
 export class DeckInfoComponent {
 
-    tags$: Observable<string[]>;
-    tagsInput$: Observable<string>;
-    notes$: Observable<string>;
-    canEdit$: Observable<boolean>;
+    canEdit: Signal<boolean>;
+    tags: Signal<string[]>;
+    notes: Signal<string>;
+    tagsInput: Signal<string>;
 
     constructor(private deckManager: app.DeckManagerService) {
-
-        this.canEdit$ = deckManager.state$.pipe(
-            map(state => state.canEdit),
-            distinctUntilChanged()
-        );
-
-        this.tags$ = this.deckManager.deck$.pipe(
-            map(deck => deck.tags),
-            distinctUntilChanged()
-        );
-
-        this.tagsInput$ = this.tags$.pipe(
-            map(tags => tags.join(", ")),
-            distinctUntilChanged()
-        );
-
-        this.notes$ = this.deckManager.deck$.pipe(
-            map(deck => deck.notes),
-            distinctUntilChanged()
-        );
+        this.canEdit = computed(() => this.deckManager.state().canEdit);
+        this.tags = computed(() => this.deckManager.deck().tags);
+        this.notes = computed(() => this.deckManager.deck().notes);
+        this.tagsInput = computed(() => this.deckManager.deck().tags.join(", "));
     }
 
     updateTags = (tagsInput: string): void => {

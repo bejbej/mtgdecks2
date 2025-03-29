@@ -1,7 +1,5 @@
 import * as app from "@app";
-import { ChangeDetectionStrategy, Component, Input, OnInit } from "@angular/core";
-import { distinctUntilChanged, map } from "rxjs/operators";
-import { Observable } from "rxjs";
+import { ChangeDetectionStrategy, Component, computed, Signal } from "@angular/core";
 import { toDictionary } from "@dictionary";
 
 @Component({
@@ -11,17 +9,18 @@ import { toDictionary } from "@dictionary";
     standalone: false
 })
 export class StatsComponent {
-    stats$: Observable<string[]>;
+
+    stats: Signal<string[]>;
 
     private static cardTypes = toDictionary(["creature", "artifact", "enchantment", "planeswalker", "instant", "sorcery"], x => x);
 
     constructor(private deckManager: app.DeckManagerService)
     {
-        this.stats$ = this.deckManager.deck$.pipe(
-            map(deck => deck.cardGroups[deck.cardGroupOrder[0]]),
-            distinctUntilChanged(),
-            map(cardGroup => this.computeStats(cardGroup?.cards ?? []))
-        )
+        this.stats = computed(() => {
+            const deck = this.deckManager.deck();
+            const firstCardGroup = deck.cardGroups[deck.cardGroupOrder[0]];
+            return this.computeStats(firstCardGroup?.cards ?? []);
+        });
     }
 
     private computeStats = (cards: app.Card[]): string[] => {

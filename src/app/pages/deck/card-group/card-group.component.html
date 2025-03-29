@@ -1,54 +1,52 @@
-<ng-container *ngIf="cardGroup$ | async as cardGroup">
-    <ng-container *ngIf="!(isEditing$ | async)">
-        <header class="flex-lte-xs padding-h-lte-sm">
-            <button class="header-button text-left-gte-sm" (click)="showToolbar = !showToolbar">
-                <div>{{cardGroup.name}} <span class="icon" *ngIf="cardGroup.cards.length > 0">{{showToolbar ? "7" : "4"}}</span></div>
-                <div class="small light">{{count$ | async}} cards <span class="price" *ngIf="price$ | async as price">&#8226; ${{price | number:'1.2-2' }}</span></div>
-            </button>
-            <button class="header-button" *ngIf="canEdit$ | async" (click)="startEditing()">Edit</button>
-        </header>
+<ng-container *ngIf="!isEditing()">
+    <header class="flex-lte-xs padding-h-lte-sm">
+        <button class="header-button text-left-gte-sm" (click)="toggleToolbar()">
+            <div>{{cardGroup().name}} <span class="icon" *ngIf="cardGroup().cards.length > 0">{{showToolbar() ? "7" : "4"}}</span></div>
+            <div class="small light">{{count()}} cards <span class="price" *ngIf="price()">&#8226; ${{price() | number:'1.2-2' }}</span></div>
+        </button>
+        <button class="header-button" *ngIf="canEdit()" (click)="startEditing()">Edit</button>
+    </header>
 
-        <form [hidden]="cardGroup.cards.length === 0 || !showToolbar">
-            <div class="radio-group">
-                <label *ngFor="let viewOption of viewOptions">
-                    <input type="radio" name="view" [value]="viewOption.groupFunc" [ngModel]="groupBy$ | async" (ngModelChange)="groupBy$.next($event)"/>
-                    {{viewOption.name}}
-                </label>
-            </div>
-        </form>
-        <div class="alert alert-danger margin" *ngIf="cardGroup.invalidCards.length > 0">
-            <p class="alert-title">Unknown Cards</p>
-            <span *ngFor="let card of cardGroup.invalidCards">{{card}}<br></span>
+    <form [hidden]="cardGroup().cards.length === 0 || !showToolbar()">
+        <div class="radio-group">
+            <label *ngFor="let viewOption of viewOptions">
+                <input type="radio" name="view" [value]="viewOption.groupFunc" [ngModel]="groupBy()" (ngModelChange)="setGroupBy($event)"/>
+                {{viewOption.name}}
+            </label>
         </div>
+    </form>
+    <div class="alert alert-danger margin" *ngIf="cardGroup().invalidCards.length > 0">
+        <p class="alert-title">Unknown Cards</p>
+        <span *ngFor="let card of cardGroup().invalidCards">{{card}}<br></span>
+    </div>
 
-        <app-card-view [cardViews]="cardViews$ | async"></app-card-view>
-    </ng-container>
-
-    <ng-container *ngIf="isEditing$ | async">
-        <header class="flex-lte-xs padding-h-lte-sm">
-            <button class="header-button text-left-gte-sm" (click)="applyChanges()">
-                <div>{{cardGroup.name}} <span class="icon" *ngIf="cardGroup.cards.length > 0">{{showToolbar ? "7" : "4"}}</span></div>
-                <div class="small light">{{count$ | async}} cards <span class="price" *ngIf="price$ | async as price">&#8226; ${{price | number:'1.2-2'}}</span></div>
-            </button>
-            <span class="tab">Edit</span>
-        </header>
-
-        <form>
-            <div class="margin">
-                <textarea class="border round"
-                    name="cardBlob"
-                    placeholder="4x Island"
-                    [value]="cardBlob$ | async"
-                    (valueChange)="updateCardBlob($event)"
-                    [debounce]="2000"
-                    autocomplete-card-name
-                    autosize></textarea>
-                <div class="flex-lte-xs flex-padding margin-top">
-                    <button class="btn btn-default round" (click)="applyChanges()">Apply Changes</button>
-                    <button class="btn btn-default round" (click)="discardChanges()">Discard Changes</button>
-                </div>
-            </div>
-        </form>
-    </ng-container>
-
+    <app-card-view [cardViews]="cardViews()"></app-card-view>
 </ng-container>
+
+<ng-container *ngIf="isEditing()">
+    <header class="flex-lte-xs padding-h-lte-sm">
+        <button class="header-button text-left-gte-sm" (click)="applyChanges()">
+            <div>{{cardGroup().name}} <span class="icon" *ngIf="cardGroup().cards.length > 0">{{showToolbar() ? "7" : "4"}}</span></div>
+            <div class="small light">{{count()}} cards <span class="price" *ngIf="price()">&#8226; ${{price() | number:'1.2-2'}}</span></div>
+        </button>
+        <span class="tab">Edit</span>
+    </header>
+
+    <form>
+        <div class="margin">
+            <textarea class="border round"
+                name="cardBlob"
+                placeholder="4x Island"
+                [value]="cardBlob()"
+                (valueChange)="updateCardBlob($event)"
+                [debounce]="2000"
+                autocomplete-card-name
+                autosize></textarea>
+            <div class="flex-lte-xs flex-padding margin-top">
+                <button class="btn btn-default round" (click)="applyChanges()">Apply Changes</button>
+                <button class="btn btn-default round" (click)="discardChanges()">Discard Changes</button>
+            </div>
+        </div>
+    </form>
+</ng-container>
+

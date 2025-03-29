@@ -1,6 +1,6 @@
 import * as app from "@app";
 import { Dictionary } from "@types";
-import { Injectable } from "@angular/core";
+import { inject, Injectable } from "@angular/core";
 import { toArray } from "@dictionary";
 
 export interface parseCardBlobResult {
@@ -13,7 +13,7 @@ export interface parseCardBlobResult {
 })
 export class CardBlobService {
 
-    constructor(private cardDefinitionService: app.CardDefinitionService) {}
+    private cardDefinitionService = inject(app.CardDefinitionService);
 
     parse(cardBlob: string): parseCardBlobResult {
         cardBlob = cardBlob.trim();
@@ -53,9 +53,7 @@ export class CardBlobService {
     
     stringify(cards: app.Card[], invalidCards: string[]): string {
         return invalidCards 
-            .concat(cards
-                //.sort((a, b) => a.definition.name > b.definition.name ? 1 : -1)
-                .map(card => `${card.quantity}x ${card.definition.name}`))
+            .concat(cards.map(card => `${card.quantity}x ${card.definition.name}`))
             .join("\n");
     }
 }

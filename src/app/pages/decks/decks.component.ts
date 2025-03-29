@@ -1,8 +1,9 @@
 import * as app from "@app";
-import { BehaviorSubject, combineLatest, merge, Observable, of } from "rxjs";
-import { ChangeDetectionStrategy, Component, inject } from "@angular/core";
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, Signal, WritableSignal } from "@angular/core";
 import { contains, distinct, orderBy, selectMany } from "@array";
-import { filter, map, shareReplay, startWith, switchMap, tap } from "rxjs/operators";
+import { map, startWith, switchMap } from "rxjs/operators";
+import { of } from "rxjs";
+import { toSignal } from "@angular/core/rxjs-interop";
 
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -16,12 +17,11 @@ export class DecksComponent {
     private deckService = inject(app.DeckService);
     private localStorageService = inject(app.LocalStorageService);
 
-    visibleDecks$: Observable<app.QueriedDeck[]>;
-    tags$: Observable<string[]>;
-    currentTag$: BehaviorSubject<string> = new BehaviorSubject<string>(undefined);
-    currentTagName$: Observable<string>;
-
-    isLoading$: Observable<boolean>;
+    visibleDecks: Signal<app.QueriedDeck[]>;
+    tags: Signal<string[]>;
+    currentTag: WritableSignal<string> = signal(null);
+    currentTagName: Signal<string>;
+    isLoading: Signal<boolean>;
 
     constructor() {
 
@@ -31,11 +31,12 @@ export class DecksComponent {
         if (tagState) {
             this.updateCurrentTag(tagState.current);
         }
-        const storedTags$ = tagState ? of(tagState.all) : of<string[]>();
+        const storedTags = tagState?.all ?? [];
 
-        this.currentTagName$ = this.currentTag$.pipe(
-            map(tag => tag === undefined ? "All" : tag === null ? "Untagged" : tag)
-        );
+        this.currentTagName = computed(() => {
+            const currentTag = this.currentTag();
+            return currentTag === undefined ? "All" : currentTag === null ? "Untagged" : currentTag
+        })
 
         const state$ = this.authService.user$.pipe(
             switchMap(user => {
@@ -47,46 +48,43 @@ export class DecksComponent {
                     map(decks => ({ isLoading: false, decks: orderBy(decks, x => x.name) })),
                     startWith({ isLoading: true, decks: [] as app.QueriedDeck[] })
                 );
-            }),
-            shareReplay()
-        );
-
-        this.isLoading$ = state$.pipe(map(x => x.isLoading));
-        const decks$ = state$.pipe(map(x => x.decks));
-
-        this.visibleDecks$ = combineLatest([decks$, this.currentTag$]).pipe(
-            map(([decks, currentTag]) => {
-                switch (currentTag) {
-                    case undefined:
-                        return decks;
-                    case null:
-                        return decks.filter(deck => deck.tags.length === 0);
-                    default:
-                        return decks.filter(deck => contains(deck.tags, currentTag));
-                }
             })
         );
 
-        const deckTags$ = state$.pipe(
-            filter(state => state.isLoading === false),
-            map(state => distinct(selectMany(state.decks.map(deck => deck.tags))))
-        );
+        const state = toSignal(state$);
+        this.isLoading = computed(() => state().isLoading);
+        this.visibleDecks = computed(() => this.filterDecks(state().decks, this.currentTag()));
+        const deckTags = computed(() => {
+            const decks = state().decks;
+            const tags = distinct(selectMany(decks.map(deck => deck.tags)));
+            return orderBy(tags, x => x);
+        });
+        this.tags = computed(() => state().isLoading ? storedTags : deckTags());
 
-        this.tags$ = merge(storedTags$, deckTags$).pipe(map(tags => orderBy(tags, x => x)));
-
-        combineLatest([this.tags$, this.currentTag$]).pipe(
-            tap(([tags, currentTag]) => {
-                const tagState: app.TagState = {
-                    all: tags,
-                    current: currentTag
-                };
-
-                this.localStorageService.setObject(app.config.localStorage.tags, tagState);
-            })
-        ).subscribe();
+        effect(() => this.persistTagState(this.tags(), this.currentTag()));
     }
 
     updateCurrentTag(tag: string | null | undefined) {
-        this.currentTag$.next(tag);
+        this.currentTag.set(tag);
+    }
+
+    private filterDecks(decks: app.QueriedDeck[], tag: string): app.QueriedDeck[] {
+        switch (tag) {
+            case undefined:
+                return decks;
+            case null:
+                return decks.filter(deck => deck.tags.length === 0);
+            default:
+                return decks.filter(deck => contains(deck.tags, tag));
+        }
+    }
+
+    private persistTagState(tags: string[], currentTag: string): void {
+        const tagState: app.TagState = {
+            all: tags,
+            current: currentTag
+        };
+
+        this.localStorageService.setObject(app.config.localStorage.tags, tagState);
     }
 }

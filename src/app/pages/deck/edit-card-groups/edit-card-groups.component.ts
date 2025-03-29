@@ -1,10 +1,8 @@
 import * as app from "@app";
 import { CdkDragDrop, moveItemInArray } from "@angular/cdk/drag-drop";
-import { ChangeDetectionStrategy, Component } from "@angular/core";
+import { ChangeDetectionStrategy, Component, computed, Signal } from "@angular/core";
 import { Dictionary } from "@types";
-import { distinctUntilChanged, map } from "rxjs/operators";
 import { except } from "@array";
-import { Observable } from "rxjs";
 import { toDictionary2 } from "@dictionary";
 
 @Component({
@@ -15,20 +13,14 @@ import { toDictionary2 } from "@dictionary";
 })
 export class EditCardGroupsComponent {
 
-    cardGroups$: Observable<Dictionary<app.CardGroup>>;
-    cardGroupOrder$: Observable<number[]>;
+    cardGroups: Signal<Dictionary<app.CardGroup>>;
+    cardGroupOrder: Signal<number[]>;
+
     selectedGroups: any = {};
 
     constructor(private deckManager: app.DeckManagerService) {
-        this.cardGroups$ = this.deckManager.deck$.pipe(
-            map(deck => deck.cardGroups),
-            distinctUntilChanged(),
-        )
-
-        this.cardGroupOrder$ = this.deckManager.deck$.pipe(
-            map(deck => deck.cardGroupOrder),
-            distinctUntilChanged(),
-        )
+        this.cardGroups = computed(() => this.deckManager.deck().cardGroups);
+        this.cardGroupOrder = computed(() => this.deckManager.deck().cardGroupOrder);
     }
 
     updateCardGroupName(cardGroupKey: number, name: string): void {

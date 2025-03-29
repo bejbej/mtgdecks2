@@ -1,7 +1,7 @@
 import * as app from "@app";
-import { ChangeDetectionStrategy, Component } from "@angular/core";
+import { ChangeDetectionStrategy, Component, inject, Signal } from "@angular/core";
 import { map } from "rxjs/operators";
-import { Observable } from "rxjs";
+import { toSignal } from "@angular/core/rxjs-interop";
 
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -11,12 +11,14 @@ import { Observable } from "rxjs";
 })
 export class AuthComponent {
 
-    isLoggedIn$: Observable<boolean>;
-    isLoggingIn$: Observable<boolean>;
+    private authService = inject(app.AuthService);
 
-    constructor(private authService: app.AuthService) {
-        this.isLoggedIn$ = authService.user$.pipe(map(user => user.isAuthenticated));
-        this.isLoggingIn$ = authService.isLoggingIn$;
+    isLoggedIn: Signal<boolean>;
+    isLoggingIn: Signal<boolean>;
+
+    constructor() {
+        this.isLoggedIn = toSignal(this.authService.user$.pipe(map(user => user.isAuthenticated)));
+        this.isLoggingIn = toSignal(this.authService.isLoggingIn$);
     }
 
     login(): void {

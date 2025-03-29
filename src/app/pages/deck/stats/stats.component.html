@@ -1,6 +1,6 @@
-<div class="stat-group margin" *ngIf="(stats$ | async).length > 0">
+<div class="stat-group margin" *ngIf="stats().length > 0">
     <p class="large capitalize">Mana Value</p>
-    <div class="stat-group-row" *ngFor="let stat of (stats$ | async); let i = index">
+    <div class="stat-group-row" *ngFor="let stat of stats(); let i = index">
         <span class="name">{{i}}</span>
         <span>&nbsp;</span>
         <span class="bar">{{stat}}</span>

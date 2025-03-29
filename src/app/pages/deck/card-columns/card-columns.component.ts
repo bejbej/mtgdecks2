@@ -1,5 +1,5 @@
 import * as app from "@app";
-import { ChangeDetectionStrategy, Component, Input } from "@angular/core";
+import { ChangeDetectionStrategy, Component, input } from "@angular/core";
 
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -8,5 +8,5 @@ import { ChangeDetectionStrategy, Component, Input } from "@angular/core";
     standalone: false
 })
 export class CardColumnsComponent {
-    @Input() cardViews: app.CardView[];
+    cardViews = input.required<app.CardView[]>();
 }

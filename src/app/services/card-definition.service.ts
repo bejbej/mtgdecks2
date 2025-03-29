@@ -10,8 +10,8 @@ declare var cardsCSV: string;
 })
 export class CardDefinitionService {
 
-    private _cardDictionary: Dictionary<app.CardDefinition>;
-    private _cardArray: app.CardDefinition[];
+    private cardDictionary: Dictionary<app.CardDefinition>;
+    private cardArray: app.CardDefinition[];
 
     constructor() {
         const items = cardsCSV.split(/[\t\n]/);
@@ -28,13 +28,13 @@ export class CardDefinitionService {
             });
         }
 
-        this._cardArray = cards;
-        this._cardDictionary = toDictionary(this._cardArray, card => card.name.toLowerCase());
+        this.cardArray = cards;
+        this.cardDictionary = toDictionary(this.cardArray, card => card.name.toLowerCase());
         
         // Free up memory maybe
         cardsCSV = undefined;
     }
 
-    getCardDictionary = () => this._cardDictionary;
-    getCardArray = () => this._cardArray;
+    getCardDictionary = () => this.cardDictionary;
+    getCardArray = () => this.cardArray;
 }

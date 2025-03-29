@@ -1,7 +1,7 @@
 import * as app from "@app";
 import { AuthConfig, OAuthService } from "angular-oauth2-oidc";
-import { BehaviorSubject, EMPTY, identity, Observable, of } from "rxjs";
-import { catchError, delay, distinctUntilKeyChanged, filter, map, retry, shareReplay, startWith, switchMap, tap } from "rxjs/operators";
+import { BehaviorSubject, EMPTY, Observable, of } from "rxjs";
+import { catchError, delay, distinctUntilKeyChanged, filter, map, shareReplay, startWith, switchMap, tap } from "rxjs/operators";
 import { HttpClient, HttpHeaders } from "@angular/common/http";
 import { inject, Injectable } from "@angular/core";
 
