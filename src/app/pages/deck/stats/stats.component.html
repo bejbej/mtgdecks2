@@ -1,7 +1,7 @@
 @if (stats().length > 0) {
   <div class="stat-group margin">
     <p class="large capitalize">Mana Value</p>
-    @for (stat of stats(); track stat; let i = $index) {
+    @for (stat of stats(); track $index; let i = $index) {
       <div class="stat-group-row">
         <span class="name">{{i}}</span>
         <span>&nbsp;</span>

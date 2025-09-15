@@ -2,6 +2,7 @@ import * as app from "@app";
 import { Dictionary } from "@types";
 import { inject, Injectable } from "@angular/core";
 import { toArray } from "@dictionary";
+import { hasLength } from "../common/has-length";
 
 export interface parseCardBlobResult {
     cards: app.Card[],
@@ -29,6 +30,10 @@ export class CardBlobService {
         const cardDict: Dictionary<app.Card> = {};
     
         for (let line of cardBlob.split(/\n[\s\n]*/)) {
+            if (/^\/\//.test(line)) {
+                continue;
+            }
+
             const result = /^(?:(\d+)[Xx]?\s)?\s*([^0-9]+)$/.exec(line.trim());
             if (!result) {
                 invalidCards.push(line);
@@ -55,5 +60,26 @@ export class CardBlobService {
         return invalidCards 
             .concat(cards.map(card => `${card.quantity}x ${card.definition.name}`))
             .join("\n");
+    }
+
+    stringify2(cardViews: app.CardView[], invalidCards: string[]): string {
+        const sections = [];
+
+        if (hasLength(invalidCards)) {
+            sections.push(invalidCards.join("\n"))
+        }
+
+        for (let cardView of cardViews) {
+            const section = [];
+            if (hasLength(cardView.name)) {
+                section.push(`// ${cardView.name}`);
+            }
+            for (let card of cardView.cards) {
+                section.push(`${card.quantity}x ${card.definition.name}`);
+            }
+            sections.push(section.join("\n"));
+        }
+
+        return sections.join("\n\n");
     }
 }

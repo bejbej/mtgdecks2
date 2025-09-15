@@ -74,7 +74,8 @@ export class CardGroupComponent {
 
         this.cardBlob = computed(() => {
             const cardGroup = this.cardGroup();
-            return this.cardBlobService.stringify(cardGroup.cards, cardGroup.invalidCards);
+            const cardViews = this.cardViews();
+            return this.cardBlobService.stringify2(cardViews, cardGroup.invalidCards);
         });
 
         this.isEditing = computed(() => this.canEdit() && this.shouldEdit());
