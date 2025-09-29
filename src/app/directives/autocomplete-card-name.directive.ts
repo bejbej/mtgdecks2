@@ -49,13 +49,15 @@ export class AutocompleteCardNameDirective implements OnInit {
                 }
                 else if (event.key === "ArrowDown") {
                     event.preventDefault();
-                    const newIndex = Math.min(this.selectedAutocompleteIndex + 1, this.currentCardNames.length - 1);
-                    this.updateSelectedAutocompleteIndex(newIndex);
+                    const computedIndex = this.selectedAutocompleteIndex + 1;
+                    const nextIndex = computedIndex > this.currentCardNames.length - 1 ? 0 : computedIndex;
+                    this.updateSelectedAutocompleteIndex(nextIndex);
                 }
                 else if (event.key === "ArrowUp") {
                     event.preventDefault();
-                    const newIndex = Math.max(this.selectedAutocompleteIndex - 1, 0);
-                    this.updateSelectedAutocompleteIndex(newIndex);
+                    const computedIndex = this.selectedAutocompleteIndex - 1;
+                    const nextIndex = computedIndex < 0 ? this.currentCardNames.length - 1 : computedIndex;
+                    this.updateSelectedAutocompleteIndex(nextIndex);
                 }
                 else if (event.key === "Escape" || event.key === "ArrowLeft" || event.key === "ArrowRight") {
                     this.hideAutocomplete();
