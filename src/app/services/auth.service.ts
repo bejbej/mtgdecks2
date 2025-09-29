@@ -60,6 +60,10 @@ export class AuthService {
             shareReplay()
         );
 
+        this.oauthService.events.subscribe(event => {
+            console.log(event);
+        });
+
         this.init();
     }
 
@@ -86,7 +90,8 @@ export class AuthService {
             clientId: app.config.auth.clientId,
             redirectUri: app.config.auth.redirectUri,
             scope: app.config.auth.scope,
-            silentRefreshRedirectUri: app.config.auth.redirectUri
+            silentRefreshRedirectUri: app.config.auth.redirectUri,
+            disableIdTokenTimer: true
         };
 
         this.oauthService.configure(authConfig);
