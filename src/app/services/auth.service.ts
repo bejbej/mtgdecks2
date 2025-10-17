@@ -1,7 +1,7 @@
 import * as app from "@app";
 import { AuthConfig, OAuthService } from "angular-oauth2-oidc";
-import { BehaviorSubject, EMPTY, Observable, of } from "rxjs";
-import { catchError, delay, distinctUntilKeyChanged, filter, map, shareReplay, startWith, switchMap, tap } from "rxjs/operators";
+import { BehaviorSubject, EMPTY, from, Observable, of } from "rxjs";
+import { audit, catchError, delay, distinctUntilKeyChanged, filter, map, shareReplay, startWith, switchMap, tap } from "rxjs/operators";
 import { HttpClient, HttpHeaders } from "@angular/common/http";
 import { inject, Injectable } from "@angular/core";
 
@@ -29,6 +29,8 @@ export class AuthService {
     public user$: Observable<User>;
     public isLoggingIn$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
 
+    private isInitialized: Observable<boolean>;
+
     constructor() {
 
         this.localStorageService.watchItem(app.config.localStorage.accessToken).pipe(
@@ -40,6 +42,7 @@ export class AuthService {
         this.localStorageService.watchObject<Identity>(app.config.localStorage.identity).pipe(
             startWith(this.localStorageService.getObject<Identity>(app.config.localStorage.identity)),
             switchMap(identity => this.delayUntilExpiration(identity)),
+            audit(() => this.isInitialized),
             tap(() => this.refresh())
         ).subscribe();
 
@@ -64,7 +67,7 @@ export class AuthService {
             console.log(event);
         });
 
-        this.init();
+        this.isInitialized = from(this.init());
     }
 
     logIn(): void {
@@ -77,13 +80,13 @@ export class AuthService {
         this.oauthService.logOut();
     }
 
-    private refresh(): void {
+    refresh(): void {
         this.oauthService.silentRefresh({
             login_hint: this.oauthService.getIdentityClaims().email
-        });
+        }).catch(x => this.logOut())
     }
 
-    private init() {
+    private init(): Promise<boolean> {
         const authConfig: AuthConfig = {
             issuer: app.config.auth.issuer,
             strictDiscoveryDocumentValidation: false,
@@ -91,11 +94,11 @@ export class AuthService {
             redirectUri: app.config.auth.redirectUri,
             scope: app.config.auth.scope,
             silentRefreshRedirectUri: app.config.auth.redirectUri,
-            disableIdTokenTimer: true
+            disableIdTokenTimer: true,
         };
 
         this.oauthService.configure(authConfig);
-        this.oauthService.loadDiscoveryDocumentAndTryLogin();
+        return this.oauthService.loadDiscoveryDocumentAndTryLogin();
     }
 
     private getIdentity(accessToken: string | null): Observable<Identity | null> {
