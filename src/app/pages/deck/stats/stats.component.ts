@@ -1,5 +1,5 @@
-import * as app from "@app";
 import { ChangeDetectionStrategy, Component, computed, Signal } from "@angular/core";
+import * as app from "@app";
 import { toDictionary } from "@dictionary";
 
 @Component({
@@ -14,8 +14,7 @@ export class StatsComponent {
 
     private static cardTypes = toDictionary(["creature", "artifact", "enchantment", "planeswalker", "instant", "sorcery"], x => x);
 
-    constructor(private deckManager: app.DeckManagerService)
-    {
+    constructor(private deckManager: app.DeckManagerService) {
         this.stats = computed(() => {
             const deck = this.deckManager.deck();
             const firstCardGroup = deck.cardGroups[deck.cardGroupOrder[0]];

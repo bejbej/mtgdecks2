@@ -1,5 +1,5 @@
-import * as app from "@app";
 import { Directive, ElementRef, Input, NgZone, OnInit } from "@angular/core";
+import * as app from "@app";
 
 @Directive({
     selector: "[lightbox]",
@@ -13,7 +13,7 @@ export class LightboxDirective implements OnInit {
     constructor(elementRef: ElementRef, private ngZone: NgZone) {
         this.element = elementRef.nativeElement;
     }
-    
+
     ngOnInit() {
         this.ngZone.runOutsideAngular(() => {
             this.element.addEventListener("click", event => {

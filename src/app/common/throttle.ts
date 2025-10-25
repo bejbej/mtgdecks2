@@ -3,7 +3,7 @@ export class Throttle {
     private invokeAgain: boolean = false;
 
     constructor(private duration: number, private func: Function) { }
-    
+
     invoke() {
         if (this.timeout) {
             this.invokeAgain = true;

@@ -1,5 +1,5 @@
-import * as app from "@app";
 import { AfterContentInit, Directive, ElementRef, NgZone, OnChanges, OnDestroy, OnInit, SimpleChanges } from "@angular/core";
+import * as app from "@app";
 
 @Directive({
     selector: 'textarea[autosize]',
@@ -66,7 +66,7 @@ export class AutosizeDirective implements OnInit, OnChanges, AfterContentInit, O
         if (!this.element) {
             return;
         }
-        
+
         let documentScroll = document.documentElement.scrollTop;
         let bodyScroll = document.body.scrollTop;
         let currentScroll = documentScroll == 0 ? bodyScroll : documentScroll;

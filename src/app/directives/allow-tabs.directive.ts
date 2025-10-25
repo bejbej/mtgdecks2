@@ -11,7 +11,7 @@ export class AllowTabsDirective implements OnInit {
     constructor(elementRef: ElementRef, private ngZone: NgZone) {
         this.element = elementRef.nativeElement;
     }
-    
+
     ngOnInit() {
         this.ngZone.runOutsideAngular(() => {
             this.element.addEventListener("keydown", event => {
@@ -29,7 +29,7 @@ export class AllowTabsDirective implements OnInit {
                         let value = this.element.value;
                         this.element.value = value.substring(0, start) + "\t" + value.substring(end);
                         this.element.selectionStart = start + 1;
-                        this.element.selectionEnd  = this.element.selectionStart;
+                        this.element.selectionEnd = this.element.selectionStart;
                     }
                 }
             });

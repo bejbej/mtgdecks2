@@ -1,5 +1,5 @@
-import * as app from "@app";
 import { ChangeDetectionStrategy, Component, input } from "@angular/core";
+import * as app from "@app";
 
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,

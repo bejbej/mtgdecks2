@@ -1,7 +1,7 @@
-import * as app from "@app";
-import { distinctUntilChanged, filter, map, shareReplay } from "rxjs/operators";
-import { fromEvent, merge, Observable, Subject } from "rxjs";
 import { Injectable } from "@angular/core";
+import * as app from "@app";
+import { fromEvent, merge, Observable, Subject } from "rxjs";
+import { distinctUntilChanged, filter, map, shareReplay } from "rxjs/operators";
 
 interface StorageEvent2 {
     key: string;
@@ -12,7 +12,7 @@ interface StorageEvent2 {
     providedIn: "root"
 })
 export class LocalStorageService {
-    
+
     private prefix = app.config.localStorage.prefix;
 
     private storageEvent$: Observable<StorageEvent2>;
@@ -56,7 +56,7 @@ export class LocalStorageService {
         }
 
         const prefixedKey = this.makeKey(key);
-        
+
         localStorage.setItem(prefixedKey, value);
         this.internalStorageEvent$.next({
             key: prefixedKey,

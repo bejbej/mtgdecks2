@@ -1,10 +1,10 @@
-import * as app from "@app";
-import { ActivatedRoute, Router } from "@angular/router";
-import { ChangeDetectionStrategy, Component, computed, effect, inject, OnDestroy, signal, Signal, WritableSignal } from "@angular/core";
-import { DeckManagerService } from "./deck-manager/deck.manager.service";
-import { distinctUntilChanged, map, takeUntil, tap } from "rxjs/operators";
 import { Location } from "@angular/common";
+import { ChangeDetectionStrategy, Component, computed, effect, inject, OnDestroy, signal, Signal, WritableSignal } from "@angular/core";
+import { ActivatedRoute, Router } from "@angular/router";
+import * as app from "@app";
 import { Subject } from "rxjs";
+import { distinctUntilChanged, map, takeUntil, tap } from "rxjs/operators";
+import { DeckManagerService } from "./deck-manager/deck.manager.service";
 
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -60,7 +60,7 @@ export class DeckComponent implements OnDestroy {
                 document.title = deckName();
             }
         });
-        
+
         // Update the page url when the deck's id changes
         const deckId = computed(() => this.deck()?.id);
         effect(() => {

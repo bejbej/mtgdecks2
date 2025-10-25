@@ -31,7 +31,7 @@ export class CardGrouper {
         );
     }
 
-    static groupByName:GroupFunc = (cards: app.Card[]): app.CardView[] => {
+    static groupByName: GroupFunc = (cards: app.Card[]): app.CardView[] => {
         const sortedCards = cards
             .slice()
             .sort((a, b) => a.definition.name > b.definition.name ? 1 : -1);

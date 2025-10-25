@@ -1,7 +1,7 @@
-import * as app from "@app";
 import { ChangeDetectionStrategy, Component, inject, Signal } from "@angular/core";
-import { map } from "rxjs/operators";
 import { toSignal } from "@angular/core/rxjs-interop";
+import * as app from "@app";
+import { map } from "rxjs/operators";
 
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,

@@ -1,15 +1,16 @@
-import * as app from "@app";
-import { AppComponent } from "src/app//app.component";
-import { AppRoutingModule } from "src/app//app-routing.module";
-import { BrowserModule } from "@angular/platform-browser";
 import { DragDropModule } from "@angular/cdk/drag-drop";
-import { FormsModule } from "@angular/forms";
 import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
-import { LocalStorageService } from "./services/local-storage.service";
 import { NgModule } from "@angular/core";
+import { FormsModule } from "@angular/forms";
+import { BrowserModule } from "@angular/platform-browser";
+import * as app from "@app";
 import { OAuthModule, OAuthStorage } from "angular-oauth2-oidc";
+import { AppRoutingModule } from "src/app//app-routing.module";
+import { AppComponent } from "src/app//app.component";
+import { LocalStorageService } from "./services/local-storage.service";
 
-@NgModule({ declarations: [
+@NgModule({
+    declarations: [
         AppComponent,
         // Components
         app.AuthComponent,

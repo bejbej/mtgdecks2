@@ -23,7 +23,7 @@ export const config = {
 
 (function () {
     let lastMouseOverEvent: Date = undefined;
-    
+
     let enableHover = () => {
         if (lastMouseOverEvent === undefined) {
             lastMouseOverEvent = new Date();

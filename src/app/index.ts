@@ -36,14 +36,14 @@ export * from "./services/local-storage.service";
 
 // Components
 export * from "./components/auth/auth.component";
-export * from "./pages/deck/card-group/card-group.component";
-export * from "./pages/deck/card-columns/card-columns.component";
-export * from "./pages/deck/deck.component";
-export * from "./pages/deck/deck-manager/deck.manager.service";
-export * from "./pages/deck/deck-info/deck-info.component";
-export * from "./pages/decks/decks.component";
-export * from "./pages/deck/edit-card-groups/edit-card-groups.component";
 export * from "./components/large-spinner/large-spinner.component";
-export * from "./pages/not-found/not-found.component";
 export * from "./components/spinner/spinner.component";
+export * from "./pages/deck/card-columns/card-columns.component";
+export * from "./pages/deck/card-group/card-group.component";
+export * from "./pages/deck/deck-info/deck-info.component";
+export * from "./pages/deck/deck-manager/deck.manager.service";
+export * from "./pages/deck/deck.component";
+export * from "./pages/deck/edit-card-groups/edit-card-groups.component";
 export * from "./pages/deck/stats/stats.component";
+export * from "./pages/decks/decks.component";
+export * from "./pages/not-found/not-found.component";

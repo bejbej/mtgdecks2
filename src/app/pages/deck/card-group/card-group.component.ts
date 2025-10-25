@@ -1,6 +1,6 @@
-import * as app from "@app";
 import { ChangeDetectionStrategy, Component, computed, inject, input, signal, Signal, WritableSignal } from "@angular/core";
-import { selectMany, sum } from "@array";
+import * as app from "@app";
+import { sum } from "@array";
 
 interface ViewOption {
     name: string;
@@ -109,7 +109,7 @@ export class CardGroupComponent {
         if (this.prevCardBlob === this.nextCardBlob) {
             return;
         }
-        
+
         const parsedCards = this.cardBlobService.parse(this.nextCardBlob);
         this.deckManager.patchCardGroup(this.cardGroupId(), parsedCards);
     }

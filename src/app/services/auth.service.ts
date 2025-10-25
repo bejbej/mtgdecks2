@@ -1,9 +1,9 @@
+import { HttpClient, HttpHeaders } from "@angular/common/http";
+import { inject, Injectable } from "@angular/core";
 import * as app from "@app";
 import { AuthConfig, OAuthService } from "angular-oauth2-oidc";
 import { BehaviorSubject, EMPTY, from, Observable, of } from "rxjs";
 import { audit, catchError, delay, distinctUntilKeyChanged, filter, map, shareReplay, startWith, switchMap, tap } from "rxjs/operators";
-import { HttpClient, HttpHeaders } from "@angular/common/http";
-import { inject, Injectable } from "@angular/core";
 
 export interface Identity {
     sub: string;

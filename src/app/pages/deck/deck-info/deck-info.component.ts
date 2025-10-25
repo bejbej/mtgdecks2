@@ -1,5 +1,5 @@
-import * as app from "@app";
 import { ChangeDetectionStrategy, Component, computed, Signal } from "@angular/core";
+import * as app from "@app";
 
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -25,7 +25,7 @@ export class DeckInfoComponent {
         const tags = tagsInput.length === 0 ? [] : tagsInput.split(/\s*,\s*/).map(x => x.toLowerCase());
         this.deckManager.patchDeck({ tags });
     }
-    
+
     updateNotes = (notes: string): void => {
         this.deckManager.patchDeck({ notes });
     }

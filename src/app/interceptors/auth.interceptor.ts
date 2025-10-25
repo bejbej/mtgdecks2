@@ -1,8 +1,8 @@
-import * as app from "@app";
 import { HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from "@angular/common/http";
 import { inject, Injectable } from "@angular/core";
-import { LocalStorageService } from "../services/local-storage.service";
+import * as app from "@app";
 import { Observable } from "rxjs";
+import { LocalStorageService } from "../services/local-storage.service";
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {

@@ -1,9 +1,9 @@
-import * as app from "@app";
 import { CdkDragDrop, moveItemInArray } from "@angular/cdk/drag-drop";
 import { ChangeDetectionStrategy, Component, computed, Signal } from "@angular/core";
-import { Dictionary } from "@types";
+import * as app from "@app";
 import { except } from "@array";
 import { toDictionary2 } from "@dictionary";
+import { Dictionary } from "@types";
 
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -56,7 +56,7 @@ export class EditCardGroupsComponent {
         this.deckManager.updateDeck(prevDeck => {
             const nextCardGroupOrder = except(prevDeck.cardGroupOrder, deletedCardGroupIds);
             const nextCardGroups = toDictionary2(nextCardGroupOrder, x => x, cardGroupId => prevDeck.cardGroups[cardGroupId]);
-            
+
             return {
                 ...prevDeck,
                 cardGroups: nextCardGroups,

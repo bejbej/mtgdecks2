@@ -1,9 +1,9 @@
-import * as app from "@app";
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, Signal, WritableSignal } from "@angular/core";
-import { contains, distinct, orderBy, selectMany } from "@array";
-import { map, startWith, switchMap } from "rxjs/operators";
-import { of } from "rxjs";
 import { toSignal } from "@angular/core/rxjs-interop";
+import * as app from "@app";
+import { contains, distinct, orderBy, selectMany } from "@array";
+import { of } from "rxjs";
+import { map, startWith, switchMap } from "rxjs/operators";
 
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -43,7 +43,7 @@ export class DecksComponent {
                 if (!user.isAuthenticated) {
                     return of({ isLoading: false, decks: [] as app.QueriedDeck[] });
                 }
-                
+
                 return this.deckService.getByQuery({ owner: user.id }).pipe(
                     map(decks => ({ isLoading: false, decks: orderBy(decks, x => x.name) })),
                     startWith({ isLoading: true, decks: [] as app.QueriedDeck[] })

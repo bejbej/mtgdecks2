@@ -1,8 +1,8 @@
-import * as app from "@app";
 import { HttpClient } from "@angular/common/http";
 import { inject, Injectable } from "@angular/core";
-import { map } from "rxjs/operators";
+import * as app from "@app";
 import { noop, Observable, of } from "rxjs";
+import { map } from "rxjs/operators";
 
 @Injectable({
     providedIn: "root"
@@ -91,7 +91,7 @@ export class DeckService {
 
         return {
             cardGroups: {
-                0 : {
+                0: {
                     cards: [],
                     invalidCards: [],
                     name: "Mainboard",

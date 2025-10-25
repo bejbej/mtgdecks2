@@ -1,5 +1,5 @@
-import * as app from "@app";
 import { Directive, ElementRef, NgZone, OnInit } from "@angular/core";
+import * as app from "@app";
 
 interface QueryResult {
     query: string;
@@ -31,7 +31,7 @@ export class AutocompleteCardNameDirective implements OnInit {
         this.cards = cardDefinitionService.getCardArray();
         this.element = elementRef.nativeElement;
     }
-    
+
     ngOnInit() {
         this.ngZone.runOutsideAngular(() => {
             this.createAutoCompleteElement();
@@ -184,10 +184,10 @@ export class AutocompleteCardNameDirective implements OnInit {
         }
     }
 
-    updateSelectedAutocompleteIndex(newIndex: number) : void {
-        (<HTMLDivElement> this.autocompleteDiv.childNodes[this.selectedAutocompleteIndex]).classList.remove("active");
+    updateSelectedAutocompleteIndex(newIndex: number): void {
+        (<HTMLDivElement>this.autocompleteDiv.childNodes[this.selectedAutocompleteIndex]).classList.remove("active");
         this.selectedAutocompleteIndex = newIndex;
-        (<HTMLDivElement> this.autocompleteDiv.childNodes[this.selectedAutocompleteIndex]).classList.add("active");
+        (<HTMLDivElement>this.autocompleteDiv.childNodes[this.selectedAutocompleteIndex]).classList.add("active");
     }
 
     updateAutocompleteLocation() {
