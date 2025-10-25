@@ -2,7 +2,7 @@ import { computed, inject, Injectable, OnDestroy, signal, Signal, WritableSignal
 import { toObservable } from "@angular/core/rxjs-interop";
 import { CardGroup, Deck } from "@entities";
 import { Func } from "@types";
-import { contains } from "@utilities";
+import { isDefined, isNotDefined } from "@utilities";
 import { BehaviorSubject, noop, Observable, of, Subject } from "rxjs";
 import { audit, filter, map, switchMap, takeUntil, tap } from "rxjs/operators";
 import { AuthService, User } from "src/app/services/auth.service";
@@ -65,7 +65,7 @@ export class DeckManagerService implements OnDestroy {
 
     updateDeck(func: Func<Deck, Deck>): void {
         this.updateState(prevState => {
-            if (prevState.deck === undefined) {
+            if (isNotDefined(prevState.deck)) {
                 return prevState;
             }
 
@@ -122,8 +122,8 @@ export class DeckManagerService implements OnDestroy {
     private updateState(func: Func<State, State>): void {
         const nextState = func(this.state());
 
-        const isNew = nextState.deck && nextState.deck.id === undefined;
-        const canEdit = isNew || contains(nextState.deck?.owners ?? [], nextState.user.id);
+        const isNew = nextState.deck && isNotDefined(nextState.deck.id);
+        const canEdit = isNew || nextState.deck?.owners.includes(nextState.user.id);
         const canSave = canEdit && nextState.user.isAuthenticated;
 
         nextState.isNew = isNew;
@@ -143,16 +143,16 @@ export class DeckManagerService implements OnDestroy {
     }
 
     private persist(state: State): Observable<void> {
-        if (state.deck === undefined) {
+        if (isNotDefined(state.deck)) {
             return of(undefined);
         }
 
-        if (state.isDeleted && state.deck.id !== undefined) {
+        if (state.isDeleted && isDefined(state.deck.id)) {
             return this.deckService.deleteDeck(state.deck.id)
                 .pipe(tap(_ => this.patchState({ isDirty: false })));
         }
 
-        if (state.isNew && state.deck.id === undefined) {
+        if (state.isNew && isNotDefined(state.deck.id)) {
             return this.deckService.createDeck(state.deck).pipe(
                 tap(id => {
                     const deck = {
@@ -166,7 +166,7 @@ export class DeckManagerService implements OnDestroy {
             );
         }
 
-        if (state.deck.id !== undefined) {
+        if (isDefined(state.deck.id)) {
             return this.deckService.updateDeck(state.deck)
                 .pipe(tap(_ => this.patchState({ isDirty: false })));
         }

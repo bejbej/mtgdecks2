@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, Signal } from "@angular/core";
+import { hasLength } from "@utilities";
 import { DeckManagerService } from "../deck-manager/deck.manager.service";
 
 @Component({
@@ -22,7 +23,7 @@ export class DeckInfoComponent {
     }
 
     updateTags = (tagsInput: string): void => {
-        const tags = tagsInput.length === 0 ? [] : tagsInput.split(/\s*,\s*/).map(x => x.toLowerCase());
+        const tags = hasLength(tagsInput) ? tagsInput.split(/\s*,\s*/).map(x => x.toLowerCase()) : [];
         this.deckManager.patchDeck({ tags });
     }
 

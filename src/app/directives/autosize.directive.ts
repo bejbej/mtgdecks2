@@ -1,5 +1,5 @@
 import { AfterContentInit, Directive, ElementRef, NgZone, OnChanges, OnDestroy, OnInit, SimpleChanges } from "@angular/core";
-import { Throttle } from "@utilities";
+import { isDefined, Throttle } from "@utilities";
 
 @Directive({
     selector: 'textarea[autosize]',
@@ -39,10 +39,10 @@ export class AutosizeDirective implements OnInit, OnChanges, AfterContentInit, O
     ngOnChanges(simpleChange: SimpleChanges) {
         let value: any;
 
-        if (simpleChange.value !== undefined) {
+        if (isDefined(simpleChange.value)) {
             value = simpleChange.value.currentValue;
         }
-        else if (simpleChange.ngModel !== undefined) {
+        else if (isDefined(simpleChange.ngModel)) {
             value = simpleChange.ngModel.currentValue;
         }
         else {

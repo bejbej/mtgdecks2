@@ -1,7 +1,6 @@
 import { Injectable } from "@angular/core";
 import { CardDefinition } from "@entities";
-import { Dictionary } from "@types";
-import { toDictionary } from "@utilities";
+import { Dictionary, toDictionary } from "@utilities";
 
 declare var cardsCSV: string;
 
@@ -10,7 +9,7 @@ declare var cardsCSV: string;
 })
 export class CardDefinitionService {
 
-    private cardDictionary: Dictionary<CardDefinition>;
+    private cardDictionary: Dictionary<string, CardDefinition>;
     private cardArray: CardDefinition[];
 
     constructor() {
@@ -29,7 +28,11 @@ export class CardDefinitionService {
         }
 
         this.cardArray = cards;
-        this.cardDictionary = toDictionary(this.cardArray, card => card.name.toLowerCase());
+        this.cardDictionary = toDictionary({
+            source: this.cardArray,
+            keyFunc: card => card.name.toLowerCase(),
+            valueFunc: card => card
+        });
 
         // Free up memory maybe
         cardsCSV = undefined;

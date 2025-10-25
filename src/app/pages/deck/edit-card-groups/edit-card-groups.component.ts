@@ -2,7 +2,7 @@ import { CdkDragDrop, moveItemInArray } from "@angular/cdk/drag-drop";
 import { ChangeDetectionStrategy, Component, computed, Signal } from "@angular/core";
 import { CardGroup } from "@entities";
 import { Dictionary } from "@types";
-import { except, toDictionary2 } from "@utilities";
+import { except, toDictionary } from "@utilities";
 import { DeckManagerService } from "../deck-manager/deck.manager.service";
 
 @Component({
@@ -13,7 +13,7 @@ import { DeckManagerService } from "../deck-manager/deck.manager.service";
 })
 export class EditCardGroupsComponent {
 
-    cardGroups: Signal<Dictionary<CardGroup>>;
+    cardGroups: Signal<Dictionary<number, CardGroup>>;
     cardGroupOrder: Signal<number[]>;
 
     selectedGroups: any = {};
@@ -55,7 +55,11 @@ export class EditCardGroupsComponent {
 
         this.deckManager.updateDeck(prevDeck => {
             const nextCardGroupOrder = except(prevDeck.cardGroupOrder, deletedCardGroupIds);
-            const nextCardGroups = toDictionary2(nextCardGroupOrder, x => x, cardGroupId => prevDeck.cardGroups[cardGroupId]);
+            const nextCardGroups = toDictionary({
+                source: nextCardGroupOrder,
+                keyFunc: cardGroupId => cardGroupId,
+                valueFunc: cardGroupId => prevDeck.cardGroups[cardGroupId]
+            })
 
             return {
                 ...prevDeck,

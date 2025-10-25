@@ -1,8 +1,6 @@
 import { inject, Injectable } from "@angular/core";
 import { Card, CardView } from "@entities";
-import { Dictionary } from "@types";
-import { toArray } from "@utilities";
-import { hasLength } from "../common/has-length";
+import { Dictionary, hasLength, hasNoLength } from "@utilities";
 import { CardDefinitionService } from "./card-definition.service";
 
 export interface parseCardBlobResult {
@@ -20,7 +18,7 @@ export class CardBlobService {
     parse(cardBlob: string): parseCardBlobResult {
         cardBlob = cardBlob.trim();
 
-        if (cardBlob.length === 0) {
+        if (hasNoLength(cardBlob)) {
             return {
                 cards: [],
                 invalidCards: []
@@ -28,7 +26,7 @@ export class CardBlobService {
         }
 
         const invalidCards: string[] = [];
-        const cardDict: Dictionary<Card> = {};
+        const cardDict: Dictionary<string, Card> = {};
 
         for (let line of cardBlob.split(/\n[\s\n]*/)) {
             if (/^\/\//.test(line)) {
@@ -52,7 +50,7 @@ export class CardBlobService {
         };
 
         return {
-            cards: toArray(cardDict),
+            cards: Object.values(cardDict),
             invalidCards: invalidCards
         };
     }

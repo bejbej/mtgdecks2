@@ -1,6 +1,7 @@
 import { HttpClient, HttpHeaders } from "@angular/common/http";
 import { inject, Injectable } from "@angular/core";
 import { config } from "@config";
+import { isDefined, isNotDefined } from "@utilities";
 import { AuthConfig, OAuthService } from "angular-oauth2-oidc";
 import { BehaviorSubject, EMPTY, from, Observable, of } from "rxjs";
 import { audit, catchError, delay, distinctUntilKeyChanged, filter, map, shareReplay, startWith, switchMap, tap } from "rxjs/operators";
@@ -48,7 +49,7 @@ export class AuthService {
         ).subscribe();
 
         this.localStorageService.watchObject<Identity>(config.localStorage.identity).pipe(
-            filter(identity => identity !== null),
+            filter(identity => isDefined(identity)),
             tap(() => this.isLoggingIn$.next(false))
         ).subscribe();
 
@@ -56,7 +57,7 @@ export class AuthService {
             startWith(this.localStorageService.getObject<Identity>(config.localStorage.identity)),
             map(identity => {
                 return {
-                    isAuthenticated: identity !== null,
+                    isAuthenticated: isDefined(identity),
                     id: identity?.sub ?? ""
                 }
             }),
@@ -103,7 +104,7 @@ export class AuthService {
     }
 
     private getIdentity(accessToken: string | null): Observable<Identity | null> {
-        if (accessToken === null) {
+        if (isNotDefined(accessToken)) {
             return of(null);
         }
 
@@ -123,7 +124,7 @@ export class AuthService {
     }
 
     private delayUntilExpiration(identity: Identity | null): Observable<void> {
-        if (identity === null) {
+        if (isNotDefined(identity)) {
             return of();
         }
 

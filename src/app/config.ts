@@ -1,3 +1,5 @@
+import { isNotDefined } from "@utilities";
+
 export const config = {
     types: ["conspiracy", "creature", "artifact", "enchantment", "battle", "planeswalker", "land", "instant", "sorcery"],
     statCategories: [
@@ -25,7 +27,7 @@ export const config = {
     let lastMouseOverEvent: Date = undefined;
 
     let enableHover = () => {
-        if (lastMouseOverEvent === undefined) {
+        if (isNotDefined(lastMouseOverEvent)) {
             lastMouseOverEvent = new Date();
         } else if (new Date().getTime() - lastMouseOverEvent.getTime() < 100) {
             config.enableHover = true;

@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, S
 import { toSignal } from "@angular/core/rxjs-interop";
 import { config } from "@config";
 import { QueriedDeck, TagState } from "@entities";
-import { contains, distinct, orderBy, selectMany } from "@utilities";
+import { distinct, hasNoLength, orderBy } from "@utilities";
 import { of } from "rxjs";
 import { map, startWith, switchMap } from "rxjs/operators";
 import { AuthService } from "src/app/services/auth.service";
@@ -60,7 +60,7 @@ export class DecksComponent {
         this.visibleDecks = computed(() => this.filterDecks(state().decks, this.currentTag()));
         const deckTags = computed(() => {
             const decks = state().decks;
-            const tags = distinct(selectMany(decks.map(deck => deck.tags)));
+            const tags = distinct(decks.map(deck => deck.tags).flat());
             return orderBy(tags, x => x);
         });
         this.tags = computed(() => state().isLoading ? storedTags : deckTags());
@@ -77,9 +77,9 @@ export class DecksComponent {
             case undefined:
                 return decks;
             case null:
-                return decks.filter(deck => deck.tags.length === 0);
+                return decks.filter(deck => hasNoLength(deck.tags));
             default:
-                return decks.filter(deck => contains(deck.tags, tag));
+                return decks.filter(deck => deck.tags.includes(tag));
         }
     }
 

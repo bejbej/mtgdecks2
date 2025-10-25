@@ -1,6 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, Signal } from "@angular/core";
 import { Card } from "@entities";
-import { toDictionary } from "@utilities";
 import { DeckManagerService } from "../deck-manager/deck.manager.service";
 
 @Component({
@@ -13,7 +12,7 @@ export class StatsComponent {
 
     stats: Signal<string[]>;
 
-    private static cardTypes = toDictionary(["creature", "artifact", "enchantment", "planeswalker", "instant", "sorcery"], x => x);
+    private cardTypes = new Set(["creature", "artifact", "enchantment", "planeswalker", "instant", "sorcery"]);
 
     constructor(private deckManager: DeckManagerService) {
         this.stats = computed(() => {
@@ -31,7 +30,7 @@ export class StatsComponent {
         let stats = new Array(17).fill(0);
 
         for (let card of cards) {
-            if (StatsComponent.cardTypes[card.definition.primaryType] !== undefined) {
+            if (this.cardTypes.has(card.definition.primaryType)) {
                 stats[card.definition.manaValue] += card.quantity;
             }
         };

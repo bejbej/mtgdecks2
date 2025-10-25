@@ -1,19 +1,15 @@
 import { Dictionary, Func } from "@types";
 
-export function toDictionary<T>(array: T[], keyFunc: Func<T, string>): Dictionary<T> {
-    return array.reduce((dictionary, item) => {
-        dictionary[keyFunc(item)] = item;
-        return dictionary;
-    }, <Dictionary<T>>{});
+export interface ToDictionaryOptions<TSource, TKey, TValue> {
+    source: TSource[];
+    keyFunc: Func<TSource, TKey>;
+    valueFunc: Func<TSource, TValue>;
 }
 
-export function toDictionary2<Tin, Tout>(array: Tin[], keyFunc: Func<Tin, string | number>, valueFunc: Func<Tin, Tout>): Dictionary<Tout> {
-    return array.reduce((dictionary, item) => {
-        dictionary[keyFunc(item)] = valueFunc(item);
-        return dictionary;
-    }, <Dictionary<Tout>>{});
-}
-
-export function toArray<T>(dictionary: Dictionary<T>): T[] {
-    return Object.keys(dictionary).map(key => dictionary[key]);
+export function toDictionary<TSource, TKey extends string | number | symbol, TValue>(options: ToDictionaryOptions<TSource, TKey, TValue>): Dictionary<TKey, TValue> {
+    const dictionary = {} as Dictionary<TKey, TValue>;
+    for (let item of options.source) {
+        dictionary[options.keyFunc(item)] = options.valueFunc(item);
+    }
+    return dictionary;
 }

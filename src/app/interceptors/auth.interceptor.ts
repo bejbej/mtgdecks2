@@ -1,6 +1,7 @@
 import { HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from "@angular/common/http";
 import { inject, Injectable } from "@angular/core";
 import { config } from "@config";
+import { isNotDefined } from "@utilities";
 import { Observable } from "rxjs";
 import { Identity } from "../services/auth.service";
 import { LocalStorageService } from "../services/local-storage.service";
@@ -17,7 +18,7 @@ export class AuthInterceptor implements HttpInterceptor {
 
         const identity = this.localStorageService.getObject<Identity>(config.localStorage.identity);
 
-        if (identity === null) {
+        if (isNotDefined(identity)) {
             return next.handle(request);
         }
 

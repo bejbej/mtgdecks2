@@ -1,6 +1,6 @@
 import { Directive, ElementRef, NgZone, OnInit } from "@angular/core";
 import { CardDefinition } from "@entities";
-import { getAutocompleteEntries, getCaretCoordinates, Throttle } from "@utilities";
+import { getAutocompleteEntries, getCaretCoordinates, isNotDefined, Throttle } from "@utilities";
 import { CardDefinitionService } from "../services/card-definition.service";
 
 interface QueryResult {
@@ -121,7 +121,7 @@ export class AutocompleteCardNameDirective implements OnInit {
             return;
         }
         let result = this.getQuery(this.element.value, this.element.selectionStart);
-        if (result == null || result.query.length < this.minimumNumberOfCharacters) {
+        if (isNotDefined(result) || result.query.length < this.minimumNumberOfCharacters) {
             return;
         }
         let cards = getAutocompleteEntries(this.cards, result.query, x => x.name.toLowerCase(), this.maximumNumberOfMatches);
@@ -211,7 +211,7 @@ export class AutocompleteCardNameDirective implements OnInit {
         endOfLine = endOfLine == -1 ? text.length : endOfLine;
         let line = text.substring(startOfLine, endOfLine);
         let match = /^((?:\d+[Xx]?\s)?\s*)([^0-9]+)$/.exec(line);
-        if (match == null) {
+        if (isNotDefined(match)) {
             return null;
         }
         let startOfWord = startOfLine + match[1].length;

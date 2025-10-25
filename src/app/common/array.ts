@@ -1,19 +1,9 @@
-import { Dictionary, Func } from "@types";
-
-export function contains<T>(source: T[], item: T): boolean {
-    return source.indexOf(item) > -1;
-}
+import { Func } from "@types";
 
 export function except<T>(source: T[], array: T[]): T[] {
-    let dictionary = array.reduce((dictionary, item) => {
-        dictionary[item.toString()] = item;
-        return dictionary;
-    }, <Dictionary<T>>{});
-    return source.filter(item => dictionary[item.toString()] === undefined);
-}
-
-export function selectMany<T>(array: T[][]): T[] {
-    return [].concat.apply([], array);
+    const sourceSet = new Set(source);
+    const exceptSet = new Set(array);
+    return [...sourceSet.difference(exceptSet)];
 }
 
 export function distinct<T>(array: T[]): T[] {
@@ -21,7 +11,7 @@ export function distinct<T>(array: T[]): T[] {
 }
 
 export function orderBy<T>(array: T[], valueSelector: Func<T, string>): T[] {
-    return array.sort((a, b) => valueSelector(a) > valueSelector(b) ? 1 : -1);
+    return array.toSorted((a, b) => valueSelector(a) > valueSelector(b) ? 1 : -1);
 }
 
 export function sum<T>(array: T[], valueSelector?: Func<T, number>): number {

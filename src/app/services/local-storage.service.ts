@@ -1,5 +1,6 @@
 import { Injectable } from "@angular/core";
 import { config } from "@config";
+import { isNotDefined } from "@utilities";
 import { fromEvent, merge, Observable, Subject } from "rxjs";
 import { distinctUntilChanged, filter, map, shareReplay } from "rxjs/operators";
 
@@ -36,7 +37,7 @@ export class LocalStorageService {
 
     getObject<T>(key: string): T | null {
         const item = this.getItem(key);
-        return item === null ? null : JSON.parse(item);
+        return isNotDefined(item) ? null : JSON.parse(item);
     }
 
     removeItem(key: string): void {
@@ -50,7 +51,7 @@ export class LocalStorageService {
     }
 
     setItem(key: string, value: string): void {
-        if (value === null || value === undefined) {
+        if (isNotDefined(value)) {
             this.removeItem(key);
             return;
         }
@@ -65,7 +66,7 @@ export class LocalStorageService {
     }
 
     setObject<T>(key: string, object: object): void {
-        if (object === null || object === undefined) {
+        if (isNotDefined(object)) {
             this.removeItem(key);
             return;
         }
@@ -91,7 +92,7 @@ export class LocalStorageService {
 
     watchObject<T>(key: string): Observable<T | null> {
         return this.watchItem(key).pipe(
-            map(value => value === null ? null : JSON.parse(value) as T)
+            map(value => isNotDefined(value) ? null : JSON.parse(value) as T)
         )
     }
 

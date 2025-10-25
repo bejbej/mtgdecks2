@@ -1,5 +1,5 @@
 import { Card, CardView } from "@entities";
-import { sum } from "@utilities";
+import { hasLength, sum } from "@utilities";
 
 export type GroupFunc = (cards: Card[]) => CardView[];
 
@@ -71,7 +71,7 @@ export class CardGrouper {
         return keys.reduce<CardView[]>((array, key) => {
             let cards = cardDictionary[key] || [];
 
-            if (cards && cards.length > 0) {
+            if (hasLength(cards)) {
                 cards = cards.sort((a, b) => a.definition.name > b.definition.name ? 1 : -1);
                 array.push({
                     name: headerFunc(key),

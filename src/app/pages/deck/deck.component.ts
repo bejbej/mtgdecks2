@@ -2,6 +2,7 @@ import { Location } from "@angular/common";
 import { ChangeDetectionStrategy, Component, computed, effect, inject, OnDestroy, signal, Signal, WritableSignal } from "@angular/core";
 import { ActivatedRoute, Router } from "@angular/router";
 import { Deck } from "@entities";
+import { isDefined, isNotDefined } from "@utilities";
 import { Subject } from "rxjs";
 import { distinctUntilChanged, map, takeUntil, tap } from "rxjs/operators";
 import { DeckManagerService } from "./deck-manager/deck.manager.service";
@@ -46,7 +47,7 @@ export class DeckComponent implements OnDestroy {
 
         this.canEdit = computed(() => this.deckManager.state().canEdit);
         this.deck = this.deckManager.deck;
-        this.isLoading = computed(() => this.deckManager.state().deck === undefined);
+        this.isLoading = computed(() => isNotDefined(this.deckManager.state().deck));
         this.isDeleting = computed(() => {
             const state = this.deckManager.state();
             return state.isDeleted && state.isDirty;
@@ -56,7 +57,7 @@ export class DeckComponent implements OnDestroy {
         // Update the page name whenever the deck's name changes
         const deckName = computed(() => this.deck()?.name);
         effect(() => {
-            if (deckName() !== undefined) {
+            if (isDefined(deckName())) {
                 document.title = deckName();
             }
         });
@@ -64,7 +65,7 @@ export class DeckComponent implements OnDestroy {
         // Update the page url when the deck's id changes
         const deckId = computed(() => this.deck()?.id);
         effect(() => {
-            if (deckId() !== undefined) {
+            if (isDefined(deckId())) {
                 this.location.replaceState("/decks/" + deckId());
             }
         })

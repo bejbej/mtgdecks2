@@ -3,7 +3,7 @@ import { Dictionary } from "@types";
 export interface Deck {
     id: string;
     name: string;
-    cardGroups: Dictionary<CardGroup>;
+    cardGroups: Dictionary<number, CardGroup>;
     cardGroupOrder: number[];
     owners: string[];
     notes: string;
