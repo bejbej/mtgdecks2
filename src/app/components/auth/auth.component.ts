@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject, Signal } from "@angular/core";
 import { toSignal } from "@angular/core/rxjs-interop";
-import * as app from "@app";
 import { map } from "rxjs/operators";
+import { AuthService } from "src/app/services/auth.service";
 
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -11,7 +11,7 @@ import { map } from "rxjs/operators";
 })
 export class AuthComponent {
 
-    private authService = inject(app.AuthService);
+    private authService = inject(AuthService);
 
     isLoggedIn: Signal<boolean>;
     isLoggingIn: Signal<boolean>;

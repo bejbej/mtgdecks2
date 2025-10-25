@@ -1,7 +1,7 @@
 import { Injectable } from "@angular/core";
-import * as app from "@app";
-import { toDictionary } from "@dictionary";
+import { CardDefinition } from "@entities";
 import { Dictionary } from "@types";
+import { toDictionary } from "@utilities";
 
 declare var cardsCSV: string;
 
@@ -10,12 +10,12 @@ declare var cardsCSV: string;
 })
 export class CardDefinitionService {
 
-    private cardDictionary: Dictionary<app.CardDefinition>;
-    private cardArray: app.CardDefinition[];
+    private cardDictionary: Dictionary<CardDefinition>;
+    private cardArray: CardDefinition[];
 
     constructor() {
         const items = cardsCSV.split(/[\t\n]/);
-        const cards: app.CardDefinition[] = [];
+        const cards: CardDefinition[] = [];
         for (let i = 7; i < items.length; i = i + 7) {
             cards.push({
                 name: items[i],

@@ -1,11 +1,12 @@
 import { inject, Injectable } from "@angular/core";
-import * as app from "@app";
-import { toArray } from "@dictionary";
+import { Card, CardView } from "@entities";
 import { Dictionary } from "@types";
+import { toArray } from "@utilities";
 import { hasLength } from "../common/has-length";
+import { CardDefinitionService } from "./card-definition.service";
 
 export interface parseCardBlobResult {
-    cards: app.Card[],
+    cards: Card[],
     invalidCards: string[]
 }
 
@@ -14,7 +15,7 @@ export interface parseCardBlobResult {
 })
 export class CardBlobService {
 
-    private cardDefinitionService = inject(app.CardDefinitionService);
+    private cardDefinitionService = inject(CardDefinitionService);
 
     parse(cardBlob: string): parseCardBlobResult {
         cardBlob = cardBlob.trim();
@@ -27,7 +28,7 @@ export class CardBlobService {
         }
 
         const invalidCards: string[] = [];
-        const cardDict: Dictionary<app.Card> = {};
+        const cardDict: Dictionary<Card> = {};
 
         for (let line of cardBlob.split(/\n[\s\n]*/)) {
             if (/^\/\//.test(line)) {
@@ -56,13 +57,13 @@ export class CardBlobService {
         };
     }
 
-    stringify(cards: app.Card[], invalidCards: string[]): string {
+    stringify(cards: Card[], invalidCards: string[]): string {
         return invalidCards
             .concat(cards.map(card => `${card.quantity}x ${card.definition.name}`))
             .join("\n");
     }
 
-    stringify2(cardViews: app.CardView[], invalidCards: string[]): string {
+    stringify2(cardViews: CardView[], invalidCards: string[]): string {
         const sections = [];
 
         if (hasLength(invalidCards)) {

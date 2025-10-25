@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, Signal } from "@angular/core";
-import * as app from "@app";
+import { DeckManagerService } from "../deck-manager/deck.manager.service";
 
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -14,7 +14,7 @@ export class DeckInfoComponent {
     notes: Signal<string>;
     tagsInput: Signal<string>;
 
-    constructor(private deckManager: app.DeckManagerService) {
+    constructor(private deckManager: DeckManagerService) {
         this.canEdit = computed(() => this.deckManager.state().canEdit);
         this.tags = computed(() => this.deckManager.deck().tags);
         this.notes = computed(() => this.deckManager.deck().notes);

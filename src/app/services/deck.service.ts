@@ -1,40 +1,43 @@
 import { HttpClient } from "@angular/common/http";
 import { inject, Injectable } from "@angular/core";
-import * as app from "@app";
+import { config } from "@config";
+import { ApiDeck, Deck, QueriedDeck, TagState } from "@entities";
 import { noop, Observable, of } from "rxjs";
 import { map } from "rxjs/operators";
+import { CardBlobService } from "./card-blob.service";
+import { LocalStorageService } from "./local-storage.service";
 
 @Injectable({
     providedIn: "root"
 })
 export class DeckService {
 
-    private localStorageService = inject(app.LocalStorageService);
-    private cardBlobService = inject(app.CardBlobService);
+    private localStorageService = inject(LocalStorageService);
+    private cardBlobService = inject(CardBlobService);
     private http = inject(HttpClient);
 
-    private _url = app.config.decksUrl;
+    private _url = config.decksUrl;
 
-    getById(id: string): Observable<app.Deck> {
+    getById(id: string): Observable<Deck> {
         if (id === "new") {
             return of(this.createDefaultDeck());
         }
 
-        return this.http.get<app.ApiDeck>(this._url + "/" + id)
+        return this.http.get<ApiDeck>(this._url + "/" + id)
             .pipe(map(x => this.mapApiDeckToDeck(x)));
     }
 
-    getByQuery(query?): Observable<app.QueriedDeck[]> {
-        return this.http.get<{ results: app.QueriedDeck[] }>(this._url, { params: query })
+    getByQuery(query?): Observable<QueriedDeck[]> {
+        return this.http.get<{ results: QueriedDeck[] }>(this._url, { params: query })
             .pipe(map(response => response.results));
     }
 
-    createDeck(deck: app.Deck): Observable<string> {
+    createDeck(deck: Deck): Observable<string> {
         return this.http.post<{ id: string }>(this._url, this.mapDeckToApiDeck(deck))
             .pipe(map(response => response.id));
     }
 
-    updateDeck(deck: app.Deck): Observable<void> {
+    updateDeck(deck: Deck): Observable<void> {
         let url = this._url + "/" + deck.id;
         return this.http.put(url, this.mapDeckToApiDeck(deck)).pipe(map(noop));
     }
@@ -44,7 +47,7 @@ export class DeckService {
         return this.http.delete(url).pipe(map(noop));
     }
 
-    private mapApiDeckToDeck(apiDeck: app.ApiDeck): app.Deck {
+    private mapApiDeckToDeck(apiDeck: ApiDeck): Deck {
         const cardGroups = {};
         for (let i = 0; i < apiDeck.cardGroups.length; ++i) {
             const parsedCardBlob = this.cardBlobService.parse(apiDeck.cardGroups[i].cardBlob);
@@ -61,7 +64,7 @@ export class DeckService {
         }
     }
 
-    private mapDeckToApiDeck(deck: app.Deck): app.ApiDeck {
+    private mapDeckToApiDeck(deck: Deck): ApiDeck {
         const cardGroups = deck.cardGroupOrder
             .map(key => deck.cardGroups[key])
             .map(cardGroup => {
@@ -82,9 +85,9 @@ export class DeckService {
         };
     }
 
-    private createDefaultDeck(): app.Deck {
+    private createDefaultDeck(): Deck {
         const tags = [] as string[];
-        const tagState = this.localStorageService.getObject<app.TagState>(app.config.localStorage.tags);
+        const tagState = this.localStorageService.getObject<TagState>(config.localStorage.tags);
         if (tagState && tagState.current) {
             tags.push(tagState.current);
         }

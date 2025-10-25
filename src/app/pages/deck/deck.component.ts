@@ -1,7 +1,7 @@
 import { Location } from "@angular/common";
 import { ChangeDetectionStrategy, Component, computed, effect, inject, OnDestroy, signal, Signal, WritableSignal } from "@angular/core";
 import { ActivatedRoute, Router } from "@angular/router";
-import * as app from "@app";
+import { Deck } from "@entities";
 import { Subject } from "rxjs";
 import { distinctUntilChanged, map, takeUntil, tap } from "rxjs/operators";
 import { DeckManagerService } from "./deck-manager/deck.manager.service";
@@ -16,14 +16,14 @@ import { DeckManagerService } from "./deck-manager/deck.manager.service";
 export class DeckComponent implements OnDestroy {
 
     // inject
-    private deckManager = inject(app.DeckManagerService);
+    private deckManager = inject(DeckManagerService);
     private location = inject(Location);
     private router = inject(Router);
     private route = inject(ActivatedRoute);
 
     // state
     canEdit: Signal<boolean>;
-    deck: Signal<app.Deck>;
+    deck: Signal<Deck>;
     isDeleting: Signal<boolean>
     isEditingGroups: Signal<boolean>
     isLoading: Signal<boolean>

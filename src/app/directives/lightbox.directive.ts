@@ -1,5 +1,7 @@
 import { Directive, ElementRef, Input, NgZone, OnInit } from "@angular/core";
-import * as app from "@app";
+import { config } from "@config";
+import { CardDefinition } from "@entities";
+import { createImageUri } from "@utilities";
 
 @Directive({
     selector: "[lightbox]",
@@ -7,7 +9,7 @@ import * as app from "@app";
 })
 export class LightboxDirective implements OnInit {
 
-    @Input() cardDefinition: app.CardDefinition;
+    @Input() cardDefinition: CardDefinition;
     private element: HTMLElement;
 
     constructor(elementRef: ElementRef, private ngZone: NgZone) {
@@ -33,13 +35,13 @@ export class LightboxDirective implements OnInit {
     }
 
     singleSided = () => {
-        const imageUri = app.createImageUri(this.cardDefinition.imageId);
+        const imageUri = createImageUri(this.cardDefinition.imageId);
 
         const lightbox = document.createElement("div");
         lightbox.className = "lightbox";
 
         const img = document.createElement("img");
-        img.src = `${app.config.imagesUrl}/front/${imageUri}`;
+        img.src = `${config.imagesUrl}/front/${imageUri}`;
 
         let width = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
         let height = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
@@ -61,16 +63,16 @@ export class LightboxDirective implements OnInit {
     }
 
     doubleSided = () => {
-        const imageUri = app.createImageUri(this.cardDefinition.imageId);
+        const imageUri = createImageUri(this.cardDefinition.imageId);
 
         const lightbox = document.createElement("div");
         lightbox.className = "lightbox";
 
         const imgFront = document.createElement("img");
-        imgFront.src = `${app.config.imagesUrl}/front/${imageUri}`;
+        imgFront.src = `${config.imagesUrl}/front/${imageUri}`;
 
         const imgBack = document.createElement("img");
-        imgBack.src = `${app.config.imagesUrl}/back/${imageUri}`;
+        imgBack.src = `${config.imagesUrl}/back/${imageUri}`;
 
         let width = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
         let height = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;

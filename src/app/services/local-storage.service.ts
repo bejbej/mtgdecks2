@@ -1,5 +1,5 @@
 import { Injectable } from "@angular/core";
-import * as app from "@app";
+import { config } from "@config";
 import { fromEvent, merge, Observable, Subject } from "rxjs";
 import { distinctUntilChanged, filter, map, shareReplay } from "rxjs/operators";
 
@@ -13,7 +13,7 @@ interface StorageEvent2 {
 })
 export class LocalStorageService {
 
-    private prefix = app.config.localStorage.prefix;
+    private prefix = config.localStorage.prefix;
 
     private storageEvent$: Observable<StorageEvent2>;
 

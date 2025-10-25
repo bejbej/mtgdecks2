@@ -1,10 +1,12 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, signal, Signal, WritableSignal } from "@angular/core";
-import * as app from "@app";
-import { sum } from "@array";
+import { CardGroup, CardView } from "@entities";
+import { CardGrouper, GroupFunc, sum } from "@utilities";
+import { CardBlobService } from "src/app/services/card-blob.service";
+import { DeckManagerService } from "../deck-manager/deck.manager.service";
 
 interface ViewOption {
     name: string;
-    groupFunc: app.GroupFunc;
+    groupFunc: GroupFunc;
 }
 
 @Component({
@@ -19,40 +21,40 @@ export class CardGroupComponent {
     cardGroupId: Signal<number> = input.required<number>();
 
     // Inject
-    private cardBlobService = inject(app.CardBlobService);
-    private deckManager = inject(app.DeckManagerService);
+    private cardBlobService = inject(CardBlobService);
+    private deckManager = inject(DeckManagerService);
 
     // State
-    cardGroup: Signal<app.CardGroup>;
-    cardViews: Signal<app.CardView[]>;
+    cardGroup: Signal<CardGroup>;
+    cardViews: Signal<CardView[]>;
     price: Signal<number>;
     count: Signal<number>;
     cardBlob: Signal<string>;
     canEdit: Signal<boolean>;
     isEditing: Signal<boolean>;
-    groupBy: WritableSignal<app.GroupFunc> = signal(app.CardGrouper.groupByType);
+    groupBy: WritableSignal<GroupFunc> = signal(CardGrouper.groupByType);
     showToolbar: WritableSignal<boolean> = signal(false);
     shouldEdit: WritableSignal<boolean> = signal(false);
 
     viewOptions: ViewOption[] = [{
         name: "Card Type",
-        groupFunc: app.CardGrouper.groupByType
+        groupFunc: CardGrouper.groupByType
     },
     {
         name: "Color",
-        groupFunc: app.CardGrouper.groupByColor
+        groupFunc: CardGrouper.groupByColor
     },
     {
         name: "Mana Value",
-        groupFunc: app.CardGrouper.groupByManaValue
+        groupFunc: CardGrouper.groupByManaValue
     },
     {
         name: "Name",
-        groupFunc: app.CardGrouper.groupByName
+        groupFunc: CardGrouper.groupByName
     },
     {
         name: "Price",
-        groupFunc: app.CardGrouper.groupByPrice
+        groupFunc: CardGrouper.groupByPrice
     }];
 
     // State Tracking
@@ -89,7 +91,7 @@ export class CardGroupComponent {
         this.showToolbar.update(value => !value);
     }
 
-    setGroupBy(groupBy: app.GroupFunc): void {
+    setGroupBy(groupBy: GroupFunc): void {
         this.groupBy.set(groupBy);
         this.showToolbar.update(value => !value);
     }

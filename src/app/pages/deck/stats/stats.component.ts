@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, Signal } from "@angular/core";
-import * as app from "@app";
-import { toDictionary } from "@dictionary";
+import { Card } from "@entities";
+import { toDictionary } from "@utilities";
+import { DeckManagerService } from "../deck-manager/deck.manager.service";
 
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -14,7 +15,7 @@ export class StatsComponent {
 
     private static cardTypes = toDictionary(["creature", "artifact", "enchantment", "planeswalker", "instant", "sorcery"], x => x);
 
-    constructor(private deckManager: app.DeckManagerService) {
+    constructor(private deckManager: DeckManagerService) {
         this.stats = computed(() => {
             const deck = this.deckManager.deck();
             const firstCardGroup = deck.cardGroups[deck.cardGroupOrder[0]];
@@ -22,7 +23,7 @@ export class StatsComponent {
         });
     }
 
-    private computeStats = (cards: app.Card[]): string[] => {
+    private computeStats = (cards: Card[]): string[] => {
         if (!cards) {
             return [];
         }

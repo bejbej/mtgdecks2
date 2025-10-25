@@ -1,7 +1,8 @@
 import { HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from "@angular/common/http";
 import { inject, Injectable } from "@angular/core";
-import * as app from "@app";
+import { config } from "@config";
 import { Observable } from "rxjs";
+import { Identity } from "../services/auth.service";
 import { LocalStorageService } from "../services/local-storage.service";
 
 @Injectable()
@@ -14,7 +15,7 @@ export class AuthInterceptor implements HttpInterceptor {
             return next.handle(request);
         }
 
-        const identity = this.localStorageService.getObject<app.Identity>(app.config.localStorage.identity);
+        const identity = this.localStorageService.getObject<Identity>(config.localStorage.identity);
 
         if (identity === null) {
             return next.handle(request);
@@ -28,6 +29,6 @@ export class AuthInterceptor implements HttpInterceptor {
     }
 
     private isAuthorizationRequired(url: string): boolean {
-        return url.toLowerCase().startsWith(app.config.decksUrl.toLowerCase());
+        return url.toLowerCase().startsWith(config.decksUrl.toLowerCase());
     }
 }

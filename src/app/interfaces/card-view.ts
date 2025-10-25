@@ -1,7 +1,7 @@
-import * as app from "@app";
+import { Card } from "@entities";
 
 export interface CardView {
     name: string;
     numberOfCards: Number;
-    cards: app.Card[];
+    cards: Card[];
 }

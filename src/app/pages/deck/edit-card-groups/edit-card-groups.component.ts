@@ -1,9 +1,9 @@
 import { CdkDragDrop, moveItemInArray } from "@angular/cdk/drag-drop";
 import { ChangeDetectionStrategy, Component, computed, Signal } from "@angular/core";
-import * as app from "@app";
-import { except } from "@array";
-import { toDictionary2 } from "@dictionary";
+import { CardGroup } from "@entities";
 import { Dictionary } from "@types";
+import { except, toDictionary2 } from "@utilities";
+import { DeckManagerService } from "../deck-manager/deck.manager.service";
 
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -13,12 +13,12 @@ import { Dictionary } from "@types";
 })
 export class EditCardGroupsComponent {
 
-    cardGroups: Signal<Dictionary<app.CardGroup>>;
+    cardGroups: Signal<Dictionary<CardGroup>>;
     cardGroupOrder: Signal<number[]>;
 
     selectedGroups: any = {};
 
-    constructor(private deckManager: app.DeckManagerService) {
+    constructor(private deckManager: DeckManagerService) {
         this.cardGroups = computed(() => this.deckManager.deck().cardGroups);
         this.cardGroupOrder = computed(() => this.deckManager.deck().cardGroupOrder);
     }

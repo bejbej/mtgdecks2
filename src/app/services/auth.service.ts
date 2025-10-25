@@ -1,9 +1,10 @@
 import { HttpClient, HttpHeaders } from "@angular/common/http";
 import { inject, Injectable } from "@angular/core";
-import * as app from "@app";
+import { config } from "@config";
 import { AuthConfig, OAuthService } from "angular-oauth2-oidc";
 import { BehaviorSubject, EMPTY, from, Observable, of } from "rxjs";
 import { audit, catchError, delay, distinctUntilKeyChanged, filter, map, shareReplay, startWith, switchMap, tap } from "rxjs/operators";
+import { LocalStorageService } from "./local-storage.service";
 
 export interface Identity {
     sub: string;
@@ -24,7 +25,7 @@ export class AuthService {
 
     private oauthService = inject(OAuthService);
     private http = inject(HttpClient);
-    private localStorageService = inject(app.LocalStorageService);
+    private localStorageService = inject(LocalStorageService);
 
     public user$: Observable<User>;
     public isLoggingIn$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
@@ -33,26 +34,26 @@ export class AuthService {
 
     constructor() {
 
-        this.localStorageService.watchItem(app.config.localStorage.accessToken).pipe(
+        this.localStorageService.watchItem(config.localStorage.accessToken).pipe(
             delay(0),
             switchMap(accessToken => this.getIdentity(accessToken)),
-            tap(identity => this.localStorageService.setObject(app.config.localStorage.identity, identity)),
+            tap(identity => this.localStorageService.setObject(config.localStorage.identity, identity)),
         ).subscribe();
 
-        this.localStorageService.watchObject<Identity>(app.config.localStorage.identity).pipe(
-            startWith(this.localStorageService.getObject<Identity>(app.config.localStorage.identity)),
+        this.localStorageService.watchObject<Identity>(config.localStorage.identity).pipe(
+            startWith(this.localStorageService.getObject<Identity>(config.localStorage.identity)),
             switchMap(identity => this.delayUntilExpiration(identity)),
             audit(() => this.isInitialized),
             tap(() => this.refresh())
         ).subscribe();
 
-        this.localStorageService.watchObject<Identity>(app.config.localStorage.identity).pipe(
+        this.localStorageService.watchObject<Identity>(config.localStorage.identity).pipe(
             filter(identity => identity !== null),
             tap(() => this.isLoggingIn$.next(false))
         ).subscribe();
 
-        this.user$ = this.localStorageService.watchObject<Identity>(app.config.localStorage.identity).pipe(
-            startWith(this.localStorageService.getObject<Identity>(app.config.localStorage.identity)),
+        this.user$ = this.localStorageService.watchObject<Identity>(config.localStorage.identity).pipe(
+            startWith(this.localStorageService.getObject<Identity>(config.localStorage.identity)),
             map(identity => {
                 return {
                     isAuthenticated: identity !== null,
@@ -88,12 +89,12 @@ export class AuthService {
 
     private init(): Promise<boolean> {
         const authConfig: AuthConfig = {
-            issuer: app.config.auth.issuer,
+            issuer: config.auth.issuer,
             strictDiscoveryDocumentValidation: false,
-            clientId: app.config.auth.clientId,
-            redirectUri: app.config.auth.redirectUri,
-            scope: app.config.auth.scope,
-            silentRefreshRedirectUri: app.config.auth.redirectUri,
+            clientId: config.auth.clientId,
+            redirectUri: config.auth.redirectUri,
+            scope: config.auth.scope,
+            silentRefreshRedirectUri: config.auth.redirectUri,
             disableIdTokenTimer: true,
         };
 
@@ -112,7 +113,7 @@ export class AuthService {
             })
         };
 
-        return this.http.post<Identity>(app.config.auth.authUrl, null, options).pipe(
+        return this.http.post<Identity>(config.auth.authUrl, null, options).pipe(
             catchError(() => {
                 this.isLoggingIn$.next(false);
                 this.logOut();

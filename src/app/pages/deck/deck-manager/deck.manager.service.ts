@@ -1,10 +1,12 @@
 import { computed, inject, Injectable, OnDestroy, signal, Signal, WritableSignal } from "@angular/core";
 import { toObservable } from "@angular/core/rxjs-interop";
-import * as app from "@app";
-import { contains } from "@array";
+import { CardGroup, Deck } from "@entities";
 import { Func } from "@types";
+import { contains } from "@utilities";
 import { BehaviorSubject, noop, Observable, of, Subject } from "rxjs";
 import { audit, filter, map, switchMap, takeUntil, tap } from "rxjs/operators";
+import { AuthService, User } from "src/app/services/auth.service";
+import { DeckService } from "src/app/services/deck.service";
 
 export class State {
     canEdit: boolean = false;
@@ -13,20 +15,20 @@ export class State {
     isDirty: boolean = false;
     isNew: boolean = false;
 
-    deck: app.Deck | undefined;
-    user: app.User = new app.User();
+    deck: Deck | undefined;
+    user: User = new User();
 }
 
 @Injectable()
 export class DeckManagerService implements OnDestroy {
 
     // inject
-    private authService = inject(app.AuthService);
-    private deckService = inject(app.DeckService);
+    private authService = inject(AuthService);
+    private deckService = inject(DeckService);
 
     // state
     state: WritableSignal<State> = signal(new State());
-    deck: Signal<app.Deck>;
+    deck: Signal<Deck>;
 
     // events
     private deckId$: Subject<string> = new Subject<string>();
@@ -61,7 +63,7 @@ export class DeckManagerService implements OnDestroy {
         this.deckId$.next(deckId);
     }
 
-    updateDeck(func: Func<app.Deck, app.Deck>): void {
+    updateDeck(func: Func<Deck, Deck>): void {
         this.updateState(prevState => {
             if (prevState.deck === undefined) {
                 return prevState;
@@ -76,7 +78,7 @@ export class DeckManagerService implements OnDestroy {
         });
     }
 
-    patchDeck(deck: Partial<app.Deck>): void {
+    patchDeck(deck: Partial<Deck>): void {
         this.updateDeck(prevDeck => {
             return {
                 ...prevDeck,
@@ -89,7 +91,7 @@ export class DeckManagerService implements OnDestroy {
         this.patchState({ isDeleted: true, isDirty: true });
     }
 
-    updateCardGroup(cardGroupId: number, func: Func<app.CardGroup, app.CardGroup>): void {
+    updateCardGroup(cardGroupId: number, func: Func<CardGroup, CardGroup>): void {
         this.updateDeck(prevDeck => {
             const prevCardGroup = prevDeck.cardGroups[cardGroupId];
             const nextCardGroup = func(prevCardGroup);
@@ -103,7 +105,7 @@ export class DeckManagerService implements OnDestroy {
         })
     }
 
-    patchCardGroup(cardGroupId: number, cardGroup: Partial<app.CardGroup>): void {
+    patchCardGroup(cardGroupId: number, cardGroup: Partial<CardGroup>): void {
         this.updateCardGroup(cardGroupId, prevCardGroup => {
             return {
                 ...prevCardGroup,

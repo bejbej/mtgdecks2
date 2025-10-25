@@ -1,6 +1,8 @@
 import { NgModule } from "@angular/core";
 import { RouterModule, Routes } from "@angular/router";
-import * as app from "@app";
+import { DeckComponent } from "./pages/deck/deck.component";
+import { DecksComponent } from "./pages/decks/decks.component";
+import { NotfoundComponent } from "./pages/not-found/not-found.component";
 
 const routes: Routes = [
   {
@@ -10,15 +12,15 @@ const routes: Routes = [
   },
   {
     path: "decks",
-    component: app.DecksComponent
+    component: DecksComponent
   },
   {
     path: "decks/:id",
-    component: app.DeckComponent
+    component: DeckComponent
   },
   {
     path: "**",
-    component: app.NotfoundComponent,
+    component: NotfoundComponent,
     pathMatch: "full"
   },
 ];

@@ -1,4 +1,3 @@
-import * as app from "@app";
 import { Dictionary } from "@types";
 
 export interface Deck {
@@ -13,7 +12,7 @@ export interface Deck {
 
 export interface CardGroup {
     name: string;
-    cards: app.Card[];
+    cards: Card[];
     invalidCards: string[];
 }
 

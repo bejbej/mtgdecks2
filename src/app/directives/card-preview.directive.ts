@@ -1,5 +1,7 @@
 import { Directive, ElementRef, Input, NgZone, OnDestroy, OnInit } from "@angular/core";
-import * as app from "@app";
+import { config } from "@config";
+import { CardDefinition } from "@entities";
+import { createImageUri } from "@utilities";
 
 @Directive({
     selector: "[card-preview]",
@@ -7,7 +9,7 @@ import * as app from "@app";
 })
 export class CardPreviewDirective implements OnInit, OnDestroy {
 
-    @Input() cardDefinition: app.CardDefinition;
+    @Input() cardDefinition: CardDefinition;
     private element: HTMLElement;
     private img: HTMLImageElement;
 
@@ -28,7 +30,7 @@ export class CardPreviewDirective implements OnInit, OnDestroy {
 
     ngOnInit() {
         this.ngZone.runOutsideAngular(() => {
-            //this.url = `${app.config.imagesUrl}/front/${this.imageUri}.jpg`;
+            //this.url = `${config.imagesUrl}/front/${this.imageUri}.jpg`;
             this.element.addEventListener("mouseover", this.mouseOver);
             this.element.addEventListener("mouseleave", this.mouseLeave);
         });
@@ -43,7 +45,7 @@ export class CardPreviewDirective implements OnInit, OnDestroy {
     }
 
     mouseOver = () => {
-        if (app.config.enableHover) {
+        if (config.enableHover) {
             this.showCardPreview();
         }
     }
@@ -53,7 +55,7 @@ export class CardPreviewDirective implements OnInit, OnDestroy {
     }
 
     showCardPreview = (): void => {
-        const imageUri = app.createImageUri(this.cardDefinition.imageId);
+        const imageUri = createImageUri(this.cardDefinition.imageId);
         let rect = this.element.getBoundingClientRect();
 
         let scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
@@ -66,7 +68,7 @@ export class CardPreviewDirective implements OnInit, OnDestroy {
 
         this.img.style.top = top + scrollTop + "px";
         this.img.style.left = left + scrollLeft + "px";
-        this.img.src = `${app.config.imagesUrl}/front/${imageUri}`;
+        this.img.src = `${config.imagesUrl}/front/${imageUri}`;
     }
 
     hideCardPreview = (): void => {

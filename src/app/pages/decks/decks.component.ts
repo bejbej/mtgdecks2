@@ -1,9 +1,13 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, Signal, WritableSignal } from "@angular/core";
 import { toSignal } from "@angular/core/rxjs-interop";
-import * as app from "@app";
-import { contains, distinct, orderBy, selectMany } from "@array";
+import { config } from "@config";
+import { QueriedDeck, TagState } from "@entities";
+import { contains, distinct, orderBy, selectMany } from "@utilities";
 import { of } from "rxjs";
 import { map, startWith, switchMap } from "rxjs/operators";
+import { AuthService } from "src/app/services/auth.service";
+import { DeckService } from "src/app/services/deck.service";
+import { LocalStorageService } from "src/app/services/local-storage.service";
 
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -13,11 +17,11 @@ import { map, startWith, switchMap } from "rxjs/operators";
 })
 export class DecksComponent {
 
-    private authService = inject(app.AuthService);
-    private deckService = inject(app.DeckService);
-    private localStorageService = inject(app.LocalStorageService);
+    private authService = inject(AuthService);
+    private deckService = inject(DeckService);
+    private localStorageService = inject(LocalStorageService);
 
-    visibleDecks: Signal<app.QueriedDeck[]>;
+    visibleDecks: Signal<QueriedDeck[]>;
     tags: Signal<string[]>;
     currentTag: WritableSignal<string> = signal(null);
     currentTagName: Signal<string>;
@@ -27,7 +31,7 @@ export class DecksComponent {
 
         document.title = "My Decks";
 
-        const tagState = this.localStorageService.getObject<app.TagState>(app.config.localStorage.tags);
+        const tagState = this.localStorageService.getObject<TagState>(config.localStorage.tags);
         if (tagState) {
             this.updateCurrentTag(tagState.current);
         }
@@ -41,12 +45,12 @@ export class DecksComponent {
         const state$ = this.authService.user$.pipe(
             switchMap(user => {
                 if (!user.isAuthenticated) {
-                    return of({ isLoading: false, decks: [] as app.QueriedDeck[] });
+                    return of({ isLoading: false, decks: [] as QueriedDeck[] });
                 }
 
                 return this.deckService.getByQuery({ owner: user.id }).pipe(
                     map(decks => ({ isLoading: false, decks: orderBy(decks, x => x.name) })),
-                    startWith({ isLoading: true, decks: [] as app.QueriedDeck[] })
+                    startWith({ isLoading: true, decks: [] as QueriedDeck[] })
                 );
             })
         );
@@ -68,7 +72,7 @@ export class DecksComponent {
         this.currentTag.set(tag);
     }
 
-    private filterDecks(decks: app.QueriedDeck[], tag: string): app.QueriedDeck[] {
+    private filterDecks(decks: QueriedDeck[], tag: string): QueriedDeck[] {
         switch (tag) {
             case undefined:
                 return decks;
@@ -80,11 +84,11 @@ export class DecksComponent {
     }
 
     private persistTagState(tags: string[], currentTag: string): void {
-        const tagState: app.TagState = {
+        const tagState: TagState = {
             all: tags,
             current: currentTag
         };
 
-        this.localStorageService.setObject(app.config.localStorage.tags, tagState);
+        this.localStorageService.setObject(config.localStorage.tags, tagState);
     }
 }

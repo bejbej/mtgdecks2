@@ -1,10 +1,10 @@
-import * as app from "@app";
-import { sum } from "@array";
+import { Card, CardView } from "@entities";
+import { sum } from "@utilities";
 
-export type GroupFunc = (cards: app.Card[]) => app.CardView[];
+export type GroupFunc = (cards: Card[]) => CardView[];
 
 export class CardGrouper {
-    static groupByType: GroupFunc = (cards: app.Card[]): app.CardView[] => {
+    static groupByType: GroupFunc = (cards: Card[]): CardView[] => {
         return CardGrouper.groupBy(
             ["creature", "artifact", "enchantment", "battle", "planeswalker", "land", "instant", "sorcery", "conspiracy"],
             x => x,
@@ -13,7 +13,7 @@ export class CardGrouper {
         );
     }
 
-    static groupByManaValue: GroupFunc = (cards: app.Card[]): app.CardView[] => {
+    static groupByManaValue: GroupFunc = (cards: Card[]): CardView[] => {
         return CardGrouper.groupBy(
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
             x => x + " drop",
@@ -22,7 +22,7 @@ export class CardGrouper {
         );
     }
 
-    static groupByColor: GroupFunc = (cards: app.Card[]): app.CardView[] => {
+    static groupByColor: GroupFunc = (cards: Card[]): CardView[] => {
         return CardGrouper.groupBy(
             ["white", "blue", "black", "red", "green", "multicolored", "colorless"],
             x => x,
@@ -31,7 +31,7 @@ export class CardGrouper {
         );
     }
 
-    static groupByName: GroupFunc = (cards: app.Card[]): app.CardView[] => {
+    static groupByName: GroupFunc = (cards: Card[]): CardView[] => {
         const sortedCards = cards
             .slice()
             .sort((a, b) => a.definition.name > b.definition.name ? 1 : -1);
@@ -43,7 +43,7 @@ export class CardGrouper {
         }];
     }
 
-    static groupByPrice: GroupFunc = (cards: app.Card[]): app.CardView[] => {
+    static groupByPrice: GroupFunc = (cards: Card[]): CardView[] => {
         const sortedCards = cards
             .slice()
             .sort((a, b) => (a.definition.price || 0) > (b.definition.price || 0) ? 1 : -1);
@@ -58,17 +58,17 @@ export class CardGrouper {
     private static groupBy = (
         keys: any[],
         headerFunc: (key: string) => string,
-        keyFunc: (card: app.Card) => string | number,
-        cards: app.Card[]): app.CardView[] => {
+        keyFunc: (card: Card) => string | number,
+        cards: Card[]): CardView[] => {
 
-        let cardDictionary: { [id: string]: app.Card[] } = cards.reduce((dictionary, card) => {
+        let cardDictionary: { [id: string]: Card[] } = cards.reduce((dictionary, card) => {
             let key = keyFunc(card);
             dictionary[key] = dictionary[key] || [];
             dictionary[key].push(card);
             return dictionary;
         }, {});
 
-        return keys.reduce<app.CardView[]>((array, key) => {
+        return keys.reduce<CardView[]>((array, key) => {
             let cards = cardDictionary[key] || [];
 
             if (cards && cards.length > 0) {

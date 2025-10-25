@@ -27,20 +27,17 @@
       "dom"
     ],
     "paths": {
-      "@app": [
-        "src/app/index"
-      ],
-      "@array": [
-        "src/app/common/array"
-      ],
-      "@dictionary": [
-        "src/app/common/dictionary"
-      ],
-      "@csv": [
-        "src/app/common/csv"
+      "@config": [
+        "src/app/config"
       ],
       "@types": [
         "src/app/common/types"
+      ],
+      "@entities": [
+        "src/app/interfaces/interfaces"
+      ],
+      "@utilities": [
+        "src/app/common/common"
       ]
     },
     "useDefineForClassFields": false

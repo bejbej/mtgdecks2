@@ -1,5 +1,7 @@
 import { Directive, ElementRef, NgZone, OnInit } from "@angular/core";
-import * as app from "@app";
+import { CardDefinition } from "@entities";
+import { getAutocompleteEntries, getCaretCoordinates, Throttle } from "@utilities";
+import { CardDefinitionService } from "../services/card-definition.service";
 
 interface QueryResult {
     query: string;
@@ -16,18 +18,18 @@ export class AutocompleteCardNameDirective implements OnInit {
     element: HTMLTextAreaElement;
     autocompleteDiv: HTMLDivElement;
     isVisible: boolean;
-    cards: app.CardDefinition[];
+    cards: CardDefinition[];
     currentCardNames: string[];
     currentQuery: QueryResult;
     isAutocompleteBoxActive: boolean;
     isInsertingValue: boolean;
-    autocompleteThrottle: app.Throttle = new app.Throttle(100, () => this.computeAutocomplete());
+    autocompleteThrottle: Throttle = new Throttle(100, () => this.computeAutocomplete());
     selectedAutocompleteIndex: number = 0;
 
     readonly minimumNumberOfCharacters: number = 1;
     readonly maximumNumberOfMatches: number = 8;
 
-    constructor(cardDefinitionService: app.CardDefinitionService, elementRef: ElementRef, private ngZone: NgZone) {
+    constructor(cardDefinitionService: CardDefinitionService, elementRef: ElementRef, private ngZone: NgZone) {
         this.cards = cardDefinitionService.getCardArray();
         this.element = elementRef.nativeElement;
     }
@@ -122,7 +124,7 @@ export class AutocompleteCardNameDirective implements OnInit {
         if (result == null || result.query.length < this.minimumNumberOfCharacters) {
             return;
         }
-        let cards = app.getAutocompleteEntries(this.cards, result.query, x => x.name.toLowerCase(), this.maximumNumberOfMatches);
+        let cards = getAutocompleteEntries(this.cards, result.query, x => x.name.toLowerCase(), this.maximumNumberOfMatches);
         if (cards.length == 0) {
             return;
         }
@@ -192,7 +194,7 @@ export class AutocompleteCardNameDirective implements OnInit {
 
     updateAutocompleteLocation() {
         // TODO: cache offsetTop if possible
-        let coordinates = app.getCaretCoordinates(this.element, this.currentQuery.startIndex);
+        let coordinates = getCaretCoordinates(this.element, this.currentQuery.startIndex);
         this.autocompleteDiv.style.cssText = `top: ${this.element.offsetTop + coordinates.top + 20}px; left: ${this.element.offsetLeft + coordinates.left - 10}px;`
     }
 
