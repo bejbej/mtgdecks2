@@ -1,22 +1,22 @@
 @keyframes spinner {
     0% {
-        content: "▙";
+        content: "0";
     }
 
     25% {
-        content: "▛";
+        content: "1";
     }
 
     50% {
-        content: "▜";
+        content: "2";
     }
 
     75% {
-        content: "▟";
+        content: "3";
     }
 
     100% {
-        content: "▙";
+        content: "0";
     }
 }
 
