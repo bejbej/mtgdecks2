@@ -32,7 +32,7 @@ export class DeckComponent implements OnDestroy {
 
     // state
     canEdit: Signal<boolean>;
-    deck: Signal<Deck>;
+    deck: Signal<Deck | undefined>;
     isDeleting: Signal<boolean>
     isEditingGroups: Signal<boolean>
     isLoading: Signal<boolean>
@@ -63,10 +63,10 @@ export class DeckComponent implements OnDestroy {
         this.isEditingGroups = computed(() => this.deckManager.state().canEdit && this.shouldEditGroups());
 
         // Update the page name whenever the deck's name changes
-        const deckName = computed(() => this.deck()?.name);
         effect(() => {
-            if (isDefined(deckName())) {
-                document.title = deckName();
+            const deck = this.deck();
+            if (isDefined(deck)) {
+                document.title = deck.name;
             }
         });
 

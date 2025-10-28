@@ -62,14 +62,14 @@ export class CardBlobService {
     }
 
     stringify2(cardViews: CardView[], invalidCards: string[]): string {
-        const sections = [];
+        const sections = [] as string[];
 
         if (hasLength(invalidCards)) {
             sections.push(invalidCards.join("\n"))
         }
 
         for (let cardView of cardViews) {
-            const section = [];
+            const section = [] as string[];
             if (hasLength(cardView.name)) {
                 section.push(`// ${cardView.name}`);
             }

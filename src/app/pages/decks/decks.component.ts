@@ -6,7 +6,7 @@ import { config } from "@config";
 import { QueriedDeck, TagState } from "@entities";
 import { distinct, hasNoLength, orderBy } from "@utilities";
 import { of } from "rxjs";
-import { map, startWith, switchMap } from "rxjs/operators";
+import { map, switchMap } from "rxjs/operators";
 import { AuthService } from "src/app/services/auth.service";
 import { DeckService } from "src/app/services/deck.service";
 import { LocalStorageService } from "src/app/services/local-storage.service";
@@ -27,7 +27,7 @@ export class DecksComponent {
 
     visibleDecks: Signal<QueriedDeck[]>;
     tags: Signal<string[]>;
-    currentTag: WritableSignal<string> = signal(null);
+    currentTag: WritableSignal<string | null | undefined> = signal(null);
     currentTagName: Signal<string>;
     isLoading: Signal<boolean>;
 
@@ -53,13 +53,12 @@ export class DecksComponent {
                 }
 
                 return this.deckService.getByQuery({ owner: user.id }).pipe(
-                    map(decks => ({ isLoading: false, decks: orderBy(decks, x => x.name) })),
-                    startWith({ isLoading: true, decks: [] as QueriedDeck[] })
+                    map(decks => ({ isLoading: false, decks: orderBy(decks, x => x.name) }))
                 );
             })
         );
 
-        const state = toSignal(state$);
+        const state = toSignal(state$, { initialValue: { isLoading: true, decks: [] } });
         this.isLoading = computed(() => state().isLoading);
         this.visibleDecks = computed(() => this.filterDecks(state().decks, this.currentTag()));
         const deckTags = computed(() => {
@@ -76,7 +75,7 @@ export class DecksComponent {
         this.currentTag.set(tag);
     }
 
-    private filterDecks(decks: QueriedDeck[], tag: string): QueriedDeck[] {
+    private filterDecks(decks: QueriedDeck[], tag: string | null | undefined): QueriedDeck[] {
         switch (tag) {
             case undefined:
                 return decks;
@@ -87,7 +86,7 @@ export class DecksComponent {
         }
     }
 
-    private persistTagState(tags: string[], currentTag: string): void {
+    private persistTagState(tags: string[], currentTag: string | null | undefined): void {
         const tagState: TagState = {
             all: tags,
             current: currentTag

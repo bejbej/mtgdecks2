@@ -22,9 +22,9 @@ export class DeckInfoComponent {
 
     constructor() {
         this.canEdit = computed(() => this.deckManager.state().canEdit);
-        this.tags = computed(() => this.deckManager.deck().tags);
-        this.notes = computed(() => this.deckManager.deck().notes);
-        this.tagsInput = computed(() => this.deckManager.deck().tags.join(", "));
+        this.tags = computed(() => this.deckManager.deck()!.tags);
+        this.notes = computed(() => this.deckManager.deck()!.notes);
+        this.tagsInput = computed(() => this.deckManager.deck()!.tags.join(", "));
     }
 
     updateTags = (tagsInput: string): void => {

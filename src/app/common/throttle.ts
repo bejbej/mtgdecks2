@@ -1,5 +1,5 @@
 export class Throttle {
-    private timeout: number;
+    private timeout: number | undefined;
     private invokeAgain: boolean = false;
 
     constructor(private duration: number, private func: Function) { }

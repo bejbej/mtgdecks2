@@ -17,7 +17,7 @@ export class StatsComponent {
 
     constructor() {
         this.stats = computed(() => {
-            const deck = this.deckManager.deck();
+            const deck = this.deckManager.deck()!;
             const firstCardGroup = deck.cardGroups[deck.cardGroupOrder[0]];
             return this.computeStats(firstCardGroup?.cards ?? []);
         });

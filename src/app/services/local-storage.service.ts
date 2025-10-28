@@ -50,7 +50,7 @@ export class LocalStorageService {
         });
     }
 
-    setItem(key: string, value: string): void {
+    setItem(key: string, value: string | null): void {
         if (isNotDefined(value)) {
             this.removeItem(key);
             return;
@@ -65,7 +65,7 @@ export class LocalStorageService {
         });
     }
 
-    setObject<T>(key: string, object: object): void {
+    setObject<T>(key: string, object: object | null): void {
         if (isNotDefined(object)) {
             this.removeItem(key);
             return;

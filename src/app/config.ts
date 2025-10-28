@@ -24,7 +24,7 @@ export const config = {
 };
 
 (function () {
-    let lastMouseOverEvent: Date = undefined;
+    let lastMouseOverEvent: Date | undefined;
 
     let enableHover = () => {
         if (isNotDefined(lastMouseOverEvent)) {

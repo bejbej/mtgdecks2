@@ -14,6 +14,6 @@ export function orderBy<T>(array: T[], valueSelector: Func<T, string>): T[] {
     return array.toSorted((a, b) => valueSelector(a) > valueSelector(b) ? 1 : -1);
 }
 
-export function sum<T>(array: T[], valueSelector?: Func<T, number>): number {
+export function sum<T>(array: T[], valueSelector: Func<T, number>): number {
     return array.reduce((sum, item) => sum + valueSelector(item), 0);
 }

@@ -1,15 +1,15 @@
 export function hasLength(item: { length: number } | null | undefined): boolean {
-    return item && item.length > 0;
+    return isDefined(item) && item.length > 0;
 }
 
 export function hasNoLength(item: { length: number } | null | undefined): boolean {
-    return !item || item.length === 0;
+    return isNotDefined(item) || item.length === 0;
 }
 
-export function isDefined(x: any): boolean {
-    return x !== null && x !== undefined;
+export function isDefined<T>(item: T | null | undefined): item is T {
+    return item !== null && item !== undefined;
 }
 
-export function isNotDefined(x: any): boolean {
-    return x === null || x === undefined;
+export function isNotDefined<T>(item: T | null | undefined): item is null | undefined {
+    return item === null || item === undefined;
 }

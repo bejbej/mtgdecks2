@@ -28,7 +28,7 @@ export class DeckManagerService implements OnDestroy {
 
     // state
     state: WritableSignal<State> = signal(new State());
-    deck: Signal<Deck>;
+    deck: Signal<Deck | undefined>;
 
     // events
     private deckId$: Subject<string> = new Subject<string>();
@@ -122,8 +122,8 @@ export class DeckManagerService implements OnDestroy {
     private updateState(func: Func<State, State>): void {
         const nextState = func(this.state());
 
-        const isNew = nextState.deck && isNotDefined(nextState.deck.id);
-        const canEdit = isNew || nextState.deck?.owners.includes(nextState.user.id);
+        const isNew = isDefined(nextState.deck) && isNotDefined(nextState.deck.id);
+        const canEdit = isNew || (nextState.deck?.owners ?? []).includes(nextState.user.id);
         const canSave = canEdit && nextState.user.isAuthenticated;
 
         nextState.isNew = isNew;
@@ -159,7 +159,7 @@ export class DeckManagerService implements OnDestroy {
                         ...state.deck,
                         id: id,
                         owners: [state.user.id]
-                    };
+                    } as Deck;
                     this.patchState({ deck, isDirty: false });
                 }),
                 map(noop)

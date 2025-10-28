@@ -63,7 +63,7 @@ export class AutocompleteCardNameDirective implements OnInit {
                 else if (event.key === "Tab") {
                     event.preventDefault();
                     if (this.isVisible) {
-                        this.insertAutocomplete2(this.autocompleteDiv.childNodes[this.selectedAutocompleteIndex].childNodes[1].textContent);
+                        this.insertAutocomplete2(this.autocompleteDiv.childNodes[this.selectedAutocompleteIndex].childNodes[1].textContent!);
                     }
                 }
             });
@@ -100,7 +100,7 @@ export class AutocompleteCardNameDirective implements OnInit {
             entry.addEventListener("mousedown", () => {
                 const clickHandler = () => {
                     window.removeEventListener("click", clickHandler);
-                    this.insertAutocomplete2(entry.childNodes[1].textContent);
+                    this.insertAutocomplete2(entry.childNodes[1].textContent!);
                 };
 
                 window.addEventListener("click", clickHandler);
@@ -201,7 +201,7 @@ export class AutocompleteCardNameDirective implements OnInit {
         }
     }
 
-    getQuery(text: string, index: number): QueryResult {
+    getQuery(text: string, index: number): QueryResult | null {
         let startOfLine = text.lastIndexOf("\n", index - 1) + 1;
         let endOfLine = text.indexOf("\n", index);
         endOfLine = endOfLine == -1 ? text.length : endOfLine;

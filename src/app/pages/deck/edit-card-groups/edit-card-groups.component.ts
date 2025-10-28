@@ -1,6 +1,5 @@
 import { CdkDrag, CdkDragDrop, CdkDragHandle, CdkDragPlaceholder, CdkDropList, moveItemInArray } from "@angular/cdk/drag-drop";
 import { ChangeDetectionStrategy, Component, computed, inject, Signal } from "@angular/core";
-
 import { FormsModule } from "@angular/forms";
 import { CardGroup } from "@entities";
 import { Dictionary } from "@types";
@@ -24,8 +23,8 @@ export class EditCardGroupsComponent {
     selectedGroups: any = {};
 
     constructor() {
-        this.cardGroups = computed(() => this.deckManager.deck().cardGroups);
-        this.cardGroupOrder = computed(() => this.deckManager.deck().cardGroupOrder);
+        this.cardGroups = computed(() => this.deckManager.deck()!.cardGroups);
+        this.cardGroupOrder = computed(() => this.deckManager.deck()!.cardGroupOrder);
     }
 
     updateCardGroupName(cardGroupKey: number, name: string): void {

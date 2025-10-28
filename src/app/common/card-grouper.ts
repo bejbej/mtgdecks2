@@ -38,7 +38,7 @@ export class CardGrouper {
 
         return [{
             name: undefined,
-            numberOfCards: undefined,
+            numberOfCards: 0,
             cards: sortedCards
         }];
     }
@@ -50,7 +50,7 @@ export class CardGrouper {
 
         return [{
             name: undefined,
-            numberOfCards: undefined,
+            numberOfCards: 0,
             cards: sortedCards
         }];
     }

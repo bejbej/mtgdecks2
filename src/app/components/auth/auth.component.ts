@@ -18,8 +18,8 @@ export class AuthComponent {
     isLoggingIn: Signal<boolean>;
 
     constructor() {
-        this.isLoggedIn = toSignal(this.authService.user$.pipe(map(user => user.isAuthenticated)));
-        this.isLoggingIn = toSignal(this.authService.isLoggingIn$);
+        this.isLoggedIn = toSignal(this.authService.user$.pipe(map(user => user.isAuthenticated)), { initialValue: false });
+        this.isLoggingIn = toSignal(this.authService.isLoggingIn$, { initialValue: false });
     }
 
     login(): void {

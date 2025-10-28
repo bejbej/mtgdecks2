@@ -64,12 +64,12 @@ export class CardGroupComponent {
     }];
 
     // State Tracking
-    private prevCardBlob: string = null;
-    private nextCardBlob: string = null;
+    private prevCardBlob: string = "";
+    private nextCardBlob: string = "";
 
     constructor() {
 
-        this.cardGroup = computed(() => this.deckManager.deck().cardGroups[this.cardGroupId()]);
+        this.cardGroup = computed(() => this.deckManager.deck()!.cardGroups[this.cardGroupId()]);
         this.canEdit = computed(() => this.deckManager.state().canEdit);
         this.price = computed(() => sum(this.cardGroup().cards, x => x.quantity * x.definition.price));
         this.count = computed(() => sum(this.cardGroup().cards, x => x.quantity));

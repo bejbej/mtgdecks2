@@ -35,7 +35,7 @@ export class CardDefinitionService {
         });
 
         // Free up memory maybe
-        cardsCSV = undefined;
+        (cardsCSV as any) = undefined;
     }
 
     getCardDictionary = () => this.cardDictionary;

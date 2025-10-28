@@ -22,7 +22,7 @@ export class DebounceDirective implements ControlValueAccessor, OnChanges, OnIni
     onChange: any;
     onTouched: any;
     previousValue: any;
-    timeout: number;
+    timeout: number | undefined;
 
     ngOnInit() {
         this.ngZone.runOutsideAngular(() => {

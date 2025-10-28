@@ -56,7 +56,7 @@ export function getCaretCoordinates(element?, position?, options?) {
     var debug = options && options.debug || false;
     if (debug) {
         var el = document.querySelector('#input-textarea-caret-position-mirror-div');
-        if (el) el.parentNode.removeChild(el);
+        if (el) el.remove();
     }
 
     // The mirror div will replicate the textarea's style
@@ -117,7 +117,7 @@ export function getCaretCoordinates(element?, position?, options?) {
     // The second special handling for input type="text" vs textarea:
     // spaces need to be replaced with non-breaking spaces - http://stackoverflow.com/a/13402035/1269037
     if (isInput)
-        div.textContent = div.textContent.replace(/\s/g, '\u00a0');
+        div.textContent = div.textContent!.replace(/\s/g, '\u00a0');
 
     var span = document.createElement('span');
     // Wrapping must be replicated *exactly*, including when a long word gets

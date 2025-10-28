@@ -1,7 +1,7 @@
 import { Dictionary } from "@types";
 
 export interface Deck {
-    id: string;
+    id: string | undefined;
     name: string;
     cardGroups: Dictionary<number, CardGroup>;
     cardGroupOrder: number[];

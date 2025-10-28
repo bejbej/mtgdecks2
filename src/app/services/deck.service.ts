@@ -80,7 +80,7 @@ export class DeckService {
             notes: deck.notes,
             owners: deck.owners,
             tags: deck.tags,
-            id: deck.id,
+            id: deck.id!,
             cardGroups: cardGroups,
         };
     }
