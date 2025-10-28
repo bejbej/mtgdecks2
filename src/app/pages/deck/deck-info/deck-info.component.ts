@@ -1,12 +1,15 @@
 import { ChangeDetectionStrategy, Component, computed, Signal } from "@angular/core";
 import { hasLength } from "@utilities";
+import { AllowTabsDirective } from "../../../directives/allow-tabs.directive";
+import { AutosizeDirective } from "../../../directives/autosize.directive";
+import { DebounceDirective } from "../../../directives/debounce.directive";
 import { DeckManagerService } from "../deck-manager/deck.manager.service";
 
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
     selector: "app-deck-info",
     templateUrl: "./deck-info.component.html",
-    standalone: false
+    imports: [DebounceDirective, AllowTabsDirective, AutosizeDirective]
 })
 export class DeckInfoComponent {
 

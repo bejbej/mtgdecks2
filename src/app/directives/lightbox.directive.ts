@@ -3,10 +3,7 @@ import { config } from "@config";
 import { CardDefinition } from "@entities";
 import { createImageUri } from "@utilities";
 
-@Directive({
-    selector: "[lightbox]",
-    standalone: false
-})
+@Directive({ selector: "[lightbox]" })
 export class LightboxDirective implements OnInit {
 
     @Input() cardDefinition: CardDefinition;

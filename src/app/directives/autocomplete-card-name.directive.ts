@@ -9,10 +9,7 @@ interface QueryResult {
     endIndex: number;
 }
 
-@Directive({
-    selector: "input[autocomplete-card-name],textarea[autocomplete-card-name]",
-    standalone: false
-})
+@Directive({ selector: "input[autocomplete-card-name],textarea[autocomplete-card-name]" })
 export class AutocompleteCardNameDirective implements OnInit {
 
     element: HTMLTextAreaElement;

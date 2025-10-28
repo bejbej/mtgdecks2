@@ -1,18 +1,26 @@
 import { Location } from "@angular/common";
 import { ChangeDetectionStrategy, Component, computed, effect, inject, OnDestroy, signal, Signal, WritableSignal } from "@angular/core";
-import { ActivatedRoute, Router } from "@angular/router";
+import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { Deck } from "@entities";
 import { isDefined, isNotDefined } from "@utilities";
 import { Subject } from "rxjs";
 import { distinctUntilChanged, map, takeUntil, tap } from "rxjs/operators";
+import { AuthComponent } from "../../components/auth/auth.component";
+import { LargeSpinner } from "../../components/large-spinner/large-spinner.component";
+import { SpinnerComponent } from "../../components/spinner/spinner.component";
+import { DebounceDirective } from "../../directives/debounce.directive";
+import { CardGroupComponent } from "./card-group/card-group.component";
+import { DeckInfoComponent } from "./deck-info/deck-info.component";
 import { DeckManagerService } from "./deck-manager/deck.manager.service";
+import { EditCardGroupsComponent } from "./edit-card-groups/edit-card-groups.component";
+import { StatsComponent } from "./stats/stats.component";
 
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
     providers: [DeckManagerService],
     selector: "app-deck",
     templateUrl: "./deck.component.html",
-    standalone: false
+    imports: [RouterLink, AuthComponent, LargeSpinner, DebounceDirective, SpinnerComponent, EditCardGroupsComponent, CardGroupComponent, DeckInfoComponent, StatsComponent]
 })
 export class DeckComponent implements OnDestroy {
 

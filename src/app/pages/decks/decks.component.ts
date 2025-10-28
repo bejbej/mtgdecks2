@@ -1,5 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, Signal, WritableSignal } from "@angular/core";
 import { toSignal } from "@angular/core/rxjs-interop";
+import { FormsModule } from "@angular/forms";
+import { RouterLink } from "@angular/router";
 import { config } from "@config";
 import { QueriedDeck, TagState } from "@entities";
 import { distinct, hasNoLength, orderBy } from "@utilities";
@@ -8,12 +10,14 @@ import { map, startWith, switchMap } from "rxjs/operators";
 import { AuthService } from "src/app/services/auth.service";
 import { DeckService } from "src/app/services/deck.service";
 import { LocalStorageService } from "src/app/services/local-storage.service";
+import { AuthComponent } from "../../components/auth/auth.component";
+import { LargeSpinner } from "../../components/large-spinner/large-spinner.component";
 
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
     selector: "app-decks",
     templateUrl: "./decks.component.html",
-    standalone: false
+    imports: [FormsModule, AuthComponent, RouterLink, LargeSpinner]
 })
 export class DecksComponent {
 

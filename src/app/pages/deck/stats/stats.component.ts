@@ -5,8 +5,7 @@ import { DeckManagerService } from "../deck-manager/deck.manager.service";
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
     selector: "app-stats",
-    templateUrl: "./stats.component.html",
-    standalone: false
+    templateUrl: "./stats.component.html"
 })
 export class StatsComponent {
 

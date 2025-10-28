@@ -2,12 +2,13 @@ import { ChangeDetectionStrategy, Component, inject, Signal } from "@angular/cor
 import { toSignal } from "@angular/core/rxjs-interop";
 import { map } from "rxjs/operators";
 import { AuthService } from "src/app/services/auth.service";
+import { SpinnerComponent } from "../spinner/spinner.component";
 
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
     selector: "app-auth",
     templateUrl: "./auth.component.html",
-    standalone: false
+    imports: [SpinnerComponent]
 })
 export class AuthComponent {
 

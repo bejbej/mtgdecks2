@@ -1,9 +1,6 @@
 import { Directive, ElementRef, NgZone, OnInit } from "@angular/core";
 
-@Directive({
-    selector: "input[allow-tabs],textarea[allow-tabs]",
-    standalone: false
-})
+@Directive({ selector: "input[allow-tabs],textarea[allow-tabs]" })
 export class AllowTabsDirective implements OnInit {
 
     private element: HTMLTextAreaElement;

@@ -1,7 +1,13 @@
+import { DecimalPipe } from "@angular/common";
 import { ChangeDetectionStrategy, Component, computed, inject, input, signal, Signal, WritableSignal } from "@angular/core";
+import { FormsModule } from "@angular/forms";
 import { CardGroup, CardView } from "@entities";
 import { CardGrouper, GroupFunc, sum } from "@utilities";
 import { CardBlobService } from "src/app/services/card-blob.service";
+import { AutocompleteCardNameDirective } from "../../../directives/autocomplete-card-name.directive";
+import { AutosizeDirective } from "../../../directives/autosize.directive";
+import { DebounceDirective } from "../../../directives/debounce.directive";
+import { CardColumnsComponent } from "../card-columns/card-columns.component";
 import { DeckManagerService } from "../deck-manager/deck.manager.service";
 
 interface ViewOption {
@@ -13,7 +19,7 @@ interface ViewOption {
     changeDetection: ChangeDetectionStrategy.OnPush,
     selector: "app-card-group",
     templateUrl: "./card-group.component.html",
-    standalone: false
+    imports: [FormsModule, CardColumnsComponent, AutocompleteCardNameDirective, AutosizeDirective, DebounceDirective, DecimalPipe]
 })
 export class CardGroupComponent {
 

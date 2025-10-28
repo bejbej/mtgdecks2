@@ -1,15 +1,17 @@
-import { CdkDragDrop, moveItemInArray } from "@angular/cdk/drag-drop";
+import { CdkDrag, CdkDragDrop, CdkDragHandle, CdkDragPlaceholder, CdkDropList, moveItemInArray } from "@angular/cdk/drag-drop";
 import { ChangeDetectionStrategy, Component, computed, Signal } from "@angular/core";
+import { FormsModule } from "@angular/forms";
 import { CardGroup } from "@entities";
 import { Dictionary } from "@types";
 import { except, toDictionary } from "@utilities";
+import { DebounceDirective } from "../../../directives/debounce.directive";
 import { DeckManagerService } from "../deck-manager/deck.manager.service";
 
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
     selector: "edit-card-groups",
     templateUrl: "./edit-card-groups.component.html",
-    standalone: false
+    imports: [CdkDropList, CdkDrag, CdkDragHandle, DebounceDirective, FormsModule, CdkDragPlaceholder]
 })
 export class EditCardGroupsComponent {
 

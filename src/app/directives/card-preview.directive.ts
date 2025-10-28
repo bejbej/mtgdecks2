@@ -3,10 +3,7 @@ import { config } from "@config";
 import { CardDefinition } from "@entities";
 import { createImageUri } from "@utilities";
 
-@Directive({
-    selector: "[card-preview]",
-    standalone: false
-})
+@Directive({ selector: "[card-preview]" })
 export class CardPreviewDirective implements OnInit, OnDestroy {
 
     @Input() cardDefinition: CardDefinition;
