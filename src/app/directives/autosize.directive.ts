@@ -1,15 +1,14 @@
-import { AfterContentInit, Directive, ElementRef, NgZone, OnChanges, OnDestroy, OnInit, SimpleChanges } from "@angular/core";
+import { AfterContentInit, Directive, ElementRef, inject, NgZone, OnChanges, OnDestroy, OnInit, SimpleChanges } from "@angular/core";
 import { isDefined, Throttle } from "@utilities";
 
 @Directive({ selector: 'textarea[autosize]' })
 
 export class AutosizeDirective implements OnInit, OnChanges, AfterContentInit, OnDestroy {
-    adjustThrottle: Throttle = new Throttle(100, () => this.adjust());
-    element: any;
+    private zone = inject(NgZone);
+    private elementRef = inject(ElementRef);
+    private element = this.elementRef.nativeElement;
 
-    constructor(element: ElementRef, private zone: NgZone) {
-        this.element = element.nativeElement;
-    }
+    adjustThrottle: Throttle = new Throttle(100, () => this.adjust());
 
     ngOnInit() {
         this.zone.runOutsideAngular(() => {

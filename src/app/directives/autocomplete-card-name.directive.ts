@@ -1,4 +1,4 @@
-import { Directive, ElementRef, NgZone, OnInit } from "@angular/core";
+import { Directive, ElementRef, inject, NgZone, OnInit } from "@angular/core";
 import { CardDefinition } from "@entities";
 import { getAutocompleteEntries, getCaretCoordinates, isNotDefined, Throttle } from "@utilities";
 import { CardDefinitionService } from "../services/card-definition.service";
@@ -11,25 +11,24 @@ interface QueryResult {
 
 @Directive({ selector: "input[autocomplete-card-name],textarea[autocomplete-card-name]" })
 export class AutocompleteCardNameDirective implements OnInit {
+    private ngZone = inject(NgZone);
+    private cardDefinitionService = inject(CardDefinitionService);
+    private elementRef: ElementRef<HTMLTextAreaElement> = inject(ElementRef);
 
-    element: HTMLTextAreaElement;
-    autocompleteDiv: HTMLDivElement;
-    isVisible: boolean;
-    cards: CardDefinition[];
-    currentCardNames: string[];
-    currentQuery: QueryResult;
-    isAutocompleteBoxActive: boolean;
-    isInsertingValue: boolean;
+    element: HTMLTextAreaElement = this.elementRef.nativeElement;
+    cards: CardDefinition[] = this.cardDefinitionService.getCardArray();
+
+    autocompleteDiv!: HTMLDivElement;
+    isVisible: boolean = false;
+    currentCardNames: string[] = [];
+    currentQuery: QueryResult = { query: "", startIndex: 0, endIndex: 0 };
+    isAutocompleteBoxActive: boolean = false;
+    isInsertingValue: boolean = false;
     autocompleteThrottle: Throttle = new Throttle(100, () => this.computeAutocomplete());
     selectedAutocompleteIndex: number = 0;
 
     readonly minimumNumberOfCharacters: number = 1;
     readonly maximumNumberOfMatches: number = 8;
-
-    constructor(cardDefinitionService: CardDefinitionService, elementRef: ElementRef, private ngZone: NgZone) {
-        this.cards = cardDefinitionService.getCardArray();
-        this.element = elementRef.nativeElement;
-    }
 
     ngOnInit() {
         this.ngZone.runOutsideAngular(() => {

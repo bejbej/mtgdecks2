@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, Signal } from "@angular/core";
+import { ChangeDetectionStrategy, Component, computed, Signal, inject } from "@angular/core";
 import { Card } from "@entities";
 import { DeckManagerService } from "../deck-manager/deck.manager.service";
 
@@ -8,12 +8,14 @@ import { DeckManagerService } from "../deck-manager/deck.manager.service";
     templateUrl: "./stats.component.html"
 })
 export class StatsComponent {
+    private deckManager = inject(DeckManagerService);
+
 
     stats: Signal<string[]>;
 
     private cardTypes = new Set(["creature", "artifact", "enchantment", "planeswalker", "instant", "sorcery"]);
 
-    constructor(private deckManager: DeckManagerService) {
+    constructor() {
         this.stats = computed(() => {
             const deck = this.deckManager.deck();
             const firstCardGroup = deck.cardGroups[deck.cardGroupOrder[0]];

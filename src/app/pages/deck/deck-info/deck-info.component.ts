@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, Signal } from "@angular/core";
+import { ChangeDetectionStrategy, Component, computed, Signal, inject } from "@angular/core";
 import { hasLength } from "@utilities";
 import { AllowTabsDirective } from "../../../directives/allow-tabs.directive";
 import { AutosizeDirective } from "../../../directives/autosize.directive";
@@ -12,13 +12,15 @@ import { DeckManagerService } from "../deck-manager/deck.manager.service";
     imports: [DebounceDirective, AllowTabsDirective, AutosizeDirective]
 })
 export class DeckInfoComponent {
+    private deckManager = inject(DeckManagerService);
+
 
     canEdit: Signal<boolean>;
     tags: Signal<string[]>;
     notes: Signal<string>;
     tagsInput: Signal<string>;
 
-    constructor(private deckManager: DeckManagerService) {
+    constructor() {
         this.canEdit = computed(() => this.deckManager.state().canEdit);
         this.tags = computed(() => this.deckManager.deck().tags);
         this.notes = computed(() => this.deckManager.deck().notes);

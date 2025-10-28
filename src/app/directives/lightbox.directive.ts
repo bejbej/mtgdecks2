@@ -1,17 +1,15 @@
-import { Directive, ElementRef, Input, NgZone, OnInit } from "@angular/core";
+import { Directive, ElementRef, NgZone, OnInit, inject, input } from "@angular/core";
 import { config } from "@config";
 import { CardDefinition } from "@entities";
 import { createImageUri } from "@utilities";
 
 @Directive({ selector: "[lightbox]" })
 export class LightboxDirective implements OnInit {
+    private ngZone = inject(NgZone);
+    private elemetRef: ElementRef<HTMLElement> = inject(ElementRef);
+    private element = this.elemetRef.nativeElement;
 
-    @Input() cardDefinition: CardDefinition;
-    private element: HTMLElement;
-
-    constructor(elementRef: ElementRef, private ngZone: NgZone) {
-        this.element = elementRef.nativeElement;
-    }
+    readonly cardDefinition = input.required<CardDefinition>();
 
     ngOnInit() {
         this.ngZone.runOutsideAngular(() => {
@@ -23,7 +21,7 @@ export class LightboxDirective implements OnInit {
     }
 
     showLightbox = () => {
-        if (this.cardDefinition.isDoubleSided) {
+        if (this.cardDefinition().isDoubleSided) {
             this.doubleSided();
         }
         else {
@@ -32,7 +30,7 @@ export class LightboxDirective implements OnInit {
     }
 
     singleSided = () => {
-        const imageUri = createImageUri(this.cardDefinition.imageId);
+        const imageUri = createImageUri(this.cardDefinition().imageId);
 
         const lightbox = document.createElement("div");
         lightbox.className = "lightbox";
@@ -60,7 +58,7 @@ export class LightboxDirective implements OnInit {
     }
 
     doubleSided = () => {
-        const imageUri = createImageUri(this.cardDefinition.imageId);
+        const imageUri = createImageUri(this.cardDefinition().imageId);
 
         const lightbox = document.createElement("div");
         lightbox.className = "lightbox";

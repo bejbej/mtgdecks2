@@ -1,4 +1,4 @@
-import { Directive, ElementRef, EventEmitter, forwardRef, Input, NgZone, OnChanges, OnInit, Output } from "@angular/core";
+import { Directive, ElementRef, EventEmitter, forwardRef, inject, input, NgZone, OnChanges, OnInit, Output } from "@angular/core";
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from "@angular/forms";
 
 export const DEFAULT_VALUE_ACCESSOR: any = {
@@ -12,17 +12,17 @@ export const DEFAULT_VALUE_ACCESSOR: any = {
     providers: [DEFAULT_VALUE_ACCESSOR]
 })
 export class DebounceDirective implements ControlValueAccessor, OnChanges, OnInit {
+    private element = inject(ElementRef);
+    private ngZone = inject(NgZone);
 
-    @Input() debounce: number;
-    @Input() value: any;
+    readonly debounce = input.required<number>();
+    readonly value = input<any>();
     @Output() valueChange: EventEmitter<any> = new EventEmitter<any>();
     isDirty: boolean = false;
     onChange: any;
     onTouched: any;
     previousValue: any;
     timeout: number;
-
-    constructor(private element: ElementRef, private ngZone: NgZone) { }
 
     ngOnInit() {
         this.ngZone.runOutsideAngular(() => {
@@ -32,8 +32,8 @@ export class DebounceDirective implements ControlValueAccessor, OnChanges, OnIni
     }
 
     ngOnChanges() {
-        this.previousValue = this.value;
-        this.element.nativeElement.value = this.value;
+        this.previousValue = this.value();
+        this.element.nativeElement.value = this.value();
         this.clearTimeout();
     }
 
@@ -62,7 +62,7 @@ export class DebounceDirective implements ControlValueAccessor, OnChanges, OnIni
         this.timeout = window.setTimeout(() => {
             delete this.timeout;
             this.updateValue();
-        }, this.debounce || 0);
+        }, this.debounce() || 0);
     }
 
     private flush = () => {

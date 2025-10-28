@@ -1,5 +1,6 @@
 import { CdkDrag, CdkDragDrop, CdkDragHandle, CdkDragPlaceholder, CdkDropList, moveItemInArray } from "@angular/cdk/drag-drop";
-import { ChangeDetectionStrategy, Component, computed, Signal } from "@angular/core";
+import { ChangeDetectionStrategy, Component, computed, inject, Signal } from "@angular/core";
+
 import { FormsModule } from "@angular/forms";
 import { CardGroup } from "@entities";
 import { Dictionary } from "@types";
@@ -14,13 +15,15 @@ import { DeckManagerService } from "../deck-manager/deck.manager.service";
     imports: [CdkDropList, CdkDrag, CdkDragHandle, DebounceDirective, FormsModule, CdkDragPlaceholder]
 })
 export class EditCardGroupsComponent {
+    private deckManager = inject(DeckManagerService);
+
 
     cardGroups: Signal<Dictionary<number, CardGroup>>;
     cardGroupOrder: Signal<number[]>;
 
     selectedGroups: any = {};
 
-    constructor(private deckManager: DeckManagerService) {
+    constructor() {
         this.cardGroups = computed(() => this.deckManager.deck().cardGroups);
         this.cardGroupOrder = computed(() => this.deckManager.deck().cardGroupOrder);
     }

@@ -1,18 +1,19 @@
-import { Directive, ElementRef, Input, NgZone, OnDestroy, OnInit } from "@angular/core";
+import { Directive, ElementRef, NgZone, OnDestroy, OnInit, inject, input } from "@angular/core";
 import { config } from "@config";
 import { CardDefinition } from "@entities";
 import { createImageUri } from "@utilities";
 
 @Directive({ selector: "[card-preview]" })
 export class CardPreviewDirective implements OnInit, OnDestroy {
+    private ngZone = inject(NgZone);
+    private elementRef: ElementRef<HTMLElement> = inject(ElementRef);
+    private element = this.elementRef.nativeElement
 
-    @Input() cardDefinition: CardDefinition;
-    private element: HTMLElement;
-    private img: HTMLImageElement;
+    readonly cardDefinition = input.required<CardDefinition>();
+    private img!: HTMLImageElement;
 
-    constructor(elementRef: ElementRef, private ngZone: NgZone) {
+    constructor() {
         this.ngZone.runOutsideAngular(() => {
-            this.element = elementRef.nativeElement;
             this.img = <HTMLImageElement>document.getElementById("card-preview");
 
             if (!this.img) {
@@ -27,7 +28,6 @@ export class CardPreviewDirective implements OnInit, OnDestroy {
 
     ngOnInit() {
         this.ngZone.runOutsideAngular(() => {
-            //this.url = `${config.imagesUrl}/front/${this.imageUri}.jpg`;
             this.element.addEventListener("mouseover", this.mouseOver);
             this.element.addEventListener("mouseleave", this.mouseLeave);
         });
@@ -52,7 +52,7 @@ export class CardPreviewDirective implements OnInit, OnDestroy {
     }
 
     showCardPreview = (): void => {
-        const imageUri = createImageUri(this.cardDefinition.imageId);
+        const imageUri = createImageUri(this.cardDefinition().imageId);
         let rect = this.element.getBoundingClientRect();
 
         let scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;

@@ -1,13 +1,10 @@
-import { Directive, ElementRef, NgZone, OnInit } from "@angular/core";
+import { Directive, ElementRef, NgZone, OnInit, inject } from "@angular/core";
 
 @Directive({ selector: "input[allow-tabs],textarea[allow-tabs]" })
 export class AllowTabsDirective implements OnInit {
-
-    private element: HTMLTextAreaElement;
-
-    constructor(elementRef: ElementRef, private ngZone: NgZone) {
-        this.element = elementRef.nativeElement;
-    }
+    private ngZone = inject(NgZone);
+    private elementRef: ElementRef<HTMLTextAreaElement> = inject(ElementRef);
+    private element = this.elementRef.nativeElement;
 
     ngOnInit() {
         this.ngZone.runOutsideAngular(() => {
