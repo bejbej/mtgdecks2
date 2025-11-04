@@ -10,16 +10,16 @@
       </button>
     </div>
     <div class="card-group-edit-container margin-top" cdkDropList (cdkDropListDropped)="drop($event)">
-      @for (cardGroupKey of cardGroupOrder(); track cardGroupKey; let i = $index) {
+      @for (cardGroup of deck().cardGroups(); track cardGroup) {
         <div class="card-group-edit flex" cdkDrag cdkDragLockAxis="y" cdkDragBoundary=".card-group-edit-container">
           <div class="drag-handle" cdkDragHandle>⣿</div>
           <input class="name"
             type="text"
-            [value]="cardGroups()[cardGroupKey].name"
-            (valueChange)="updateCardGroupName(cardGroupKey, $event)"
+            [value]="cardGroup.name()"
+            (valueChange)="cardGroup.name.set($event)"
             [debounce]="2000" />
-          <div class="check" (click)="selectedGroups[cardGroupKey] = !selectedGroups[cardGroupKey]" style="display:flex;align-items: center; justify-content: center;">
-            <input type="checkbox" [(ngModel)]="selectedGroups[cardGroupKey]" />
+          <div class="check" (click)="toggleSelected(cardGroup)" style="display:flex;align-items: center; justify-content: center;">
+            <input type="checkbox" [value]="selectedGroups.get(cardGroup)" />
           </div>
           <div *cdkDragPlaceholder class="card-group-edit-placeholder">
             <input type="text">

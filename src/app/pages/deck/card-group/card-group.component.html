@@ -1,73 +1,74 @@
-@if (!isEditing()) {
-  <header class="flex-lte-xs padding-h-lte-sm">
-    <button class="header-button text-left-gte-sm" (click)="toggleToolbar()">
-      <div>
-        {{cardGroup().name}}
-        @if (cardGroup().cards.length > 0) {
-          <span class="icon">{{showToolbar() ? "7" : "4"}}</span>
-        }
+
+@if (cardGroup(); as cardGroup) {
+  @if (isEditing()) {
+    <header class="flex-lte-xs padding-h-lte-sm">
+      <button class="header-button text-left-gte-sm" (click)="applyChanges()">
+        <div>
+          {{cardGroup.name()}}
+          @if (cardGroup.cards.length > 0) {
+            <span class="icon">{{showToolbar() ? "7" : "4"}}</span>
+          }
+        </div>
+        <div class="small light">
+          {{count()}} cards
+          <span class="price">&#8226; ${{price() | number:'1.2-2'}}</span>
+        </div>
+      </button>
+      <span class="tab">Edit</span>
+    </header>
+    <form>
+      <div class="margin">
+        <textarea class="border round"
+          name="cardBlob"
+          placeholder="4x Island"
+          [value]="cardBlob()"
+          (valueChange)="updateCardBlob($event)"
+          [debounce]="2000"
+          autocomplete-card-name
+          autosize></textarea>
+        <div class="flex-lte-xs flex-padding margin-top">
+          <button class="btn btn-default round" (click)="applyChanges()">Apply Changes</button>
+          <button class="btn btn-default round" (click)="discardChanges()">Discard Changes</button>
+        </div>
       </div>
-      <div class="small light">
-        {{count()}} cards
-        <span class="price">&#8226; ${{price() | number:'1.2-2' }}</span>
-      </div>
-    </button>
-    @if (canEdit()) {
-      <button class="header-button" (click)="startEditing()">Edit</button>
-    }
-  </header>
-  <form [hidden]="cardGroup().cards.length === 0 || !showToolbar()">
-    <div class="radio-group">
-      @for (viewOption of viewOptions; track viewOption) {
-        <label>
-          <input type="radio" name="view" [value]="viewOption.groupFunc" [ngModel]="groupBy()" (ngModelChange)="setGroupBy($event)"/>
-          {{viewOption.name}}
-        </label>
-      }
-    </div>
-  </form>
-  @if (cardGroup().invalidCards.length > 0) {
-    <div class="alert alert-danger margin">
-      <p class="alert-title">Unknown Cards</p>
-      @for (card of cardGroup().invalidCards; track card) {
-        <span>{{card}}<br></span>
-      }
-    </div>
+    </form>
   }
-  <app-card-view [cardViews]="cardViews()"></app-card-view>
-}
-
-@if (isEditing()) {
-  <header class="flex-lte-xs padding-h-lte-sm">
-    <button class="header-button text-left-gte-sm" (click)="applyChanges()">
-      <div>
-        {{cardGroup().name}}
-        @if (cardGroup().cards.length > 0) {
-          <span class="icon">{{showToolbar() ? "7" : "4"}}</span>
+  @else {
+    <header class="flex-lte-xs padding-h-lte-sm">
+      <button class="header-button text-left-gte-sm" (click)="toggleToolbar()">
+        <div>
+          {{cardGroup.name()}}
+          @if (cardGroup.cards.length > 0) {
+            <span class="icon">{{showToolbar() ? "7" : "4"}}</span>
+          }
+        </div>
+        <div class="small light">
+          {{count()}} cards
+          <span class="price">&#8226; ${{price() | number:'1.2-2' }}</span>
+        </div>
+      </button>
+      @if (canEdit()) {
+        <button class="header-button" (click)="startEditing()">Edit</button>
+      }
+    </header>
+    <form [hidden]="cardGroup.cards.length === 0 || !showToolbar()">
+      <div class="radio-group">
+        @for (viewOption of viewOptions; track viewOption) {
+          <label>
+            <input type="radio" name="view" [value]="viewOption.groupFunc" [ngModel]="groupBy()" (ngModelChange)="setGroupBy($event)"/>
+            {{viewOption.name}}
+          </label>
         }
       </div>
-      <div class="small light">
-        {{count()}} cards
-        <span class="price">&#8226; ${{price() | number:'1.2-2'}}</span>
+    </form>
+    @if (cardGroup.invalidCards().length > 0) {
+      <div class="alert alert-danger margin">
+        <p class="alert-title">Unknown Cards</p>
+        @for (card of cardGroup.invalidCards(); track card) {
+          <span>{{card}}<br></span>
+        }
       </div>
-    </button>
-    <span class="tab">Edit</span>
-  </header>
-  <form>
-    <div class="margin">
-      <textarea class="border round"
-        name="cardBlob"
-        placeholder="4x Island"
-        [value]="cardBlob()"
-        (valueChange)="updateCardBlob($event)"
-        [debounce]="2000"
-        autocomplete-card-name
-        autosize></textarea>
-      <div class="flex-lte-xs flex-padding margin-top">
-        <button class="btn btn-default round" (click)="applyChanges()">Apply Changes</button>
-        <button class="btn btn-default round" (click)="discardChanges()">Discard Changes</button>
-      </div>
-    </div>
-  </form>
+    }
+    <app-card-view [cardViews]="cardViews()"></app-card-view>
+  }
 }
-

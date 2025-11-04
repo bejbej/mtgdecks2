@@ -1,5 +1,6 @@
 import { HttpClient, HttpHeaders } from "@angular/common/http";
-import { inject, Injectable } from "@angular/core";
+import { inject, Injectable, Signal } from "@angular/core";
+import { toSignal } from "@angular/core/rxjs-interop";
 import { config } from "@config";
 import { isDefined, isNotDefined } from "@utilities";
 import { AuthConfig, OAuthService } from "angular-oauth2-oidc";
@@ -29,6 +30,7 @@ export class AuthService {
     private localStorageService = inject(LocalStorageService);
 
     public user$: Observable<User>;
+    public user: Signal<User>;
     public isLoggingIn$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
 
     private isInitialized: Observable<boolean>;
@@ -64,6 +66,8 @@ export class AuthService {
             distinctUntilKeyChanged("id"),
             shareReplay()
         );
+
+        this.user = toSignal(this.user$, { initialValue: new User() })
 
         this.oauthService.events.subscribe(event => {
             console.log(event);

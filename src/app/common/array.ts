@@ -17,3 +17,7 @@ export function orderBy<T>(array: T[], valueSelector: Func<T, string>): T[] {
 export function sum<T>(array: T[], valueSelector: Func<T, number>): number {
     return array.reduce((sum, item) => sum + valueSelector(item), 0);
 }
+
+export function firstOrUndefined<T>(array: T[]): T | undefined {
+    return array[0];
+}

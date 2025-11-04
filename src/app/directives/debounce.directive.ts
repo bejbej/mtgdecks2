@@ -1,4 +1,4 @@
-import { Directive, ElementRef, EventEmitter, forwardRef, inject, input, NgZone, OnChanges, OnInit, Output } from "@angular/core";
+import { Directive, ElementRef, forwardRef, inject, input, NgZone, OnChanges, OnInit, output } from "@angular/core";
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from "@angular/forms";
 
 export const DEFAULT_VALUE_ACCESSOR: any = {
@@ -17,7 +17,8 @@ export class DebounceDirective implements ControlValueAccessor, OnChanges, OnIni
 
     readonly debounce = input.required<number>();
     readonly value = input<any>();
-    @Output() valueChange: EventEmitter<any> = new EventEmitter<any>();
+    readonly valueChange = output<string>();
+
     isDirty: boolean = false;
     onChange: any;
     onTouched: any;

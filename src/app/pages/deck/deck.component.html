@@ -1,4 +1,4 @@
-<main class="{{showPrices() ? 'show-prices' : 'hide-prices'}}">
+<main class="{{isPriceVisible() ? 'show-prices' : 'hide-prices'}}">
   <nav>
     <a routerLink="/decks">My Decks</a>
     <div class="pull-right">
@@ -9,66 +9,67 @@
   @if (isLoading()) {
     <app-large-spinner></app-large-spinner>
   }
-
-  @if (deck(); as deck) {
-    <div>
-      <section>
-        <header class="deck-info">
-          @if (canEdit()) {
-            <input class="deck-name-input"
-              type="text"
-              [value]="deck.name"
-              (valueChange)="updateName($event)"
-              [debounce]="2000" />
-          }
-          @else {
-            <div class="deck-name">{{deck.name}}</div>
-          }
-          <div class="flex-lte-xs flex-padding deck-actions margin-top">
-            <button class="btn btn-default round" (click)="togglePrices()">
-              Toggle <br class="hidden-gte-sm"> Prices
-            </button>
+  @else {
+    @if (deck(); as deck) {
+      <div>
+        <section>
+          <header class="deck-info">
             @if (canEdit()) {
-              <button class="btn btn-default round" (click)="toggleEditGroups()">
-                <span>Toggle<br class="hidden-gte-sm"> Groups</span>
-              </button>
+              <input class="deck-name-input"
+                type="text"
+                [value]="deck.name()"
+                (valueChange)="deck.name.set($event)"
+                [debounce]="2000" />
             }
-            @if (canEdit() && deck.id && !isDeleting()) {
-              <button class="btn btn-default round" (click)="delete()">
-                  <span>Delete<br class="hidden-gte-sm"> this Deck</span>
-              </button>
+            @else {
+              <div class="deck-name">{{deck.name()}}</div>
             }
-            @else if (isDeleting()) {
-              <button class="btn-btn-default round" disabled>
-                Deleting
-                <app-spinner></app-spinner>
+            <div class="flex-lte-xs flex-padding deck-actions margin-top">
+              <button class="btn btn-default round" (click)="togglePrices()">
+                Toggle <br class="hidden-gte-sm"> Prices
               </button>
+              @if (canEdit()) {
+                <button class="btn btn-default round" (click)="toggleEditGroups()">
+                  <span>Toggle<br class="hidden-gte-sm"> Groups</span>
+                </button>
+              }
+              @if (canDelete()) {
+                <button class="btn btn-default round" (click)="delete()">
+                    <span>Delete<br class="hidden-gte-sm"> this Deck</span>
+                </button>
+              }
+              @else if (isDeleting()) {
+                <button class="btn btn-default round" disabled>
+                  Deleting
+                  <app-spinner></app-spinner>
+                </button>
+              }
+            </div>
+          </header>
+        </section>
+        <section class="flex-gte-md">
+          <div class="flex-2">
+            @if (isEditingGroups()) {
+              <edit-card-groups></edit-card-groups>
+            }
+            @else {
+              @for (cardGroup of deck.cardGroups(); track cardGroup) {
+                <app-card-group [cardGroup]="cardGroup"></app-card-group>
+              }
             }
           </div>
-        </header>
-      </section>
-      <section class="flex-gte-md">
-        <div class="flex-2">
-          @if (isEditingGroups()) {
-            <edit-card-groups></edit-card-groups>
-          }
-          @else {
-            @for (cardGroupId of deck.cardGroupOrder; track cardGroupId) {
-              <app-card-group [cardGroupId]="cardGroupId"></app-card-group>
-            }
-          }
-        </div>
-        <div class="border-left-gte-md">
-          <section>
-            <header class="padding">Notes</header>
-            <app-deck-info></app-deck-info>
-          </section>
-          <section>
-            <header class="padding">Stats</header>
-            <app-stats></app-stats>
-          </section>
-        </div>
-      </section>
-    </div>
+          <div class="border-left-gte-md">
+            <section>
+              <header class="padding">Notes</header>
+              <app-deck-info></app-deck-info>
+            </section>
+            <section>
+              <header class="padding">Stats</header>
+              <app-stats></app-stats>
+            </section>
+          </div>
+        </section>
+      </div>
+    }
   }
 </main>

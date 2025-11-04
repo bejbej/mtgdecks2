@@ -1,14 +1,15 @@
 import { DecimalPipe } from "@angular/common";
-import { ChangeDetectionStrategy, Component, computed, inject, input, signal, Signal, WritableSignal } from "@angular/core";
+import { ChangeDetectionStrategy, Component, computed, inject, input, OnInit, signal, Signal, WritableSignal } from "@angular/core";
 import { FormsModule } from "@angular/forms";
-import { CardGroup, CardView } from "@entities";
-import { CardGrouper, GroupFunc, sum } from "@utilities";
+import { CardView } from "@entities";
+import { CardGrouper, GroupFunc, hasNoLength, sum } from "@utilities";
 import { CardBlobService } from "src/app/services/card-blob.service";
 import { AutocompleteCardNameDirective } from "../../../directives/autocomplete-card-name.directive";
 import { AutosizeDirective } from "../../../directives/autosize.directive";
 import { DebounceDirective } from "../../../directives/debounce.directive";
 import { CardColumnsComponent } from "../card-columns/card-columns.component";
 import { DeckManagerService } from "../deck-manager/deck.manager.service";
+import { MutableCardGroup } from "../deck-manager/mutable-deck";
 
 interface ViewOption {
     name: string;
@@ -21,22 +22,21 @@ interface ViewOption {
     templateUrl: "./card-group.component.html",
     imports: [FormsModule, CardColumnsComponent, AutocompleteCardNameDirective, AutosizeDirective, DebounceDirective, DecimalPipe]
 })
-export class CardGroupComponent {
+export class CardGroupComponent implements OnInit {
 
     // Input
-    cardGroupId: Signal<number> = input.required<number>();
+    cardGroup: Signal<MutableCardGroup> = input.required<MutableCardGroup>();
 
     // Inject
     private cardBlobService = inject(CardBlobService);
     private deckManager = inject(DeckManagerService);
 
     // State
-    cardGroup: Signal<CardGroup>;
     cardViews: Signal<CardView[]>;
     price: Signal<number>;
     count: Signal<number>;
     cardBlob: Signal<string>;
-    canEdit: Signal<boolean>;
+    canEdit: Signal<boolean> = this.deckManager.canEdit;
     isEditing: Signal<boolean>;
     groupBy: WritableSignal<GroupFunc> = signal(CardGrouper.groupByType);
     showToolbar: WritableSignal<boolean> = signal(false);
@@ -69,26 +69,29 @@ export class CardGroupComponent {
 
     constructor() {
 
-        this.cardGroup = computed(() => this.deckManager.deck()!.cardGroups[this.cardGroupId()]);
-        this.canEdit = computed(() => this.deckManager.state().canEdit);
-        this.price = computed(() => sum(this.cardGroup().cards, x => x.quantity * x.definition.price));
-        this.count = computed(() => sum(this.cardGroup().cards, x => x.quantity));
+        this.price = computed(() => sum(this.cardGroup().cards(), x => x.quantity * x.definition.price));
+        this.count = computed(() => sum(this.cardGroup().cards(), x => x.quantity));
 
         this.cardViews = computed(() => {
-            const cardGroup = this.cardGroup();
             const groupBy = this.groupBy();
-            return groupBy(cardGroup.cards);
+            const cards = this.cardGroup().cards();
+            return groupBy(cards);
         });
 
         this.cardBlob = computed(() => {
-            const cardGroup = this.cardGroup();
             const cardViews = this.cardViews();
-            return this.cardBlobService.stringify2(cardViews, cardGroup.invalidCards);
+            const invalidCards = this.cardGroup().invalidCards();
+            return this.cardBlobService.stringify2(cardViews, invalidCards);
         });
 
         this.isEditing = computed(() => this.canEdit() && this.shouldEdit());
+    }
 
-        if (this.deckManager.state().isNew && !this.deckManager.state().isDirty) {
+    ngOnInit(): void {
+        const shouldInitiallyEdit = this.deckManager.isNew() &&
+            hasNoLength(this.cardGroup().cards()) &&
+            hasNoLength(this.cardGroup().invalidCards());
+        if (shouldInitiallyEdit) {
             this.shouldEdit.set(true);
         }
     }
@@ -118,8 +121,9 @@ export class CardGroupComponent {
             return;
         }
 
-        const parsedCards = this.cardBlobService.parse(this.nextCardBlob);
-        this.deckManager.patchCardGroup(this.cardGroupId(), parsedCards);
+        const { cards, invalidCards } = this.cardBlobService.parse(this.nextCardBlob);
+        this.cardGroup().cards.set(cards);
+        this.cardGroup().invalidCards.set(invalidCards);
     }
 
     discardChanges() {

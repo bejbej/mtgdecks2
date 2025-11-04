@@ -1,9 +1,10 @@
-import { ChangeDetectionStrategy, Component, computed, Signal, inject } from "@angular/core";
+import { ChangeDetectionStrategy, Component, computed, inject, Signal } from "@angular/core";
 import { hasLength } from "@utilities";
 import { AllowTabsDirective } from "../../../directives/allow-tabs.directive";
 import { AutosizeDirective } from "../../../directives/autosize.directive";
 import { DebounceDirective } from "../../../directives/debounce.directive";
 import { DeckManagerService } from "../deck-manager/deck.manager.service";
+import { MutableDeck } from "../deck-manager/mutable-deck";
 
 @Component({
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -14,25 +15,18 @@ import { DeckManagerService } from "../deck-manager/deck.manager.service";
 export class DeckInfoComponent {
     private deckManager = inject(DeckManagerService);
 
+    deck: Signal<MutableDeck> = this.deckManager.deck;
+    canEdit: Signal<boolean> = this.deckManager.canEdit;
+    tags: Signal<string[]> = computed(() => this.deckManager.deck().tags());
+    notes: Signal<string> = computed(() => this.deckManager.deck().notes());
+    tagsInput: Signal<string> = computed(() => this.tags().join(", "));
 
-    canEdit: Signal<boolean>;
-    tags: Signal<string[]>;
-    notes: Signal<string>;
-    tagsInput: Signal<string>;
-
-    constructor() {
-        this.canEdit = computed(() => this.deckManager.state().canEdit);
-        this.tags = computed(() => this.deckManager.deck()!.tags);
-        this.notes = computed(() => this.deckManager.deck()!.notes);
-        this.tagsInput = computed(() => this.deckManager.deck()!.tags.join(", "));
-    }
-
-    updateTags = (tagsInput: string): void => {
+    updateTags(tagsInput: string): void {
         const tags = hasLength(tagsInput) ? tagsInput.split(/\s*,\s*/).map(x => x.toLowerCase()) : [];
-        this.deckManager.patchDeck({ tags });
+        this.deckManager.deck().tags.set(tags);
     }
 
-    updateNotes = (notes: string): void => {
-        this.deckManager.patchDeck({ notes });
+    updateNotes(notes: string): void {
+        this.deckManager.deck().notes.set(notes);
     }
 }

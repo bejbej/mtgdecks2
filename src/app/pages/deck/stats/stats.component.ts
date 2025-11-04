@@ -1,5 +1,6 @@
-import { ChangeDetectionStrategy, Component, computed, Signal, inject } from "@angular/core";
+import { ChangeDetectionStrategy, Component, computed, inject, Signal } from "@angular/core";
 import { Card } from "@entities";
+import { firstOrUndefined } from "@utilities";
 import { DeckManagerService } from "../deck-manager/deck.manager.service";
 
 @Component({
@@ -10,25 +11,19 @@ import { DeckManagerService } from "../deck-manager/deck.manager.service";
 export class StatsComponent {
     private deckManager = inject(DeckManagerService);
 
-
     stats: Signal<string[]>;
 
     private cardTypes = new Set(["creature", "artifact", "enchantment", "planeswalker", "instant", "sorcery"]);
 
     constructor() {
         this.stats = computed(() => {
-            const deck = this.deckManager.deck()!;
-            const firstCardGroup = deck.cardGroups[deck.cardGroupOrder[0]];
-            return this.computeStats(firstCardGroup?.cards ?? []);
+            const firstCardGroup = firstOrUndefined(this.deckManager.deck().cardGroups());
+            return this.computeStats(firstCardGroup?.cards() ?? []);
         });
     }
 
     private computeStats = (cards: Card[]): string[] => {
-        if (!cards) {
-            return [];
-        }
-
-        let stats = new Array(17).fill(0);
+        const stats = new Array(17).fill(0);
 
         for (let card of cards) {
             if (this.cardTypes.has(card.definition.primaryType)) {
@@ -36,7 +31,7 @@ export class StatsComponent {
             }
         };
 
-        for (var i = stats.length - 1; i > -1 && stats[i] === 0; --i) {
+        for (let i = stats.length - 1; i > -1 && stats[i] === 0; --i) {
             stats.pop();
         }
 

@@ -1,7 +1,5 @@
-import { DragDropModule } from '@angular/cdk/drag-drop';
 import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { enableProdMode, importProvidersFrom } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { BrowserModule, bootstrapApplication } from '@angular/platform-browser';
 import { OAuthModule, OAuthStorage } from 'angular-oauth2-oidc';
 import { AppRoutingModule } from 'src/app//app-routing.module';
@@ -16,7 +14,7 @@ if (environment.production) {
 
 bootstrapApplication(AppComponent, {
     providers: [
-        importProvidersFrom(AppRoutingModule, BrowserModule, DragDropModule, FormsModule, OAuthModule.forRoot()),
+        importProvidersFrom(AppRoutingModule, BrowserModule, OAuthModule.forRoot()),
         {
             provide: HTTP_INTERCEPTORS,
             useClass: AuthInterceptor,
