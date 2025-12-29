@@ -46,8 +46,7 @@ export class AuthService {
         this.localStorageService.watchObject<Identity>(config.localStorage.identity).pipe(
             startWith(this.localStorageService.getObject<Identity>(config.localStorage.identity)),
             switchMap(identity => this.delayUntilExpiration(identity)),
-            audit(() => this.isInitialized),
-            tap(() => this.refresh())
+            tap(() => this.logOut())
         ).subscribe();
 
         this.localStorageService.watchObject<Identity>(config.localStorage.identity).pipe(
@@ -87,9 +86,14 @@ export class AuthService {
     }
 
     refresh(): void {
-        this.oauthService.silentRefresh({
-            login_hint: this.oauthService.getIdentityClaims().email
-        }).catch(x => this.logOut())
+        of(undefined).pipe(
+            audit(() => this.isInitialized),
+            tap(() => {
+                this.oauthService.silentRefresh({
+                    login_hint: this.oauthService.getIdentityClaims().email
+                }).catch(x => this.logOut())
+            })
+        )
     }
 
     private init(): Promise<boolean> {
